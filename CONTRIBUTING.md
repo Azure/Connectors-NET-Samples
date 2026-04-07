@@ -13,12 +13,10 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
 - [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 - [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) for local storage emulation
-- A GitHub personal access token with `read:packages` scope (for SDK preview packages)
 
 ### Building
 
 ```bash
-export GH_TOKEN=$(gh auth token)  # or set env var with your PAT
 dotnet restore
 dotnet build
 ```

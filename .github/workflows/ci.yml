@@ -21,13 +21,6 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Download SDK package from GitHub Release
-      run: |
-        mkdir -p .nupkgs
-        curl -sL "https://github.com/Azure/Connectors-NET-SDK/releases/download/v0.1.0-preview.1/Microsoft.Azure.Connectors.Sdk.0.1.0-preview.1.nupkg" \
-          -o .nupkgs/Microsoft.Azure.Connectors.Sdk.0.1.0-preview.1.nupkg
-        dotnet nuget add source "$(pwd)/.nupkgs" --name local-sdk
-
     - name: Restore dependencies
       run: dotnet restore
 

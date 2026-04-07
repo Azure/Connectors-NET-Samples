@@ -39,25 +39,12 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app that 
 - [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) or Azure Storage account
 - Azure subscription with API Connections created (Office 365, SharePoint, Teams)
 
-### 1. Clone and restore
-
-The SDK preview package is hosted on [GitHub Packages](https://github.com/Azure/Connectors-NET-SDK/packages), which requires authentication.
-Set a `GH_TOKEN` environment variable with a [personal access token](https://github.com/settings/tokens) that has `read:packages` scope:
-
-```shell
-# Set your GitHub token (Linux/macOS)
-export GH_TOKEN=$(gh auth token)
-
-# Or on Windows PowerShell
-$env:GH_TOKEN = (gh auth token)
-```
-
-Then clone and restore:
+### 1. Clone and build
 
 ```shell
 git clone https://github.com/Azure/Connectors-NET-Samples.git
 cd Connectors-NET-Samples/DirectConnector
-dotnet restore
+dotnet build
 ```
 
 ### 2. Create API Connections in Azure

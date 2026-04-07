@@ -22,9 +22,6 @@ lib/
 **/[Pp]ackages/*
 !**/[Pp]ackages/build/
 
-# Keep local SDK package source (until SDK is on nuget.org)
-!.nupkgs/
-
 # Azure Functions
 local.settings.json
 

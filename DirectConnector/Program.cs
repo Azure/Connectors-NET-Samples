@@ -18,7 +18,7 @@ var host = new HostBuilder()
     {
         var configuration = hostContext.Configuration;
 
-        // NOTE(daviburg): Bind connector options from configuration.
+        // NOTE: Bind connector options from configuration.
         // This uses the Options pattern for hierarchical, validated configuration.
         // See: https://learn.microsoft.com/dotnet/core/extensions/options
         services.AddOptions<ConnectorOptions>()
@@ -28,17 +28,17 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
 
-        // NOTE(daviburg): Register generated connector clients as singletons.
+        // NOTE: Register generated connector clients as singletons.
         // The factory overload lets DI own the instance lifetime and call Dispose,
         // which exercises the ownership-based disposal pattern: the client will
         // dispose its internally-created HttpClient and DefaultAzureCredential.
-        // NOTE(daviburg): Validation of ConnectionRuntimeUrl is handled by
+        // NOTE: Validation of ConnectionRuntimeUrl is handled by
         // [Required] attribute + ValidateOnStart() at host initialization.
         services.AddSingleton<Office365Client>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
-            // NOTE(daviburg): When ManagedIdentityClientId is null, use the default constructor so
+            // NOTE: When ManagedIdentityClientId is null, use the default constructor so
             // the client relies on DefaultAzureCredential. When ManagedIdentityClientId is non-null
             // (empty string = system-assigned MSI, non-empty = user-assigned MSI), use the MSI constructor.
             return options.Office365.ManagedIdentityClientId != null
@@ -52,7 +52,7 @@ var host = new HostBuilder()
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
-            // NOTE(daviburg): When ManagedIdentityClientId is null, use the default constructor so
+            // NOTE: When ManagedIdentityClientId is null, use the default constructor so
             // the client relies on DefaultAzureCredential. When ManagedIdentityClientId is non-null
             // (empty string = system-assigned MSI, non-empty = user-assigned MSI), use the MSI constructor.
             return options.SharePoint.ManagedIdentityClientId != null

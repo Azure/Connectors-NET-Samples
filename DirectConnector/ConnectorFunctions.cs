@@ -83,7 +83,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("SendEmail")]
     public async Task<HttpResponseData> SendEmailAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "email")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "email")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("SendEmail: Using generated Office365Client from SDK.");
@@ -95,7 +95,22 @@ public class ConnectorFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<SendEmailRequest>(body, ConnectorFunctions.JsonOptions);
+            SendEmailRequest? input;
+            try
+            {
+                input = JsonSerializer.Deserialize<SendEmailRequest>(body, ConnectorFunctions.JsonOptions);
+            }
+            catch (JsonException ex)
+            {
+                this._logger.LogError(ex, "Invalid JSON in request body: '{Message}'.", ex.Message);
+
+                var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest
+                    .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                    .ConfigureAwait(continueOnCapturedContext: false);
+
+                return badRequest;
+            }
 
             if (input == null || string.IsNullOrEmpty(input.To))
             {
@@ -172,7 +187,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("GetCategories")]
     public async Task<HttpResponseData> GetCategoriesAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "categories")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("GetCategories: Using generated Office365Client from SDK.");
@@ -235,7 +250,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("GetSharePointLists")]
     public async Task<HttpResponseData> GetSharePointListsAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sharepoint/lists")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/lists")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("GetSharePointLists: Using generated SharepointonlineClient from SDK.");
@@ -317,7 +332,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("ListFolder")]
     public async Task<HttpResponseData> ListFolderAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sharepoint/files")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/files")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("ListFolder: Using generated SharepointonlineClient from SDK.");
@@ -336,7 +351,7 @@ public class ConnectorFunctions
         {
             var folderId = request.Query["folder"];
 
-            // NOTE(daviburg): ListRootFolderAsync vs ListFolderAsync demonstrates
+            // NOTE: ListRootFolderAsync vs ListFolderAsync demonstrates
             // two overloads with the same return type but different parameter sets.
             var files = string.IsNullOrEmpty(folderId)
                 ? await this._sharePointClient
@@ -411,7 +426,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("DownloadFile")]
     public async Task<HttpResponseData> DownloadFileAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "sharepoint/download")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/download")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("DownloadFile: Using generated SharepointonlineClient byte[] response path.");
@@ -429,13 +444,13 @@ public class ConnectorFunctions
 
         try
         {
-            // NOTE(daviburg): This exercises the byte[] return path in the generated client.
+            // NOTE: This exercises the byte[] return path in the generated client.
             // CallConnectorAsync<byte[]> uses ReadAsByteArrayAsync instead of JSON deserialization.
             var fileBytes = await this._sharePointClient
                 .GetFileContentByPathAsync(siteAddress, filePath, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            // NOTE(daviburg): Sanitize the filename to prevent response header injection.
+            // NOTE: Sanitize the filename to prevent response header injection.
             // Path.GetFileName strips directory traversal, and we remove CR/LF and quotes
             // that could corrupt the Content-Disposition header value.
             var fileName = System.IO.Path.GetFileName(filePath)
@@ -496,7 +511,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("UploadFile")]
     public async Task<HttpResponseData> UploadFileAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "sharepoint/upload")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "sharepoint/upload")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("UploadFile: Using generated SharepointonlineClient byte[] input path.");
@@ -537,7 +552,7 @@ public class ConnectorFunctions
                 return badRequest;
             }
 
-            // NOTE(daviburg): Support both base64-encoded binary and plain text content.
+            // NOTE: Support both base64-encoded binary and plain text content.
             byte[] fileBytes;
             try
             {
@@ -619,7 +634,7 @@ public class ConnectorFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("ExportEmail")]
     public async Task<HttpResponseData> ExportEmailAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "email/export")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "email/export")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("ExportEmail: Using generated Office365Client byte[] response path.");
@@ -636,7 +651,7 @@ public class ConnectorFunctions
 
         try
         {
-            // NOTE(daviburg): This exercises the same byte[] return path as SharePoint's
+            // NOTE: This exercises the same byte[] return path as SharePoint's
             // GetFileContentByPathAsync, proving the pattern works across connectors.
             var emailBytes = await this._office365Client
                 .ExportEmailV2Async(messageId, cancellationToken: cancellationToken)
@@ -703,7 +718,7 @@ public class ConnectorFunctions
         OperationName = Office365TriggerOperations.OnNewEmailV3,
         Connection = "Office365Connection")]
     public async Task<HttpResponseData> TriggerCallbackAsync(
-        // NOTE(daviburg): Function-level key auth. AI Gateway includes the key via ?code= query parameter
+        // NOTE: Function-level key auth. AI Gateway includes the key via ?code= query parameter
         // in the callbackUrl configured in the TriggerConfig. Preview uses function key; MI before GA.
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "triggerCallback")] HttpRequestData request,
         CancellationToken cancellationToken)
@@ -712,7 +727,7 @@ public class ConnectorFunctions
 
         try
         {
-            // NOTE(daviburg): Check Content-Length header first (works for all streams),
+            // NOTE: Check Content-Length header first (works for all streams),
             // then fall back to Body.Length for seekable streams.
             long contentLength = -1;
             if (request.Headers.TryGetValues("Content-Length", out var clValues) &&
@@ -739,17 +754,34 @@ public class ConnectorFunctions
                 return rejectResponse;
             }
 
-            // NOTE(daviburg): Use ReadBlockAsync with a bounded buffer to enforce the size
-            // limit even on non-seekable streams without Content-Length.
+            // NOTE: Read at most (limit + 1) chars so oversized non-seekable
+            // payloads without Content-Length can still be detected reliably.
             using var reader = new StreamReader(request.Body);
-            var buffer = new char[ConnectorFunctions.MaxTriggerCallbackBodySize];
+            var buffer = new char[ConnectorFunctions.MaxTriggerCallbackBodySize + 1];
             var charsRead = await reader
-                .ReadBlockAsync(buffer, 0, buffer.Length)
+                .ReadBlockAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
+
+            if (charsRead > ConnectorFunctions.MaxTriggerCallbackBodySize)
+            {
+                this._logger.LogWarning("TriggerCallback: Payload too large. Rejecting.");
+
+                var rejectResponse = request.CreateResponse(HttpStatusCode.OK);
+                await rejectResponse
+                    .WriteAsJsonAsync(new
+                    {
+                        success = true,
+                        message = "Trigger callback received (payload too large, discarded).",
+                        receivedAt = DateTime.UtcNow
+                    })
+                    .ConfigureAwait(continueOnCapturedContext: false);
+
+                return rejectResponse;
+            }
 
             var body = new string(buffer, 0, charsRead);
 
-            // NOTE(daviburg): Use SDK's per-trigger convenience type for typed deserialization.
+            // NOTE: Use SDK's per-trigger convenience type for typed deserialization.
             // Office365OnNewEmailV3TriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
             // that provides discoverability — the developer no longer needs to know the inner type.
             var payload = JsonSerializer.Deserialize<Office365OnNewEmailV3TriggerPayload>(
@@ -763,7 +795,7 @@ public class ConnectorFunctions
                 "TriggerCallback: Deserialized '{EmailCount}' email(s) using Office365OnNewEmailV3TriggerPayload.",
                 emailCount);
 
-            // NOTE(daviburg): Cap per-email logging to avoid unbounded log volume on batch triggers.
+            // NOTE: Cap per-email logging to avoid unbounded log volume on batch triggers.
             // Log only message IDs (not PII like Subject/From) to reduce accidental exposure.
             if (emails != null)
             {
@@ -816,7 +848,7 @@ public class ConnectorFunctions
         {
             this._logger.LogError(ex, "Error in TriggerCallback.");
 
-            // NOTE(daviburg): Return 200 even on unexpected errors — AI Gateway treats any 2xx
+            // NOTE: Return 200 even on unexpected errors — AI Gateway treats any 2xx
             // as "delivered" and we don't want transient failures to cause retries.
             var errorResponse = request.CreateResponse(HttpStatusCode.OK);
             await errorResponse
@@ -1020,7 +1052,22 @@ public class ConnectorFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<PostTeamsMessageRequest>(body, ConnectorFunctions.JsonOptions);
+            PostTeamsMessageRequest? input;
+            try
+            {
+                input = JsonSerializer.Deserialize<PostTeamsMessageRequest>(body, ConnectorFunctions.JsonOptions);
+            }
+            catch (JsonException ex)
+            {
+                this._logger.LogError(ex, "Invalid JSON in request body: '{Message}'.", ex.Message);
+
+                var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest
+                    .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                    .ConfigureAwait(continueOnCapturedContext: false);
+
+                return badRequest;
+            }
 
             if (input == null || string.IsNullOrEmpty(input.TeamId) ||
                 string.IsNullOrEmpty(input.ChannelId) || string.IsNullOrEmpty(input.Message))
@@ -1032,7 +1079,7 @@ public class ConnectorFunctions
                 return badRequest;
             }
 
-            // NOTE(daviburg): PostMessageToConversationAsync uses DynamicPostMessageRequest (dynamic schema).
+            // NOTE: PostMessageToConversationAsync uses DynamicPostMessageRequest (dynamic schema).
             // The actual message body properties are determined at runtime by the connector's schema
             // discovery endpoint. With [JsonExtensionData] on AdditionalProperties, arbitrary properties
             // are now serialized correctly. Populate the dictionary with the expected message fields.
@@ -1121,7 +1168,22 @@ public class ConnectorFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<CreateCalendarEventRequest>(body, ConnectorFunctions.JsonOptions);
+            CreateCalendarEventRequest? input;
+            try
+            {
+                input = JsonSerializer.Deserialize<CreateCalendarEventRequest>(body, ConnectorFunctions.JsonOptions);
+            }
+            catch (JsonException ex)
+            {
+                this._logger.LogError(ex, "Invalid JSON in request body: '{Message}'.", ex.Message);
+
+                var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequest
+                    .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                    .ConfigureAwait(continueOnCapturedContext: false);
+
+                return badRequest;
+            }
 
             if (input == null || string.IsNullOrEmpty(input.Subject) ||
                 string.IsNullOrEmpty(input.StartTime) || string.IsNullOrEmpty(input.EndTime))
@@ -1143,7 +1205,7 @@ public class ConnectorFunctions
                 RequiredAttendees = input.RequiredAttendees
             };
 
-            // NOTE(daviburg): "Calendar" is the default calendar ID for the signed-in user.
+            // NOTE: "Calendar" is the default calendar ID for the signed-in user.
             var calendarId = input.CalendarId ?? "Calendar";
 
             var result = await this._office365Client

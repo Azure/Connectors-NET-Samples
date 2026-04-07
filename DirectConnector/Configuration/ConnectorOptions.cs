@@ -72,17 +72,6 @@ public class Office365Options
     /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
     /// </summary>
     public string? ManagedIdentityClientId { get; set; }
-
-    /// <summary>
-    /// Connection key JWT from AI Gateway's <c>listconnectionkeys</c> API.
-    /// When set, bypasses AAD/MI token acquisition and uses this key directly as Bearer token.
-    /// Takes precedence over <see cref="ManagedIdentityClientId"/> and <c>DefaultAzureCredential</c>.
-    /// </summary>
-    /// <remarks>
-    /// This value is a bearer credential and must be treated as a secret.
-    /// Supply it via Function App application settings or a secret store — do not commit it to source control or log it.
-    /// </remarks>
-    public string? ConnectionKey { get; set; }
 }
 
 /// <summary>

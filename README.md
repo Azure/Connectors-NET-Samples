@@ -32,14 +32,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app that 
 
 ## Quick Start
 
-### Prerequisites
-
-- [.NET 8 SDK](https://dotnet.microsoft.com/download)
-- [Azure Functions Core Tools v4](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
-- [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) or Azure Storage account
-- Azure subscription with API Connections created (Office 365, SharePoint, Teams)
-
-### 1. Clone and build
+See [CONTRIBUTING.md](CONTRIBUTING.md) for prerequisites and build/run instructions.
 
 ```shell
 git clone https://github.com/Azure/Connectors-NET-Samples.git
@@ -47,55 +40,14 @@ cd Connectors-NET-Samples/DirectConnector
 dotnet build
 ```
 
-### 2. Create API Connections in Azure
-
-For each connector you want to use:
-
-1. Go to **Azure Portal** → **Create Resource** → **API Connection**
-2. Select the connector (e.g., "Office 365 Outlook")
-3. Authorize with your account
-4. Note the **Connection Runtime URL** from the connection's properties
-
-### 3. Grant access to your identity
-
-Add your user or app identity to each connection's access policies:
-
-```powershell
-# Example: add your user to the Office 365 connection
-az rest --method PUT `
-  --uri "https://management.azure.com/subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Web/connections/{connection}/accessPolicies/my-policy?api-version=2018-07-01-preview" `
-  --body '{"properties":{"principal":{"type":"ActiveDirectory","identity":{"objectId":"{your-object-id}","tenantId":"{your-tenant-id}"}}}}'
-```
-
-### 4. Configure and run
-
-```powershell
-cp local.settings.json.template local.settings.json
-# Edit local.settings.json with your connection runtime URLs
-
-dotnet build
-func start
-```
-
-### 5. Test
-
-```powershell
-# Send email
-Invoke-RestMethod -Uri "http://localhost:7071/api/email" -Method POST `
-  -ContentType "application/json" `
-  -Body '{"to":"you@example.com","subject":"Test","body":"<p>Hello from SDK!</p>"}'
-
-# Get Outlook categories
-Invoke-RestMethod -Uri "http://localhost:7071/api/categories"
-```
-
-See [DirectConnector/README.md](DirectConnector/README.md) for full endpoint documentation, authentication modes, and troubleshooting.
+For connector setup and authentication, see [DirectConnector/README.md](DirectConnector/README.md).
 
 ## Related Repositories
 
 | Repository | Description |
 |------------|-------------|
 | [Azure/Connectors-NET-SDK](https://github.com/Azure/Connectors-NET-SDK) | The SDK package — generated connector clients and core abstractions |
+| [Azure/Connectors-NET-LSP](https://github.com/Azure/Connectors-NET-LSP) | Language Server Protocol server and VS Code extension for SDK IntelliSense |
 
 ## Contributing
 

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Logic Apps Discussions
+    url: https://github.com/Azure/LogicApps/discussions
+    about: Ask general Logic Apps questions or discuss ideas
+  - name: Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/azure-logic-apps
+    about: Ask questions about using the SDK on Stack Overflow

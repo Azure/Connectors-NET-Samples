@@ -1,0 +1,51 @@
+name: Bug Report
+description: Report a bug in the samples
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Run `dotnet build`
+        2. Execute `func start`
+        3. Call endpoint: ...
+        4. See error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: SDK version
+      description: The version of the Azure Connectors .NET SDK you are using.
+      placeholder: e.g. 0.1.0-preview.1
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet-version
+    attributes:
+      label: .NET version
+      description: The .NET runtime/SDK version (output of `dotnet --version`).
+      placeholder: e.g. 8.0.300
+    validations:
+      required: true

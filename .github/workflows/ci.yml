@@ -21,10 +21,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: Configure GitHub Packages auth
+      run: dotnet nuget update source github-azure --username "ci" --password "${{ secrets.GH_PACKAGES_TOKEN }}" --store-password-in-clear-text
+
     - name: Restore dependencies
       run: dotnet restore
-      env:
-        GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
     - name: Build
       run: dotnet build --no-restore --configuration Release

@@ -34,6 +34,7 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 ### 1. Create an API Connection in Azure
 
 Create an Office365 (or other) connection in the Azure Portal:
+
 1. Go to Azure Portal → Create Resource → API Connection
 2. Choose "Office 365 Outlook"
 3. Authorize with your account
@@ -48,6 +49,7 @@ Create an Office365 (or other) connection in the Azure Portal:
 3. Grant appropriate permissions (Read, Write, or both)
 
 Alternatively, for production scenarios:
+
 - Create a Managed Identity for your Function App
 - Add that Managed Identity to the connection's access policies
 
@@ -62,6 +64,7 @@ The SDK supports three authentication modes, configured per connector via the `M
 | **User-assigned MSI** | Set `ManagedIdentityClientId` to the client ID GUID | Production: shared identity across multiple resources |
 
 **Example — system-assigned MSI in Azure:**
+
 ```json
 {
   "Connectors:Office365:ManagedIdentityClientId": "",
@@ -70,6 +73,7 @@ The SDK supports three authentication modes, configured per connector via the `M
 ```
 
 **Example — user-assigned MSI:**
+
 ```json
 {
   "Connectors:Office365:ManagedIdentityClientId": "12345678-abcd-4abc-9def-1234567890ab",
@@ -78,6 +82,7 @@ The SDK supports three authentication modes, configured per connector via the `M
 ```
 
 **Access policy requirements for MSI:**
+
 1. Go to Azure Portal → Your API Connection → Access policies
 2. Add the managed identity's Object ID (for system-assigned: the Function App's identity; for user-assigned: the identity resource's principal ID)
 3. The identity also needs the `Microsoft.Web/connections/*/read` permission on the connection resource
@@ -143,7 +148,7 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/upload" -Method POS
 
 ## Architecture
 
-```
+```text
 ┌──────────────────────┐     ┌─────────────────────────────┐     ┌──────────────────┐
 │   Azure Function     │────>│   API Hub (Connector)       │────>│   Office 365     │
 │   (Your Code)        │     │   (Connection Runtime URL)  │     │   (Send Email)   │
@@ -160,6 +165,7 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/upload" -Method POS
 ## Token Audience
 
 The API Hub accepts tokens for these audiences:
+
 - `https://apihub.azure.com`
 - `https://management.core.windows.net/`
 - `https://service.flow.microsoft.com/`
@@ -167,10 +173,13 @@ The API Hub accepts tokens for these audiences:
 ## Troubleshooting
 
 ### "Audience validation failed"
+
 Update the token scope in `GetApiHubTokenAsync()` to use one of the valid audiences.
 
 ### "Permission denied due to missing connection ACL"
+
 Add your identity (user or app) to the API Connection's access policies in Azure Portal.
 
 ### "The requested identity has not been assigned"
+
 Make sure you're logged into Azure CLI: `az login`

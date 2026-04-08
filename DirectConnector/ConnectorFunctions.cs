@@ -370,15 +370,15 @@ public class ConnectorFunctions
                     folder = string.IsNullOrEmpty(folderId) ? "(root)" : folderId,
                     count = files?.Count ?? 0,
                     files = (files ?? Enumerable.Empty<BlobMetadata>()).Select(file => new
-                        {
-                            id = file.Id,
-                            name = file.Name,
-                            displayName = file.DisplayName,
-                            path = file.Path,
-                            size = file.Size,
-                            mediaType = file.MediaType,
-                            isFolder = file.IsFolder
-                        })
+                    {
+                        id = file.Id,
+                        name = file.Name,
+                        displayName = file.DisplayName,
+                        path = file.Path,
+                        size = file.Size,
+                        mediaType = file.MediaType,
+                        isFolder = file.IsFolder
+                    })
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 

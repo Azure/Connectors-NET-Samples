@@ -121,7 +121,7 @@ public class ConnectorFunctions
                 return badRequest;
             }
 
-            var emailMessage = new ClientSendHtmlMessage
+            var emailMessage = new SendEmailInput
             {
                 To = input.To,
                 Subject = input.Subject ?? "No Subject",
@@ -129,7 +129,7 @@ public class ConnectorFunctions
             };
 
             await this._office365Client
-                .SendEmailV2Async(emailMessage, cancellationToken)
+                .SendEmailAsync(emailMessage, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -625,7 +625,7 @@ public class ConnectorFunctions
     /// Exports an email message as raw RFC822 (.eml) bytes.
     /// </summary>
     /// <remarks>
-    /// Exercises the <c>byte[]</c> response path in <see cref="Office365Client.ExportEmailV2Async"/>.
+    /// Exercises the <c>byte[]</c> response path in <see cref="Office365Client.ExportEmailAsync"/>.
     /// This is the Office365 counterpart to <see cref="DownloadFileAsync"/> for SharePoint —
     /// both prove that <c>CallConnectorAsync&lt;byte[]&gt;</c> uses <c>ReadAsByteArrayAsync</c>
     /// instead of JSON deserialization.
@@ -654,7 +654,7 @@ public class ConnectorFunctions
             // NOTE: This exercises the same byte[] return path as SharePoint's
             // GetFileContentByPathAsync, proving the pattern works across connectors.
             var emailBytes = await this._office365Client
-                .ExportEmailV2Async(messageId, cancellationToken: cancellationToken)
+                .ExportEmailAsync(messageId, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -702,7 +702,7 @@ public class ConnectorFunctions
     /// </summary>
     /// <remarks>
     /// The AI Gateway provisions a hidden Consumption Logic App that polls for trigger events
-    /// (e.g., OnNewEmailV3). When fired, it POSTs <c>@triggerBody()</c> to this callback URL
+    /// (e.g., OnNewEmail). When fired, it POSTs <c>@triggerBody()</c> to this callback URL
     /// with a function key via <c>?code=</c> query parameter.
     ///
     /// Unauthenticated requests (missing or invalid function key) are rejected with HTTP 401
@@ -715,7 +715,7 @@ public class ConnectorFunctions
     [Function("TriggerCallback")]
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.Office365,
-        OperationName = Office365TriggerOperations.OnNewEmailV3,
+        OperationName = Office365TriggerOperations.OnNewEmail,
         Connection = "Office365Connection")]
     public async Task<HttpResponseData> TriggerCallbackAsync(
         // NOTE: Function-level key auth. AI Gateway includes the key via ?code= query parameter
@@ -782,9 +782,9 @@ public class ConnectorFunctions
             var body = new string(buffer, 0, charsRead);
 
             // NOTE: Use SDK's per-trigger convenience type for typed deserialization.
-            // Office365OnNewEmailV3TriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
+            // Office365OnNewEmailTriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
             // that provides discoverability — the developer no longer needs to know the inner type.
-            var payload = JsonSerializer.Deserialize<Office365OnNewEmailV3TriggerPayload>(
+            var payload = JsonSerializer.Deserialize<Office365OnNewEmailTriggerPayload>(
                 body,
                 ConnectorFunctions.JsonOptions);
 
@@ -792,7 +792,7 @@ public class ConnectorFunctions
             var emailCount = emails?.Count ?? 0;
 
             this._logger.LogInformation(
-                "TriggerCallback: Deserialized '{EmailCount}' email(s) using Office365OnNewEmailV3TriggerPayload.",
+                "TriggerCallback: Deserialized '{EmailCount}' email(s) using Office365OnNewEmailTriggerPayload.",
                 emailCount);
 
             // NOTE: Cap per-email logging to avoid unbounded log volume on batch triggers.

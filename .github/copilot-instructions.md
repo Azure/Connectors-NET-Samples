@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains sample projects demonstrating how to use the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK). Code must follow the team's coding conventions based on BPM repo standards.
+This repository contains sample projects demonstrating how to use the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK), including design-time generated POCOs from dynamic schema operations. Code must follow the team's coding conventions based on BPM repo standards.
 
 ## Quick Reference: Coding Style Rules
 

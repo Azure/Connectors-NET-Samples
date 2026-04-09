@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.1.0-preview.1" />
+    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.3.0-preview.1" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

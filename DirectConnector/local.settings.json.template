@@ -14,6 +14,10 @@
 
     "Connectors:Teams:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/teams/YOUR-CONNECTION-ID",
     "__comment_Teams_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:Teams:ManagedIdentityClientId": ""
+    "__Connectors:Teams:ManagedIdentityClientId": "",
+
+    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID",
+    "__comment_OneDrive_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:OneDrive:ManagedIdentityClientId": ""
   }
 }

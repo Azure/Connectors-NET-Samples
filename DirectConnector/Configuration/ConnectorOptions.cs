@@ -34,6 +34,12 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public TeamsOptions Teams { get; set; } = new TeamsOptions();
+
+    /// <summary>
+    /// OneDrive for Business connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public OneDriveOptions OneDrive { get; set; } = new OneDriveOptions();
 }
 
 /// <summary>
@@ -83,6 +89,25 @@ public class SharePointOptions
     /// The API connection runtime URL for SharePoint Online.
     /// </summary>
     [Required(ErrorMessage = "SharePoint ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the OneDrive for Business connector.
+/// </summary>
+public class OneDriveOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for OneDrive for Business.
+    /// </summary>
+    [Required(ErrorMessage = "OneDrive ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

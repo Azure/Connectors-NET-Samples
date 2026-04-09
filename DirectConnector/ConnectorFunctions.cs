@@ -1209,7 +1209,7 @@ public class ConnectorFunctions
             var calendarId = input.CalendarId ?? "Calendar";
 
             var result = await this._office365Client
-                .V4CalendarPostItemAsync(calendarId, calendarEvent, cancellationToken)
+                .CalendarPostItemAsync(calendarId, calendarEvent, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);

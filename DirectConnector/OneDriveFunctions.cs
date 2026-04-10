@@ -6,11 +6,10 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
+using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Extensions.Logging;
-
 using OneDriveBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadata;
 
 namespace DirectConnector;

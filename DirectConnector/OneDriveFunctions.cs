@@ -35,6 +35,11 @@ public class OneDriveFunctions
     private const int MaxTriggerCallbackBodySize = 1 * 1024 * 1024;
 
     /// <summary>
+    /// File search mode for OneDrive search operations.
+    /// </summary>
+    private const string OneDriveSearchFileSearchMode = "OneDriveSearch";
+
+    /// <summary>
     /// Allowed values for share link type.
     /// </summary>
     private static readonly HashSet<string> AllowedLinkTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -442,7 +447,7 @@ public class OneDriveFunctions
                 .FindFilesByPathAsync(
                     searchQuery: query,
                     folderPath: folderPath ?? "/",
-                    fileSearchMode: "OneDriveSearch",
+                    fileSearchMode: OneDriveFunctions.OneDriveSearchFileSearchMode,
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 

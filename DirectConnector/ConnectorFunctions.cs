@@ -1896,8 +1896,11 @@ public class ConnectorFunctions
 
             if (isJsonPayload)
             {
-                // NOTE: Properties-only trigger (OnNewFilesV2/OnUpdatedFilesV2).
-                // Payload is structured JSON with BlobMetadata items.
+                // NOTE: Both OnNewFileV2 (binary) and OnNewFilesV2 (metadata) arrive as JSON
+                // with Content-Type: application/json. The difference is in the "body" field:
+                //   OnNewFileV2:  {"body":"<base64-encoded-file-content>"}
+                //   OnNewFilesV2: {"body":{"value":[{...BlobMetadata...}]}}
+                // We parse the raw JSON first, then branch on the body field type.
                 using var reader = new StreamReader(request.Body);
                 var buffer = new char[ConnectorFunctions.MaxTriggerCallbackBodySize + 1];
                 var charsRead = await reader
@@ -1922,6 +1925,75 @@ public class ConnectorFunctions
                 }
 
                 var body = new string(buffer, 0, charsRead);
+
+                // NOTE: Parse the raw JSON to inspect the "body" field type before
+                // attempting typed deserialization.
+                using var document = JsonDocument.Parse(body);
+                var root = document.RootElement;
+
+                if (root.TryGetProperty("body", out var bodyElement) &&
+                    bodyElement.ValueKind == JsonValueKind.String)
+                {
+                    // NOTE: OnNewFileV2 (binary content trigger).
+                    // The "body" field is a base64-encoded string containing the file bytes.
+                    // This is the pattern the issue explicitly asks to demonstrate.
+                    var base64Content = bodyElement.GetString() ?? string.Empty;
+
+                    // NOTE: The base64 string may be wrapped in extra quotes from
+                    // the Logic Apps expression engine. Strip them.
+                    base64Content = base64Content.Trim('"');
+
+                    byte[] fileBytes;
+                    try
+                    {
+                        fileBytes = Convert.FromBase64String(base64Content);
+                    }
+                    catch (FormatException)
+                    {
+                        this._logger.LogWarning(
+                            "OneDriveTriggerCallback: body field is a string but not valid base64 ({Length} chars).",
+                            base64Content.Length);
+
+                        var fallbackResponse = request.CreateResponse(HttpStatusCode.OK);
+                        await fallbackResponse
+                            .WriteAsJsonAsync(new
+                            {
+                                success = true,
+                                message = "Trigger callback received (non-base64 string body).",
+                                receivedAt = DateTime.UtcNow,
+                                triggerType = "file-content",
+                                bodyLength = base64Content.Length
+                            })
+                            .ConfigureAwait(continueOnCapturedContext: false);
+
+                        return fallbackResponse;
+                    }
+
+                    this._logger.LogInformation(
+                        "OneDriveTriggerCallback: Decoded '{ByteCount}' bytes from OnNewFileV2 binary trigger (base64 in JSON envelope).",
+                        fileBytes.Length);
+
+                    var binaryResponse = request.CreateResponse(HttpStatusCode.OK);
+                    await binaryResponse
+                        .WriteAsJsonAsync(new
+                        {
+                            success = true,
+                            message = "Trigger callback received (binary file content via base64 in JSON).",
+                            receivedAt = DateTime.UtcNow,
+                            triggerType = "file-content",
+                            byteCount = fileBytes.Length,
+                            contentPreview = Encoding.UTF8.GetString(
+                                fileBytes,
+                                0,
+                                Math.Min(fileBytes.Length, 200))
+                        })
+                        .ConfigureAwait(continueOnCapturedContext: false);
+
+                    return binaryResponse;
+                }
+
+                // NOTE: OnNewFilesV2 / OnUpdatedFilesV2 (properties-only trigger).
+                // The "body" field is a {"value":[...]} object with BlobMetadata items.
                 var payload = JsonSerializer.Deserialize<OnedriveforbusinessOnNewFilesTriggerPayload>(
                     body,
                     ConnectorFunctions.JsonOptions);

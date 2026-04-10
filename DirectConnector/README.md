@@ -13,6 +13,13 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `GET /api/sharepoint/download?site=...&path=...` | SharePoint | **Binary content (`byte[]`) response** via `ReadAsByteArrayAsync` |
 | `POST /api/sharepoint/upload` | SharePoint | **Binary content (`byte[]`) input** to create files |
 | `GET /api/email/export?messageId=...` | Office365 | **Binary content (`byte[]`) response** — RFC822 `.eml` export |
+| `GET /api/onedrive/root` | OneDrive | Root folder listing, JSON wrapper with `files` array of projected `BlobMetadata` fields |
+| `GET /api/onedrive/files?folder=...` | OneDrive | Folder browsing with paginated `BlobMetadataPage` (includes `nextLink`) |
+| `GET /api/onedrive/download?path=...` | OneDrive | **Binary content (`byte[]`) response** via `ReadAsByteArrayAsync` |
+| `POST /api/onedrive/upload` | OneDrive | **Binary content (`byte[]`) input** to create files |
+| `GET /api/onedrive/search?query=...` | OneDrive | File search with `FindFilesByPathAsync` |
+| `POST /api/onedrive/share` | OneDrive | Create sharing link (`view` or `edit`) |
+| `POST /api/onedriveTriggerCallback` | OneDrive | **Trigger callback** — handles both JSON metadata (OnNewFilesV2) and binary file-content (OnNewFileV2) payloads |
 
 ### Key Patterns
 
@@ -98,7 +105,8 @@ Add your connection runtime URLs to `local.settings.json`:
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "Connectors:Office365:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365/YOUR-CONNECTION-ID",
-    "Connectors:SharePoint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/sharepointonline/YOUR-CONNECTION-ID"
+    "Connectors:SharePoint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/sharepointonline/YOUR-CONNECTION-ID",
+    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID"
   }
 }
 ```
@@ -144,6 +152,41 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/upload" -Method POS
 $base64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes("local-file.docx"))
 $body = @{site="https://contoso.sharepoint.com/sites/mysite";folderPath="/Shared Documents";fileName="uploaded.docx";contentBase64=$base64} | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/upload" -Method POST -Body $body -ContentType "application/json"
+
+# List OneDrive root folder
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/root"
+
+# Browse files in a specific OneDrive folder (use file ID from previous response)
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/files?folder=FOLDER_ID"
+
+# Download file from OneDrive (binary byte[] response)
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/download?path=/Documents/test.txt" -OutFile "downloaded.txt"
+
+# Upload a text file to OneDrive
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/upload" -Method POST `
+    -Body '{"folderPath":"/Documents","fileName":"hello.txt","content":"Hello from DirectClient SDK!"}' `
+    -ContentType "application/json"
+
+# Upload a binary file to OneDrive (base64-encoded)
+$base64 = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes("local-file.docx"))
+$body = @{folderPath="/Documents";fileName="uploaded.docx";contentBase64=$base64} | ConvertTo-Json
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/upload" -Method POST -Body $body -ContentType "application/json"
+
+# Search for files in OneDrive
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/search?query=report"
+
+# Search in a specific folder
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/search?query=report&folder=/Documents"
+
+# Create a view-only sharing link
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
+    -Body '{"fileId":"FILE_ID","linkType":"view"}' `
+    -ContentType "application/json"
+
+# Create an edit sharing link with organization scope
+Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
+    -Body '{"fileId":"FILE_ID","linkType":"edit","linkScope":"organization"}' `
+    -ContentType "application/json"
 ```
 
 ## Architecture

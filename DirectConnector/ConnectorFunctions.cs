@@ -8,15 +8,17 @@ using System.Text.Json;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
+using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Extensions.Logging;
+using SharePointBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Sharepointonline.BlobMetadata;
 
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions that use the generated <see cref="Office365Client"/>, <see cref="SharepointonlineClient"/>, and <see cref="TeamsClient"/> from the DirectClient SDK.
+/// Azure Functions that use the generated <see cref="Office365Client"/>, <see cref="SharepointonlineClient"/>,
+/// and <see cref="TeamsClient"/> from the DirectClient SDK.
 /// </summary>
 /// <remarks>
 /// Demonstrates DI-based lifetime management, JSON deserialization for structured responses,
@@ -326,7 +328,7 @@ public class ConnectorFunctions
     /// Lists files in a SharePoint folder using the generated <see cref="SharepointonlineClient"/>.
     /// </summary>
     /// <remarks>
-    /// Exercises the <see cref="BlobMetadata"/> model for folder browsing.
+    /// Exercises the <see cref="SharePointBlobMetadata"/> model for folder browsing.
     /// </remarks>
     /// <param name="request">The HTTP request containing site and optional folder identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -369,7 +371,7 @@ public class ConnectorFunctions
                     site = siteAddress,
                     folder = string.IsNullOrEmpty(folderId) ? "(root)" : folderId,
                     count = files?.Count ?? 0,
-                    files = (files ?? Enumerable.Empty<BlobMetadata>()).Select(file => new
+                    files = (files ?? Enumerable.Empty<SharePointBlobMetadata>()).Select(file => new
                     {
                         id = file.Id,
                         name = file.Name,
@@ -730,8 +732,8 @@ public class ConnectorFunctions
             // NOTE: Check Content-Length header first (works for all streams),
             // then fall back to Body.Length for seekable streams.
             long contentLength = -1;
-            if (request.Headers.TryGetValues("Content-Length", out var clValues) &&
-                long.TryParse(clValues.FirstOrDefault(), out var parsedLength))
+            if (request.Headers.TryGetValues("Content-Length", out var contentLengthHeaderValues) &&
+                long.TryParse(contentLengthHeaderValues.FirstOrDefault(), out var parsedLength))
             {
                 contentLength = parsedLength;
             }

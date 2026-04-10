@@ -6,6 +6,7 @@ using DirectConnector.Configuration;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
+using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,6 +72,17 @@ var host = new HostBuilder()
                     options.Teams.ConnectionRuntimeUrl,
                     options.Teams.ManagedIdentityClientId)
                 : new TeamsClient(options.Teams.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<OnedriveforbusinessClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.OneDrive.ManagedIdentityClientId != null
+                ? new OnedriveforbusinessClient(
+                    options.OneDrive.ConnectionRuntimeUrl,
+                    options.OneDrive.ManagedIdentityClientId)
+                : new OnedriveforbusinessClient(options.OneDrive.ConnectionRuntimeUrl);
         });
     })
     .Build();

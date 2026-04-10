@@ -335,7 +335,7 @@ public class ConnectorFunctions
     /// Lists files in a SharePoint folder using the generated <see cref="SharepointonlineClient"/>.
     /// </summary>
     /// <remarks>
-    /// Exercises the <see cref="BlobMetadata"/> model for folder browsing.
+    /// Exercises the <see cref="SharePointBlobMetadata"/> model for folder browsing.
     /// </remarks>
     /// <param name="request">The HTTP request containing site and optional folder identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -739,8 +739,8 @@ public class ConnectorFunctions
             // NOTE: Check Content-Length header first (works for all streams),
             // then fall back to Body.Length for seekable streams.
             long contentLength = -1;
-            if (request.Headers.TryGetValues("Content-Length", out var clValues) &&
-                long.TryParse(clValues.FirstOrDefault(), out var parsedLength))
+            if (request.Headers.TryGetValues("Content-Length", out var contentLengthHeaderValues) &&
+                long.TryParse(contentLengthHeaderValues.FirstOrDefault(), out var parsedLength))
             {
                 contentLength = parsedLength;
             }
@@ -1359,7 +1359,7 @@ public class ConnectorFunctions
     /// </summary>
     /// <remarks>
     /// Exercises <see cref="OnedriveforbusinessClient.ListFolderAsync"/> which returns a paginated
-    /// <see cref="BlobMetadataPage"/> with a <c>NextLink</c> for continuation.
+    /// <see cref="Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadataPage"/> with a <c>NextLink</c> for continuation.
     /// </remarks>
     /// <param name="request">The HTTP request containing the folder identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -1826,7 +1826,7 @@ public class ConnectorFunctions
     /// <item>
     /// <term>OnNewFilesV2 / OnUpdatedFilesV2</term>
     /// <description>
-    /// Returns file metadata (<see cref="BlobMetadata"/>) as structured JSON.
+    /// Returns file metadata (<see cref="OneDriveBlobMetadata"/>) as structured JSON.
     /// The payload deserializes to <see cref="OnedriveforbusinessOnNewFilesTriggerPayload"/>.
     /// </description>
     /// </item>
@@ -1860,8 +1860,8 @@ public class ConnectorFunctions
         try
         {
             long contentLength = -1;
-            if (request.Headers.TryGetValues("Content-Length", out var clValues) &&
-                long.TryParse(clValues.FirstOrDefault(), out var parsedLength))
+            if (request.Headers.TryGetValues("Content-Length", out var contentLengthHeaderValues) &&
+                long.TryParse(contentLengthHeaderValues.FirstOrDefault(), out var parsedLength))
             {
                 contentLength = parsedLength;
             }
@@ -1887,9 +1887,9 @@ public class ConnectorFunctions
             // NOTE: Detect content type to distinguish between JSON metadata triggers
             // (OnNewFilesV2) and binary file-content triggers (OnNewFileV2).
             var contentType = string.Empty;
-            if (request.Headers.TryGetValues("Content-Type", out var ctValues))
+            if (request.Headers.TryGetValues("Content-Type", out var contentTypeHeaderValues))
             {
-                contentType = ctValues.FirstOrDefault() ?? string.Empty;
+                contentType = contentTypeHeaderValues.FirstOrDefault() ?? string.Empty;
             }
 
             var isJsonPayload = contentType.Contains("json", StringComparison.OrdinalIgnoreCase);
@@ -1968,14 +1968,39 @@ public class ConnectorFunctions
             else
             {
                 // NOTE: Binary file-content trigger (OnNewFileV2/OnUpdatedFileV2).
-                // The AI Gateway POSTs raw file bytes — not JSON. Read as byte[] and
-                // log metadata from headers since the body is opaque binary content.
-                using var memoryStream = new MemoryStream();
-                await request.Body
-                    .CopyToAsync(memoryStream, cancellationToken)
-                    .ConfigureAwait(continueOnCapturedContext: false);
+                // The AI Gateway POSTs raw file bytes — not JSON. Read with a bounded
+                // buffer to enforce MaxTriggerCallbackBodySize even when Content-Length
+                // is missing or the stream is non-seekable.
+                var boundedBuffer = new byte[ConnectorFunctions.MaxTriggerCallbackBodySize + 1];
+                int totalBytesRead = 0;
+                int bytesRead;
+                while (totalBytesRead < boundedBuffer.Length &&
+                    (bytesRead = await request.Body
+                        .ReadAsync(boundedBuffer.AsMemory(totalBytesRead, boundedBuffer.Length - totalBytesRead), cancellationToken)
+                        .ConfigureAwait(continueOnCapturedContext: false)) > 0)
+                {
+                    totalBytesRead += bytesRead;
+                }
 
-                var fileBytes = memoryStream.ToArray();
+                if (totalBytesRead > ConnectorFunctions.MaxTriggerCallbackBodySize)
+                {
+                    this._logger.LogWarning("OneDriveTriggerCallback: Binary payload too large. Rejecting.");
+
+                    var rejectResponse = request.CreateResponse(HttpStatusCode.OK);
+                    await rejectResponse
+                        .WriteAsJsonAsync(new
+                        {
+                            success = true,
+                            message = "Trigger callback received (payload too large, discarded).",
+                            receivedAt = DateTime.UtcNow
+                        })
+                        .ConfigureAwait(continueOnCapturedContext: false);
+
+                    return rejectResponse;
+                }
+
+                var fileBytes = new byte[totalBytesRead];
+                Array.Copy(boundedBuffer, fileBytes, totalBytesRead);
 
                 this._logger.LogInformation(
                     "OneDriveTriggerCallback: Received '{ByteCount}' bytes from binary file-content trigger (Content-Type: '{ContentType}').",

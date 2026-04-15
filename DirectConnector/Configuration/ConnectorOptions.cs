@@ -132,7 +132,7 @@ public class MsGraphOptions
     /// <summary>
     /// The API connection runtime URL for MS Graph Groups and Users.
     /// </summary>
-    [Required(ErrorMessage = "MsGraph ConnectionRuntimeUrl is required.")]
+    [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

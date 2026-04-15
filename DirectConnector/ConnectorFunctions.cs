@@ -1272,7 +1272,7 @@ public class ConnectorFunctions
     // ── MS Graph Groups & Users ──────────────────────────────────────────
 
     /// <summary>
-    /// Lists all users in the tenant using the generated <see cref="MsgraphgroupsanduserClient"/>.
+    /// Lists a page of users in the tenant using the generated <see cref="MsgraphgroupsanduserClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>

@@ -1343,7 +1343,8 @@ public class ConnectorFunctions
     {
         this._logger.LogInformation("ListGraphGroups: Using generated MsgraphgroupsanduserClient from SDK.");
 
-        var search = request.Query["search"];
+        var rawSearch = request.Query["search"];
+        var search = string.IsNullOrWhiteSpace(rawSearch) ? null : rawSearch.ToString();
 
         try
         {
@@ -1411,7 +1412,7 @@ public class ConnectorFunctions
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
-                .WriteAsJsonAsync(new { error = "Query parameter 'groupId' is required." })
+                .WriteAsJsonAsync(new { success = false, error = "Query parameter 'groupId' is required." })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return badRequest;
         }

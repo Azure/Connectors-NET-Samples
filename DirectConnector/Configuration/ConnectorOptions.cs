@@ -40,6 +40,12 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public OneDriveOptions OneDrive { get; set; } = new OneDriveOptions();
+
+    /// <summary>
+    /// MS Graph Groups and Users connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
 }
 
 /// <summary>
@@ -108,6 +114,25 @@ public class OneDriveOptions
     /// The API connection runtime URL for OneDrive for Business.
     /// </summary>
     [Required(ErrorMessage = "OneDrive ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the MS Graph Groups and Users connector.
+/// </summary>
+public class MsGraphOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for MS Graph Groups and Users.
+    /// </summary>
+    [Required(ErrorMessage = "MsGraph ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

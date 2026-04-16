@@ -32,6 +32,23 @@ namespace DirectConnector
 - Usings sorted: System.* first, then alphabetically
 - No empty lines between using groups
 
+### Project Organization — One File Per Connector
+
+Each connector's sample functions **must** be in a dedicated file named `{Connector}Functions.cs`:
+
+| Connector | File |
+|-----------|------|
+| Office365, SharePoint, Teams | `ConnectorFunctions.cs` (legacy combined file — to be refactored) |
+| OneDrive for Business | `OneDriveFunctions.cs` |
+| MS Graph Groups & Users | `MsGraphFunctions.cs` |
+
+**Rules:**
+
+- Each file is a separate class with its own `ILogger<T>` and connector client injected via constructor
+- DI registration of the connector client stays in `Program.cs`
+- Configuration options class stays in `Configuration/ConnectorOptions.cs`
+- New connectors must follow this pattern; do NOT add functions to `ConnectorFunctions.cs`
+
 ### Naming and Qualification
 
 | Element | Rule | Example |

@@ -109,7 +109,7 @@ public class MsGraphFunctions
         this._logger.LogInformation("ListGraphGroups: Using generated MsgraphgroupsanduserClient from SDK.");
 
         var rawSearch = request.Query["search"];
-        var search = string.IsNullOrWhiteSpace(rawSearch) ? null : rawSearch.ToString();
+        var search = string.IsNullOrWhiteSpace(rawSearch) ? null : rawSearch;
 
         try
         {
@@ -173,7 +173,7 @@ public class MsGraphFunctions
         this._logger.LogInformation("GetGraphGroupProperties: Using generated MsgraphgroupsanduserClient from SDK.");
 
         var rawGroupId = request.Query["groupId"];
-        var groupId = rawGroupId?.ToString().Trim();
+        var groupId = rawGroupId?.Trim();
         if (string.IsNullOrWhiteSpace(groupId))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);

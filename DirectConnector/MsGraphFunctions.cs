@@ -172,8 +172,9 @@ public class MsGraphFunctions
     {
         this._logger.LogInformation("GetGraphGroupProperties: Using generated MsgraphgroupsanduserClient from SDK.");
 
-        var groupId = request.Query["groupId"];
-        if (string.IsNullOrEmpty(groupId))
+        var rawGroupId = request.Query["groupId"];
+        var groupId = rawGroupId?.ToString().Trim();
+        if (string.IsNullOrWhiteSpace(groupId))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest

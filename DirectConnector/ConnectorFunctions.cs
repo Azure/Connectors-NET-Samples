@@ -34,7 +34,7 @@ public class ConnectorFunctions
 
     /// <summary>
     /// Maximum accepted request body size for trigger callbacks (1 MB).
-    /// Requests exceeding this size are rejected with 200 OK to avoid AI Gateway retries.
+    /// Requests exceeding this size are rejected with 200 OK to avoid Connector Gateway retries.
     /// </summary>
     private const int MaxTriggerCallbackBodySize = 1 * 1024 * 1024;
 
@@ -700,17 +700,17 @@ public class ConnectorFunctions
     }
 
     /// <summary>
-    /// Receives AI Gateway trigger callback with raw <c>triggerBody()</c> JSON.
+    /// Receives Connector Gateway trigger callback with raw <c>triggerBody()</c> JSON.
     /// </summary>
     /// <remarks>
-    /// The AI Gateway provisions a hidden Consumption Logic App that polls for trigger events
+    /// The Connector Gateway provisions a hidden Consumption Logic App that polls for trigger events
     /// (e.g., OnNewEmail). When fired, it POSTs <c>@triggerBody()</c> to this callback URL
     /// with a function key via <c>?code=</c> query parameter.
     ///
     /// Unauthenticated requests (missing or invalid function key) are rejected with HTTP 401
     /// by the Functions runtime before this handler runs.
     ///
-    /// For authenticated invocations, all exceptions return 200 to prevent AI Gateway retries.
+    /// For authenticated invocations, all exceptions return 200 to prevent Connector Gateway retries.
     /// </remarks>
     /// <param name="request">The HTTP request containing the trigger payload.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -720,12 +720,12 @@ public class ConnectorFunctions
         OperationName = Office365TriggerOperations.OnNewEmail,
         Connection = "Office365Connection")]
     public async Task<HttpResponseData> TriggerCallbackAsync(
-        // NOTE: Function-level key auth. AI Gateway includes the key via ?code= query parameter
+        // NOTE: Function-level key auth. Connector Gateway includes the key via ?code= query parameter
         // in the callbackUrl configured in the TriggerConfig. Preview uses function key; MI before GA.
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "triggerCallback")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("TriggerCallback: Received AI Gateway trigger callback.");
+        this._logger.LogInformation("TriggerCallback: Received Connector Gateway trigger callback.");
 
         try
         {
@@ -850,7 +850,7 @@ public class ConnectorFunctions
         {
             this._logger.LogError(ex, "Error in TriggerCallback.");
 
-            // NOTE: Return 200 even on unexpected errors — AI Gateway treats any 2xx
+            // NOTE: Return 200 even on unexpected errors — Connector Gateway treats any 2xx
             // as "delivered" and we don't want transient failures to cause retries.
             var errorResponse = request.CreateResponse(HttpStatusCode.OK);
             await errorResponse

@@ -20,7 +20,7 @@ namespace DirectConnector;
 /// </list>
 /// <para>
 /// At runtime, this attribute has no effect — the actual trigger binding is still
-/// <c>[HttpTrigger]</c> receiving AI Gateway callbacks. When the Functions extension
+/// <c>[HttpTrigger]</c> receiving Connector Gateway callbacks. When the Functions extension
 /// ships, this will be replaced by the real <c>[ConnectorTrigger]</c>.
 /// </para>
 /// </remarks>

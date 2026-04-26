@@ -28,7 +28,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app that 
 - **Binary content handling** — `byte[]` responses use `ReadAsByteArrayAsync` instead of JSON deserialization
 - **Connector-specific exceptions** — `Office365ConnectorException`, `SharepointonlineConnectorException`, `TeamsConnectorException`
 - **Dynamic schema** — `DynamicPostMessageRequest` with `[JsonExtensionData]` for runtime-determined properties
-- **Trigger callbacks** — typed deserialization of Connector Gateway trigger payloads via `Office365OnNewEmailV3TriggerPayload`
+- **Trigger callbacks** — typed deserialization of Connector Gateway trigger payloads via `Office365OnNewEmailTriggerPayload`
 
 ## Quick Start
 

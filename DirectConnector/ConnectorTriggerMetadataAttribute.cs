@@ -40,7 +40,7 @@ public sealed class ConnectorTriggerMetadataAttribute : Attribute
 
     /// <summary>
     /// The app settings key for the connection. Uses the <c>__</c> separator convention
-    /// (e.g., <c>"Office365Connection"</c> resolves <c>Office365Connection__aiGatewayName</c>).
+    /// (e.g., <c>"Office365Connection"</c> resolves <c>Office365Connection__connectorGatewayName</c>).
     /// </summary>
     public string Connection { get; set; } = "";
 }

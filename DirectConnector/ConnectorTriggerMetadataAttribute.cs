@@ -39,8 +39,9 @@ public sealed class ConnectorTriggerMetadataAttribute : Attribute
     public string OperationName { get; set; } = "";
 
     /// <summary>
-    /// The app settings key for the connection. Uses the <c>__</c> separator convention
-    /// (e.g., <c>"Office365Connection"</c> resolves <c>Office365Connection__connectorGatewayName</c>).
+    /// The connection setting name for the connector. When the Functions connector extension ships,
+    /// this will resolve connection settings via <c>ConnectorConnectionResolver</c>.
+    /// In this sample, connections are configured via <c>Connectors:{Connector}:ConnectionRuntimeUrl</c>.
     /// </summary>
     public string Connection { get; set; } = "";
 }

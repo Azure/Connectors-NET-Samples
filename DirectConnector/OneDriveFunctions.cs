@@ -604,11 +604,11 @@ public class OneDriveFunctions
     }
 
     /// <summary>
-    /// Receives AI Gateway trigger callback for OneDrive for Business file events.
+    /// Receives Connector Gateway trigger callback for OneDrive for Business file events.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The AI Gateway wraps all trigger payloads in a JSON envelope with a <c>body</c> field.
+    /// The Connector Gateway wraps all trigger payloads in a JSON envelope with a <c>body</c> field.
     /// Both binary and metadata triggers arrive with <c>Content-Type: application/json</c>.
     /// The handler parses the JSON and inspects the <c>body</c> field type to determine the variant:
     /// </para>
@@ -634,12 +634,12 @@ public class OneDriveFunctions
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.Onedriveforbusiness,
         OperationName = OnedriveforbusinessTriggerOperations.OnNewFiles,
-        Connection = "OneDriveConnection")]
+        Connection = "Connectors:OneDrive")]
     public async Task<HttpResponseData> OneDriveTriggerCallbackAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "onedriveTriggerCallback")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("OneDriveTriggerCallback: Received AI Gateway trigger callback.");
+        this._logger.LogInformation("OneDriveTriggerCallback: Received Connector Gateway trigger callback.");
 
         try
         {

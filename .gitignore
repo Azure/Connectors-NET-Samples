@@ -38,3 +38,4 @@ Thumbs.db
 TestExport/
 azurite-data/
 __blobstorage__/
+.vscode/

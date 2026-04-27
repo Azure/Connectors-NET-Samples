@@ -718,7 +718,7 @@ public class ConnectorFunctions
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.Office365,
         OperationName = Office365TriggerOperations.OnNewEmail,
-        Connection = "Office365Connection")]
+        Connection = "Connectors:Office365")]
     public async Task<HttpResponseData> TriggerCallbackAsync(
         // NOTE: Function-level key auth. Connector Gateway includes the key via ?code= query parameter
         // in the callbackUrl configured in the TriggerConfig. Preview uses function key; MI before GA.

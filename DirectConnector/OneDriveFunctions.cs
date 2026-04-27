@@ -634,7 +634,7 @@ public class OneDriveFunctions
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.Onedriveforbusiness,
         OperationName = OnedriveforbusinessTriggerOperations.OnNewFiles,
-        Connection = "OneDriveConnection")]
+        Connection = "Connectors:OneDrive")]
     public async Task<HttpResponseData> OneDriveTriggerCallbackAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "onedriveTriggerCallback")] HttpRequestData request,
         CancellationToken cancellationToken)

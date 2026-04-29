@@ -14,7 +14,8 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.6.0-preview.1.dev" />
+    <!-- TODO: Update to v0.7.0-preview.1 once SDK pagination PR is merged and published -->
+    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.6.0-preview.1" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

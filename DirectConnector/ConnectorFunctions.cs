@@ -1036,6 +1036,99 @@ public class ConnectorFunctions
     }
 
     /// <summary>
+    /// Gets all messages from a Teams channel, automatically paginating across all pages.
+    /// </summary>
+    /// <remarks>
+    /// Demonstrates <see cref="IAsyncEnumerable{T}"/> pagination: <c>GetMessagesFromChannelAsync</c>
+    /// returns a <c>ConnectorPageable</c> that follows <c>@odata.nextLink</c> automatically.
+    /// The caller uses <c>await foreach</c> and never sees pagination details.
+    /// </remarks>
+    /// <param name="request">The HTTP request with teamId and channelId query parameters.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    [Function("GetChannelMessages")]
+    public async Task<HttpResponseData> GetChannelMessagesAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "teams/messages")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("GetChannelMessages: Demonstrating IAsyncEnumerable pagination.");
+
+        var teamId = request.Query["teamId"];
+        var channelId = request.Query["channelId"];
+
+        if (string.IsNullOrEmpty(teamId) || string.IsNullOrEmpty(channelId))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Query parameters 'teamId' and 'channelId' are required." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        try
+        {
+            // GetMessagesFromChannelAsync returns IAsyncEnumerable<ChatMessage> that automatically
+            // follows @odata.nextLink pagination across all pages.
+            var messages = new List<object>();
+            await foreach (var message in this._teamsClient
+                .GetMessagesFromChannelAsync(teamId, channelId)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false))
+            {
+                messages.Add(new
+                {
+                    id = message.Id,
+                    subject = message.Subject,
+                    messageType = message.MessageType,
+                    createdDateTime = message.CreationTimestamp,
+                    from = message.From
+                });
+            }
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new
+                {
+                    success = true,
+                    teamId,
+                    channelId,
+                    totalMessages = messages.Count,
+                    messages
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (TeamsConnectorException ex)
+        {
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    statusCode = ex.StatusCode,
+                    details = ex.ResponseBody
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in GetChannelMessages.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
     /// Posts a message to a Teams channel using the generated <see cref="TeamsClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request containing team, channel, and message details.</param>

@@ -137,8 +137,8 @@ public class OneDriveFunctions
     /// Lists files in a specific OneDrive folder.
     /// </summary>
     /// <remarks>
-    /// Exercises <see cref="OnedriveforbusinessClient.ListFolderAsync"/> which returns a paginated
-    /// <see cref="Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadataPage"/> with a <c>NextLink</c> for continuation.
+    /// Exercises <see cref="OnedriveforbusinessClient.ListFolderAsync"/> which returns an
+    /// <see cref="IAsyncEnumerable{T}"/> that automatically follows pagination across all pages.
     /// </remarks>
     /// <param name="request">The HTTP request containing the folder identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -161,11 +161,25 @@ public class OneDriveFunctions
 
         try
         {
-            // NOTE: ListFolderAsync returns BlobMetadataPage (paginated) with NextLink,
-            // unlike ListRootFolderAsync which returns a flat List<BlobMetadata>.
-            var page = await this._oneDriveClient
-                .ListFolderAsync(folderId, cancellationToken)
-                .ConfigureAwait(continueOnCapturedContext: false);
+            // ListFolderAsync returns IAsyncEnumerable<BlobMetadata> that automatically
+            // follows NextLink pagination across all pages — no manual loop needed.
+            var files = new List<object>();
+            await foreach (var file in this._oneDriveClient
+                .ListFolderAsync(folderId)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false))
+            {
+                files.Add(new
+                {
+                    id = file.Id,
+                    name = file.Name,
+                    displayName = file.DisplayName,
+                    path = file.Path,
+                    size = file.Size,
+                    mediaType = file.MediaType,
+                    isFolder = file.IsFolder
+                });
+            }
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
@@ -173,18 +187,8 @@ public class OneDriveFunctions
                 {
                     success = true,
                     folder = folderId,
-                    count = page?.Value?.Count ?? 0,
-                    nextLink = page?.NextLink,
-                    files = (page?.Value ?? Enumerable.Empty<OneDriveBlobMetadata>()).Select(file => new
-                    {
-                        id = file.Id,
-                        name = file.Name,
-                        displayName = file.DisplayName,
-                        path = file.Path,
-                        size = file.Size,
-                        mediaType = file.MediaType,
-                        isFolder = file.IsFolder
-                    })
+                    count = files.Count,
+                    files
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 

@@ -14,7 +14,10 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.6.0-preview.1" />
+    <ProjectReference Include="..\..\Connectors-NET-SDK-office365users\src\Microsoft.Azure.Connectors.Sdk\Microsoft.Azure.Connectors.Sdk.csproj" />
+    <!-- Switch back to PackageReference after SDK v0.7.0 is published:
+    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.7.0-preview.1" />
+    -->
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

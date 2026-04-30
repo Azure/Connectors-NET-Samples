@@ -26,6 +26,10 @@
 
     "Connectors:AzureLogAnalytics:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azureloganalytics/YOUR-CONNECTION-ID",
     "__comment_AzureLogAnalytics_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:AzureLogAnalytics:ManagedIdentityClientId": ""
+    "__Connectors:AzureLogAnalytics:ManagedIdentityClientId": "",
+
+    "Connectors:Office365Users:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365users/YOUR-CONNECTION-ID",
+    "__comment_Office365Users_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Office365Users:ManagedIdentityClientId": ""
   }
 }

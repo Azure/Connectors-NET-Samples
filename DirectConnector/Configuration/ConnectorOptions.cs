@@ -46,6 +46,12 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
+
+    /// <summary>
+    /// SMTP connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public SmtpOptions Smtp { get; set; } = new SmtpOptions();
 }
 
 /// <summary>
@@ -133,6 +139,25 @@ public class MsGraphOptions
     /// The API connection runtime URL for MS Graph Groups and Users.
     /// </summary>
     [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the SMTP connector.
+/// </summary>
+public class SmtpOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for SMTP.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Smtp:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

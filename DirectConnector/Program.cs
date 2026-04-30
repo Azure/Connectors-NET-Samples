@@ -7,6 +7,7 @@ using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
+using Microsoft.Azure.Connectors.DirectClient.Smtp;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
@@ -95,6 +96,17 @@ var host = new HostBuilder()
                     options.MsGraph.ConnectionRuntimeUrl,
                     options.MsGraph.ManagedIdentityClientId)
                 : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<SmtpClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Smtp.ManagedIdentityClientId != null
+                ? new SmtpClient(
+                    options.Smtp.ConnectionRuntimeUrl,
+                    options.Smtp.ManagedIdentityClientId)
+                : new SmtpClient(options.Smtp.ConnectionRuntimeUrl);
         });
     })
     .Build();

@@ -46,6 +46,12 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
+
+    /// <summary>
+    /// Azure Log Analytics connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public AzureLogAnalyticsOptions AzureLogAnalytics { get; set; } = new AzureLogAnalyticsOptions();
 }
 
 /// <summary>
@@ -133,6 +139,25 @@ public class MsGraphOptions
     /// The API connection runtime URL for MS Graph Groups and Users.
     /// </summary>
     [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the Azure Log Analytics connector.
+/// </summary>
+public class AzureLogAnalyticsOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Log Analytics.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:AzureLogAnalytics:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

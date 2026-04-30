@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
+using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
 using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
@@ -95,6 +96,17 @@ var host = new HostBuilder()
                     options.MsGraph.ConnectionRuntimeUrl,
                     options.MsGraph.ManagedIdentityClientId)
                 : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<AzureloganalyticsClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.AzureLogAnalytics.ManagedIdentityClientId != null
+                ? new AzureloganalyticsClient(
+                    options.AzureLogAnalytics.ConnectionRuntimeUrl,
+                    options.AzureLogAnalytics.ManagedIdentityClientId)
+                : new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl);
         });
     })
     .Build();

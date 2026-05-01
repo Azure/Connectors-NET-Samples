@@ -39,3 +39,4 @@ TestExport/
 azurite-data/
 __blobstorage__/
 .vscode/
+DirectConnector/e2e-out/

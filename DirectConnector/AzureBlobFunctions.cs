@@ -45,7 +45,7 @@ public class AzureBlobFunctions
 
         var storageAccount = request.Query["account"];
         var blobPath = request.Query["path"];
-        if (string.IsNullOrEmpty(storageAccount) || string.IsNullOrEmpty(blobPath))
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(blobPath))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
@@ -106,7 +106,7 @@ public class AzureBlobFunctions
 
         var storageAccount = request.Query["account"];
         var blobPath = request.Query["path"];
-        if (string.IsNullOrEmpty(storageAccount) || string.IsNullOrEmpty(blobPath))
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(blobPath))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
@@ -176,7 +176,7 @@ public class AzureBlobFunctions
         var storageAccount = request.Query["account"];
         var folder = request.Query["folder"];
         var blobName = request.Query["name"];
-        if (string.IsNullOrEmpty(storageAccount) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(blobName))
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(folder) || string.IsNullOrWhiteSpace(blobName))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
@@ -245,7 +245,7 @@ public class AzureBlobFunctions
 
         var storageAccount = request.Query["account"];
         var blobId = request.Query["id"];
-        if (string.IsNullOrEmpty(storageAccount) || string.IsNullOrEmpty(blobId))
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(blobId))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest

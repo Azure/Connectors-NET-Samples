@@ -5,7 +5,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
 using Microsoft.Azure.Connectors.DirectClient.Smtp;
@@ -61,7 +60,6 @@ public class ConnectorFunctions
     private readonly SharepointonlineClient _sharePointClient;
     private readonly SmtpClient _smtpClient;
     private readonly TeamsClient _teamsClient;
-    private readonly MqClient _mqClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConnectorFunctions"/> class.
@@ -71,21 +69,18 @@ public class ConnectorFunctions
     /// <param name="sharePointClient">The DI-injected SharePoint client (disposed by the host).</param>
     /// <param name="smtpClient">The DI-injected SMTP client (disposed by the host).</param>
     /// <param name="teamsClient">The DI-injected Teams client (disposed by the host).</param>
-    /// <param name="mqClient">The DI-injected MQ client (disposed by the host).</param>
     public ConnectorFunctions(
         ILogger<ConnectorFunctions> logger,
         Office365Client office365Client,
         SharepointonlineClient sharePointClient,
         SmtpClient smtpClient,
-        TeamsClient teamsClient,
-        MqClient mqClient)
+        TeamsClient teamsClient)
     {
         this._logger = logger;
         this._office365Client = office365Client;
         this._sharePointClient = sharePointClient;
         this._smtpClient = smtpClient;
         this._teamsClient = teamsClient;
-        this._mqClient = mqClient;
     }
 
     /// <summary>
@@ -1411,89 +1406,4 @@ public class ConnectorFunctions
     }
 
     private record SmtpSendEmailRequest(string? From, string? To, string? Subject, string? Body);
-
-    [Function("MqSendMessage")]
-    public async Task<HttpResponseData> MqSendMessageAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/send")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        this._logger.LogInformation("MqSendMessage: Using generated MqClient from SDK.");
-        try
-        {
-            using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var input = JsonSerializer.Deserialize<MqSendRequest>(body, ConnectorFunctions.JsonOptions);
-            if (input == null || string.IsNullOrEmpty(input.Message))
-            {
-                var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
-                await badRequest.WriteAsJsonAsync(new { error = "Request body must contain 'message'." }).ConfigureAwait(continueOnCapturedContext: false);
-                return badRequest;
-            }
-
-            var result = await this._mqClient.SendAsync(new SendValidDataOptions { Message = input.Message, Queue = input.Queue }, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new { success = true, messageId = result.MessageId, correlationId = result.CorrelationId }).ConfigureAwait(continueOnCapturedContext: false);
-            return response;
-        }
-        catch (MqConnectorException ex)
-        {
-            this._logger.LogError(ex, "MQ send failed: {StatusCode}", ex.StatusCode);
-            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteAsJsonAsync(new { success = false, error = ex.Message }).ConfigureAwait(continueOnCapturedContext: false);
-            return errorResponse;
-        }
-    }
-
-    [Function("MqBrowseMessage")]
-    public async Task<HttpResponseData> MqBrowseMessageAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/browse")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        this._logger.LogInformation("MqBrowseMessage: Browse message from MQ queue.");
-        try
-        {
-            using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var input = JsonSerializer.Deserialize<MqBrowseRequest>(body, ConnectorFunctions.JsonOptions);
-            var result = await this._mqClient.ReadAsync(new SingleGetValidOptions { Queue = input?.Queue }, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result).ConfigureAwait(continueOnCapturedContext: false);
-            return response;
-        }
-        catch (MqConnectorException ex)
-        {
-            this._logger.LogError(ex, "MQ browse failed: {StatusCode}", ex.StatusCode);
-            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteAsJsonAsync(new { success = false, error = ex.Message }).ConfigureAwait(continueOnCapturedContext: false);
-            return errorResponse;
-        }
-    }
-
-    [Function("MqReceiveMessage")]
-    public async Task<HttpResponseData> MqReceiveMessageAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/receive")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        this._logger.LogInformation("MqReceiveMessage: Destructive get from MQ queue.");
-        try
-        {
-            using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var input = JsonSerializer.Deserialize<MqBrowseRequest>(body, ConnectorFunctions.JsonOptions);
-            var result = await this._mqClient.ReceiveAsync(new SingleGetValidOptions { Queue = input?.Queue }, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result).ConfigureAwait(continueOnCapturedContext: false);
-            return response;
-        }
-        catch (MqConnectorException ex)
-        {
-            this._logger.LogError(ex, "MQ receive failed: {StatusCode}", ex.StatusCode);
-            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteAsJsonAsync(new { success = false, error = ex.Message }).ConfigureAwait(continueOnCapturedContext: false);
-            return errorResponse;
-        }
-    }
-
-    private record MqSendRequest(string? Message, string? Queue);
-    private record MqBrowseRequest(string? Queue);
 }

@@ -96,8 +96,10 @@ public class MqFunctions
 
             return errorResponse;
         }
-        catch (JsonException)
+        catch (JsonException jsonEx)
         {
+            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
                 .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
@@ -165,8 +167,10 @@ public class MqFunctions
 
             return errorResponse;
         }
-        catch (JsonException)
+        catch (JsonException jsonEx)
         {
+            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
                 .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
@@ -238,8 +242,10 @@ public class MqFunctions
 
             return errorResponse;
         }
-        catch (JsonException)
+        catch (JsonException jsonEx)
         {
+            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
                 .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
@@ -307,8 +313,10 @@ public class MqFunctions
 
             return errorResponse;
         }
-        catch (JsonException)
+        catch (JsonException jsonEx)
         {
+            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
                 .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
@@ -381,8 +389,10 @@ public class MqFunctions
 
             return errorResponse;
         }
-        catch (JsonException)
+        catch (JsonException jsonEx)
         {
+            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
                 .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })

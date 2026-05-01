@@ -42,12 +42,12 @@ public class AzureLogAnalyticsFunctions
         try
         {
             var subscriptions = new List<Subscription>();
-            await foreach (var sub in this._logAnalyticsClient
+            await foreach (var subscription in this._logAnalyticsClient
                 .ListSubscriptionsAsync()
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false))
             {
-                subscriptions.Add(sub);
+                subscriptions.Add(subscription);
             }
 
             var response = request.CreateResponse(HttpStatusCode.OK);

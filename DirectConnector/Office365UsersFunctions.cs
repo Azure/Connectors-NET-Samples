@@ -228,7 +228,17 @@ public class Office365UsersFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/search")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        var searchTerm = request.Query["q"] ?? string.Empty;
+        var searchTerm = request.Query["q"];
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Query parameter 'q' is required." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
+        }
+
         this._logger.LogInformation("SearchUsers: Searching for '{SearchTerm}'.", searchTerm);
 
         try

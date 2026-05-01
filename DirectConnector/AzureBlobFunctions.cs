@@ -19,13 +19,13 @@ namespace DirectConnector;
 /// Azure Blob Storage uses key-based auth (accountName + accessKey), not OAuth.
 /// The connection must be created with parameterValues in a single PUT — no consent link flow.
 /// </remarks>
-public class AzureblobFunctions
+public class AzureBlobFunctions
 {
-    private readonly ILogger<AzureblobFunctions> _logger;
+    private readonly ILogger<AzureBlobFunctions> _logger;
     private readonly AzureblobClient _azureBlobClient;
 
-    public AzureblobFunctions(
-        ILogger<AzureblobFunctions> logger,
+    public AzureBlobFunctions(
+        ILogger<AzureBlobFunctions> logger,
         AzureblobClient azureBlobClient)
     {
         this._logger = logger;

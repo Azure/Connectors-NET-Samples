@@ -4,6 +4,7 @@
 
 using System.Net;
 using Microsoft.Azure.Connectors.DirectClient.Office365users;
+using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -53,7 +54,22 @@ public class Office365UsersFunctions
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in GetMyProfile.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message
+                })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -87,7 +103,22 @@ public class Office365UsersFunctions
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in GetUserProfile.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message
+                })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -121,7 +152,22 @@ public class Office365UsersFunctions
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in GetManager.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message
+                })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -155,7 +201,22 @@ public class Office365UsersFunctions
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in GetDirectReports.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message
+                })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -195,7 +256,22 @@ public class Office365UsersFunctions
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in SearchUsers.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message
+                })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

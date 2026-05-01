@@ -99,6 +99,7 @@ public class SmtpFunctions
             await errorResponse
                 .WriteAsJsonAsync(new
                 {
+                    success = false,
                     error = ex.Message,
                     statusCode = ex.StatusCode,
                     details = ex.ResponseBody

@@ -70,6 +70,12 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public Office365UsersOptions Office365Users { get; set; } = new Office365UsersOptions();
+
+    /// <summary>
+    /// Azure Log Analytics connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public AzureLogAnalyticsOptions AzureLogAnalytics { get; set; } = new AzureLogAnalyticsOptions();
 }
 
 /// <summary>
@@ -222,6 +228,25 @@ public class Office365UsersOptions
     /// The API connection runtime URL for Office 365 Users.
     /// </summary>
     [Required(ErrorMessage = "Connectors:Office365Users:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the Azure Log Analytics connector.
+/// </summary>
+public class AzureLogAnalyticsOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Log Analytics.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:AzureLogAnalytics:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

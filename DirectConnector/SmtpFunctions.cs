@@ -108,9 +108,9 @@ public class SmtpFunctions
 
             return errorResponse;
         }
-        catch (JsonException jsonEx)
+        catch (JsonException ex)
         {
-            this._logger.LogWarning(jsonEx, "Invalid JSON in request body.");
+            this._logger.LogWarning(ex, "Invalid JSON in request body.");
 
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest

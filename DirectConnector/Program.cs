@@ -6,8 +6,8 @@ using DirectConnector.Configuration;
 using Microsoft.Azure.Connectors.DirectClient.Azureblob;
 using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
+using Microsoft.Azure.Connectors.DirectClient.Office365users;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
 using Microsoft.Azure.Connectors.DirectClient.Smtp;
@@ -132,6 +132,17 @@ var host = new HostBuilder()
                     options.Mq.ConnectionRuntimeUrl,
                     options.Mq.ManagedIdentityClientId)
                 : new MqClient(options.Mq.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<Office365usersClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Office365Users.ManagedIdentityClientId != null
+                ? new Office365usersClient(
+                    options.Office365Users.ConnectionRuntimeUrl,
+                    options.Office365Users.ManagedIdentityClientId)
+                : new Office365usersClient(options.Office365Users.ConnectionRuntimeUrl);
         });
     })
     .Build();

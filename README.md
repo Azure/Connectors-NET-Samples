@@ -1,46 +1,46 @@
 # Azure Connectors .NET SDK — Samples
 
-Sample Azure Functions applications demonstrating [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) usage with various connectors (Office 365, SharePoint, Teams, and more).
+Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) — calling managed connectors directly from Azure Functions.
 
-## DirectConnector Sample
+## What's Inside
 
-The `DirectConnector/` project is an Azure Functions (isolated worker) app that calls managed connectors directly — **without a workflow engine**. It demonstrates:
+The `DirectConnector/` project is an Azure Functions (isolated worker) app with 40 sample functions across 10 connectors. Newer connectors have dedicated Functions classes; the original three (Office 365, SharePoint, Teams) share `ConnectorFunctions.cs`:
 
-| Endpoint | Connector | Pattern |
-|----------|-----------|---------|
-| `POST /api/email` | Office 365 | Void return, JSON input, `CancellationToken` propagation |
-| `GET /api/categories` | Office 365 | JSON deserialization of structured response |
-| `GET /api/email/export?messageId=...` | Office 365 | Binary (`byte[]`) response — RFC822 `.eml` export |
-| `POST /api/calendar/event` | Office 365 | Calendar event creation with typed input/output |
-| `GET /api/sharepoint/lists?site=...` | SharePoint | Collection response with projected fields |
-| `GET /api/sharepoint/files?site=...` | SharePoint | Folder browsing with `BlobMetadata` |
-| `GET /api/sharepoint/download?site=...&path=...` | SharePoint | Binary content (`byte[]`) download |
-| `POST /api/sharepoint/upload` | SharePoint | Binary content (`byte[]`) upload |
-| `GET /api/teams/teams` | Teams | List all teams |
-| `GET /api/teams/channels?teamId=...` | Teams | List channels for a team |
-| `POST /api/teams/message` | Teams | Post message to a channel (dynamic schema) |
-| `POST /api/triggerCallback` | Office 365 | Trigger callback with typed payload deserialization |
+| File | Connector | Sample Operations |
+|------|-----------|-------------------|
+| ConnectorFunctions.cs | Office 365 (Mail/Calendar) | Send email, get categories, export email, create calendar event, trigger callbacks |
+| ConnectorFunctions.cs | SharePoint Online | List libraries, browse folders, download/upload files |
+| ConnectorFunctions.cs | Microsoft Teams | List teams/channels, get messages, post messages |
+| MsGraphFunctions.cs | MS Graph Groups & Users | List users, search groups, get group properties |
+| OneDriveFunctions.cs | OneDrive for Business | Browse folders, download/upload files, search, share links |
+| Office365UsersFunctions.cs | Office 365 Users | Get my profile, user lookup, manager/reports chain, search users |
+| MqFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
+| SmtpFunctions.cs | SMTP | Send email via SMTP |
+| AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
+| AzureLogAnalyticsFunctions.cs | Azure Log Analytics | List subscriptions, list workspaces |
 
-### Key patterns demonstrated
+### Key Patterns Demonstrated
 
-- **DI-based lifetime management** — connector clients registered as singletons, disposed by the host
-- **Managed Identity support** — `DefaultAzureCredential`, system-assigned MSI, or user-assigned MSI
-- **Binary content handling** — `byte[]` responses use `ReadAsByteArrayAsync` instead of JSON deserialization
-- **Connector-specific exceptions** — `Office365ConnectorException`, `SharepointonlineConnectorException`, `TeamsConnectorException`
-- **Dynamic schema** — `DynamicPostMessageRequest` with `[JsonExtensionData]` for runtime-determined properties
-- **Trigger callbacks** — typed deserialization of Connector Gateway trigger payloads via `Office365OnNewEmailTriggerPayload`
+- **DI-based lifetime** — connector clients registered as singletons, disposed by the host
+- **Managed Identity** — `DefaultAzureCredential`, system-assigned, or user-assigned MSI
+- **Pagination** — `await foreach` over `ConnectorPageable` for auto-paged results
+- **Binary content** — `byte[]` download/upload for files and email export
+- **Error handling** — connector-specific exceptions surfaced as 502 with structured JSON, generic `IsFatal()` fallback
+- **Trigger callbacks** — typed deserialization of Connector Gateway payloads
 
 ## Quick Start
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for prerequisites and build/run instructions.
 
 ```shell
 git clone https://github.com/Azure/Connectors-NET-Samples.git
 cd Connectors-NET-Samples/DirectConnector
+copy local.settings.json.template local.settings.json   # Windows
+# cp local.settings.json.template local.settings.json    # macOS/Linux
+# Edit local.settings.json with your connection runtime URLs
 dotnet build
+func start
 ```
 
-For connector setup and authentication, see [DirectConnector/README.md](DirectConnector/README.md).
+For connector setup (creating connections, OAuth consent, access policies), see the [connection-setup skill](https://github.com/Azure/Connectors-NET-SDK/blob/main/.github/skills/connection-setup/SKILL.md) in the SDK repo.
 
 ## Related Repositories
 

@@ -41,7 +41,10 @@ public class AzureLogAnalyticsFunctions
         try
         {
             var subscriptions = new List<Subscription>();
-            await foreach (var sub in this._logAnalyticsClient.ListSubscriptionsAsync().WithCancellation(cancellationToken))
+            await foreach (var sub in this._logAnalyticsClient
+                .ListSubscriptionsAsync()
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false))
             {
                 subscriptions.Add(sub);
             }
@@ -55,7 +58,7 @@ public class AzureLogAnalyticsFunctions
         }
         catch (AzureloganalyticsConnectorException ex)
         {
-            this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -93,9 +96,12 @@ public class AzureLogAnalyticsFunctions
         try
         {
             var workspaces = new List<ResourceGroup>();
-            await foreach (var ws in this._logAnalyticsClient.ListWorkspaceNamesAsync(subscription: subscription, resourceGroup: resourceGroup).WithCancellation(cancellationToken))
+            await foreach (var workspace in this._logAnalyticsClient
+                .ListWorkspaceNamesAsync(subscription: subscription, resourceGroup: resourceGroup)
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false))
             {
-                workspaces.Add(ws);
+                workspaces.Add(workspace);
             }
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -107,7 +113,7 @@ public class AzureLogAnalyticsFunctions
         }
         catch (AzureloganalyticsConnectorException ex)
         {
-            this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse

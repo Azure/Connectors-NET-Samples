@@ -86,7 +86,7 @@ public class MqFunctions
         }
         catch (MqConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ send failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ send failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -94,6 +94,15 @@ public class MqFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
+        }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
         }
     }
 
@@ -131,7 +140,7 @@ public class MqFunctions
         }
         catch (MqConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ browse failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ browse failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -139,6 +148,15 @@ public class MqFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
+        }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
         }
     }
 
@@ -180,7 +198,7 @@ public class MqFunctions
         }
         catch (MqConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ browse batch failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ browse batch failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -188,6 +206,15 @@ public class MqFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
+        }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
         }
     }
 
@@ -225,7 +252,7 @@ public class MqFunctions
         }
         catch (MqConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ receive failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ receive failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -233,6 +260,15 @@ public class MqFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
+        }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
         }
     }
 
@@ -275,7 +311,7 @@ public class MqFunctions
         }
         catch (MqConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ delete failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ delete failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
@@ -283,6 +319,15 @@ public class MqFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
+        }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
         }
     }
 

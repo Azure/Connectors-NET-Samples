@@ -192,11 +192,22 @@ public class AzureBlobOptions
     public string? ManagedIdentityClientId { get; set; }
 }
 
+/// <summary>
+/// Configuration options for the SMTP connector.
+/// </summary>
 public class SmtpOptions
 {
+    /// <summary>
+    /// The API connection runtime URL for SMTP.
+    /// </summary>
     [Required(ErrorMessage = "Connectors:Smtp:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
     public string? ManagedIdentityClientId { get; set; }
 }
 

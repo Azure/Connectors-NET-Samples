@@ -49,11 +49,11 @@ public class Office365UsersFunctions
         }
         catch (Office365usersConnectorException ex)
         {
-            this._logger.LogError(ex, "GetMyProfile failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "GetMyProfile failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -83,11 +83,11 @@ public class Office365UsersFunctions
         }
         catch (Office365usersConnectorException ex)
         {
-            this._logger.LogError(ex, "GetUserProfile failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "GetUserProfile failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -117,11 +117,11 @@ public class Office365UsersFunctions
         }
         catch (Office365usersConnectorException ex)
         {
-            this._logger.LogError(ex, "GetManager failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "GetManager failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -151,11 +151,11 @@ public class Office365UsersFunctions
         }
         catch (Office365usersConnectorException ex)
         {
-            this._logger.LogError(ex, "GetDirectReports failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "GetDirectReports failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -189,11 +189,11 @@ public class Office365UsersFunctions
         }
         catch (Office365usersConnectorException ex)
         {
-            this._logger.LogError(ex, "SearchUsers failed with status {StatusCode}.", ex.StatusCode);
+            this._logger.LogError(ex, "SearchUsers failed with status '{StatusCode}'.", ex.StatusCode);
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

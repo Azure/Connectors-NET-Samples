@@ -108,6 +108,15 @@ public class SmtpFunctions
 
             return errorResponse;
         }
+        catch (JsonException)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { error = "Request body must contain valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
+        }
         catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in SmtpSendEmail.");

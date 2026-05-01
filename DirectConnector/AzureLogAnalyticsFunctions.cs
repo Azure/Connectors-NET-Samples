@@ -60,9 +60,9 @@ public class AzureLogAnalyticsFunctions
         {
             this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status '{StatusCode}'.", ex.StatusCode);
 
-            var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
+                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -95,6 +95,7 @@ public class AzureLogAnalyticsFunctions
 
         try
         {
+            // Note: SDK returns ResourceGroup type for workspace entries per the connector API schema
             var workspaces = new List<ResourceGroup>();
             await foreach (var workspace in this._logAnalyticsClient
                 .ListWorkspaceNamesAsync(subscription: subscription, resourceGroup: resourceGroup)
@@ -115,9 +116,9 @@ public class AzureLogAnalyticsFunctions
         {
             this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status '{StatusCode}'.", ex.StatusCode);
 
-            var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
+                .WriteAsJsonAsync(new { error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

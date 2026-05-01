@@ -95,15 +95,14 @@ public class SmtpFunctions
         {
             this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.StatusCode);
 
-            var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
                 .WriteAsJsonAsync(new
                 {
-                    success = false,
                     error = ex.Message,
                     statusCode = ex.StatusCode,
                     details = ex.ResponseBody
-                })
+                }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

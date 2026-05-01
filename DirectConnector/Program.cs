@@ -3,10 +3,15 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
+using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
+using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
+using Microsoft.Azure.Connectors.DirectClient.Office365users;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
+using Microsoft.Azure.Connectors.DirectClient.Smtp;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
@@ -95,6 +100,61 @@ var host = new HostBuilder()
                     options.MsGraph.ConnectionRuntimeUrl,
                     options.MsGraph.ManagedIdentityClientId)
                 : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<AzureblobClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.AzureBlob.ManagedIdentityClientId != null
+                ? new AzureblobClient(
+                    options.AzureBlob.ConnectionRuntimeUrl,
+                    options.AzureBlob.ManagedIdentityClientId)
+                : new AzureblobClient(options.AzureBlob.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<SmtpClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Smtp.ManagedIdentityClientId != null
+                ? new SmtpClient(
+                    options.Smtp.ConnectionRuntimeUrl,
+                    options.Smtp.ManagedIdentityClientId)
+                : new SmtpClient(options.Smtp.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<MqClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Mq.ManagedIdentityClientId != null
+                ? new MqClient(
+                    options.Mq.ConnectionRuntimeUrl,
+                    options.Mq.ManagedIdentityClientId)
+                : new MqClient(options.Mq.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<Office365usersClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Office365Users.ManagedIdentityClientId != null
+                ? new Office365usersClient(
+                    options.Office365Users.ConnectionRuntimeUrl,
+                    options.Office365Users.ManagedIdentityClientId)
+                : new Office365usersClient(options.Office365Users.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<AzureloganalyticsClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.AzureLogAnalytics.ManagedIdentityClientId != null
+                ? new AzureloganalyticsClient(
+                    options.AzureLogAnalytics.ConnectionRuntimeUrl,
+                    options.AzureLogAnalytics.ManagedIdentityClientId)
+                : new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl);
         });
     })
     .Build();

@@ -5,6 +5,8 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
@@ -58,6 +60,8 @@ public class ConnectorFunctions
     private readonly Office365Client _office365Client;
     private readonly SharepointonlineClient _sharePointClient;
     private readonly TeamsClient _teamsClient;
+    private readonly AzureblobClient _azureBlobClient;
+    private readonly MqClient _mqClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConnectorFunctions"/> class.
@@ -66,16 +70,21 @@ public class ConnectorFunctions
     /// <param name="office365Client">The DI-injected Office365 client (disposed by the host).</param>
     /// <param name="sharePointClient">The DI-injected SharePoint client (disposed by the host).</param>
     /// <param name="teamsClient">The DI-injected Teams client (disposed by the host).</param>
+    /// <param name="azureBlobClient">The DI-injected Azure Blob Storage client (disposed by the host).</param>
     public ConnectorFunctions(
         ILogger<ConnectorFunctions> logger,
         Office365Client office365Client,
         SharepointonlineClient sharePointClient,
-        TeamsClient teamsClient)
+        TeamsClient teamsClient,
+        AzureblobClient azureBlobClient,
+        MqClient mqClient)
     {
         this._logger = logger;
         this._office365Client = office365Client;
         this._sharePointClient = sharePointClient;
         this._teamsClient = teamsClient;
+        this._azureBlobClient = azureBlobClient;
+        this._mqClient = mqClient;
     }
 
     /// <summary>
@@ -1356,4 +1365,279 @@ public class ConnectorFunctions
             return errorResponse;
         }
     }
+
+    // ─── Azure Blob Storage ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Gets blob metadata using the generated <see cref="AzureblobClient"/>.
+    /// </summary>
+    [Function("GetBlobMetadata")]
+    public async Task<HttpResponseData> GetBlobMetadataAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/metadata")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["account"];
+        var blobPath = request.Query["path"];
+
+        var metadata = await this._azureBlobClient
+            .GetFileMetadataByPathAsync(storageAccount, blobPath, cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        var response = request.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(metadata).ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
+
+    /// <summary>
+    /// Downloads blob content using the generated <see cref="AzureblobClient"/>.
+    /// </summary>
+    [Function("DownloadBlob")]
+    public async Task<HttpResponseData> DownloadBlobAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/download")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["account"];
+        var blobPath = request.Query["path"];
+
+        var fileBytes = await this._azureBlobClient
+            .GetFileContentByPathAsync(storageAccount, blobPath, cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        var fileName = System.IO.Path.GetFileName(blobPath);
+        var response = request.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "application/octet-stream");
+        response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        await response.Body.WriteAsync(fileBytes, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
+
+    /// <summary>
+    /// Uploads a blob using the generated <see cref="AzureblobClient"/>.
+    /// </summary>
+    [Function("UploadBlob")]
+    public async Task<HttpResponseData> UploadBlobAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "blob/upload")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["account"];
+        var folder = request.Query["folder"];
+        var blobName = request.Query["name"];
+
+        using var memoryStream = new MemoryStream();
+        await request.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+
+        var metadata = await this._azureBlobClient
+            .CreateFileAsync(storageAccount, memoryStream.ToArray(), folder, blobName, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        var response = request.CreateResponse(HttpStatusCode.Created);
+        await response.WriteAsJsonAsync(metadata).ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
+
+    /// <summary>
+    /// Deletes a blob using the generated <see cref="AzureblobClient"/>.
+    /// </summary>
+    [Function("DeleteBlob")]
+    public async Task<HttpResponseData> DeleteBlobAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "blob/delete")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["account"];
+        var blobId = request.Query["id"];
+
+        await this._azureBlobClient
+            .DeleteFileAsync(storageAccount, blobId, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        var response = request.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(new { success = true, deleted = blobId }).ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
+
+    // ─── IBM MQ ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sends a message to an IBM MQ queue using the generated <see cref="MqClient"/>.
+    /// </summary>
+    [Function("MqSendMessage")]
+    public async Task<HttpResponseData> MqSendMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/send")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("MqSendMessage: Using generated MqClient from SDK.");
+
+        try
+        {
+            using var reader = new StreamReader(request.Body);
+            var body = await reader
+                .ReadToEndAsync(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var input = JsonSerializer.Deserialize<MqSendRequest>(body, ConnectorFunctions.JsonOptions);
+
+            var result = await this._mqClient
+                .SendAsync(new SendValidDataOptions { Message = input?.Message, Queue = input?.Queue }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, result })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (MqConnectorException ex)
+        {
+            this._logger.LogError(ex, "MQ connector error: '{StatusCode}'.", ex.StatusCode);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    statusCode = ex.StatusCode,
+                    details = ex.ResponseBody
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in MqSendMessage.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Browses (peeks) a message from an IBM MQ queue without removing it.
+    /// </summary>
+    [Function("MqBrowseMessage")]
+    public async Task<HttpResponseData> MqBrowseMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/browse")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("MqBrowseMessage: Using generated MqClient from SDK.");
+
+        try
+        {
+            using var reader = new StreamReader(request.Body);
+            var body = await reader
+                .ReadToEndAsync(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var input = JsonSerializer.Deserialize<MqBrowseRequest>(body, ConnectorFunctions.JsonOptions);
+
+            var result = await this._mqClient
+                .ReadAsync(new SingleGetValidOptions { Queue = input?.Queue }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, result })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (MqConnectorException ex)
+        {
+            this._logger.LogError(ex, "MQ connector error: '{StatusCode}'.", ex.StatusCode);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    statusCode = ex.StatusCode,
+                    details = ex.ResponseBody
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in MqBrowseMessage.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Receives (destructively reads) a message from an IBM MQ queue.
+    /// </summary>
+    [Function("MqReceiveMessage")]
+    public async Task<HttpResponseData> MqReceiveMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/receive")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("MqReceiveMessage: Using generated MqClient from SDK.");
+
+        try
+        {
+            using var reader = new StreamReader(request.Body);
+            var body = await reader
+                .ReadToEndAsync(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var input = JsonSerializer.Deserialize<MqBrowseRequest>(body, ConnectorFunctions.JsonOptions);
+
+            var result = await this._mqClient
+                .ReceiveAsync(new SingleGetValidOptions { Queue = input?.Queue }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, result })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (MqConnectorException ex)
+        {
+            this._logger.LogError(ex, "MQ connector error: '{StatusCode}'.", ex.StatusCode);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    statusCode = ex.StatusCode,
+                    details = ex.ResponseBody
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in MqReceiveMessage.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    private record MqSendRequest(string? Message, string? Queue);
+
+    private record MqBrowseRequest(string? Queue);
 }

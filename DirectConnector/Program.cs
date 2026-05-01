@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
+using Microsoft.Azure.Connectors.DirectClient.Azureblob;
 using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
@@ -95,6 +96,17 @@ var host = new HostBuilder()
                     options.MsGraph.ConnectionRuntimeUrl,
                     options.MsGraph.ManagedIdentityClientId)
                 : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<AzureblobClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.AzureBlob.ManagedIdentityClientId != null
+                ? new AzureblobClient(
+                    options.AzureBlob.ConnectionRuntimeUrl,
+                    options.AzureBlob.ManagedIdentityClientId)
+                : new AzureblobClient(options.AzureBlob.ConnectionRuntimeUrl);
         });
     })
     .Build();

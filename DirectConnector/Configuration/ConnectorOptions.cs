@@ -46,6 +46,24 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
+
+    /// <summary>
+    /// Azure Blob Storage connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public AzureBlobOptions AzureBlob { get; set; } = new AzureBlobOptions();
+
+    /// <summary>
+    /// SMTP connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public SmtpOptions Smtp { get; set; } = new SmtpOptions();
+
+    /// <summary>
+    /// IBM MQ connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public MqOptions Mq { get; set; } = new MqOptions();
 }
 
 /// <summary>
@@ -133,6 +151,52 @@ public class MsGraphOptions
     /// The API connection runtime URL for MS Graph Groups and Users.
     /// </summary>
     [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the Azure Blob Storage connector.
+/// </summary>
+public class AzureBlobOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Blob Storage.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:AzureBlob:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+public class SmtpOptions
+{
+    [Required(ErrorMessage = "Connectors:Smtp:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the IBM MQ connector.
+/// </summary>
+public class MqOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for IBM MQ.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Mq:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

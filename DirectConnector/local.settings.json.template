@@ -30,6 +30,14 @@
 
     "Connectors:Smtp:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/smtp/YOUR-CONNECTION-ID",
     "__comment_Smtp_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:Smtp:ManagedIdentityClientId": ""
+    "__Connectors:Smtp:ManagedIdentityClientId": "",
+
+    "Connectors:AzureBlob:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azureblob/YOUR-CONNECTION-ID",
+    "__comment_AzureBlob_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureBlob:ManagedIdentityClientId": "",
+
+    "Connectors:Office365Users:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365users/YOUR-CONNECTION-ID",
+    "__comment_Office365Users_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Office365Users:ManagedIdentityClientId": ""
   }
 }

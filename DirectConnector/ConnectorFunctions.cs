@@ -5,7 +5,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
 using Microsoft.Azure.Connectors.DirectClient.Mq;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
@@ -63,7 +62,6 @@ public class ConnectorFunctions
     private readonly SmtpClient _smtpClient;
     private readonly TeamsClient _teamsClient;
     private readonly MqClient _mqClient;
-    private readonly AzureblobClient _azureBlobClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ConnectorFunctions"/> class.
@@ -74,15 +72,13 @@ public class ConnectorFunctions
     /// <param name="smtpClient">The DI-injected SMTP client (disposed by the host).</param>
     /// <param name="teamsClient">The DI-injected Teams client (disposed by the host).</param>
     /// <param name="mqClient">The DI-injected MQ client (disposed by the host).</param>
-    /// <param name="azureBlobClient">The DI-injected Azure Blob Storage client (disposed by the host).</param>
     public ConnectorFunctions(
         ILogger<ConnectorFunctions> logger,
         Office365Client office365Client,
         SharepointonlineClient sharePointClient,
         SmtpClient smtpClient,
         TeamsClient teamsClient,
-        MqClient mqClient,
-        AzureblobClient azureBlobClient)
+        MqClient mqClient)
     {
         this._logger = logger;
         this._office365Client = office365Client;
@@ -90,7 +86,6 @@ public class ConnectorFunctions
         this._smtpClient = smtpClient;
         this._teamsClient = teamsClient;
         this._mqClient = mqClient;
-        this._azureBlobClient = azureBlobClient;
     }
 
     /// <summary>
@@ -1416,95 +1411,6 @@ public class ConnectorFunctions
     }
 
     private record SmtpSendEmailRequest(string? From, string? To, string? Subject, string? Body);
-
-    // ─── Azure Blob Storage ─────────────────────────────────────────────
-
-    /// <summary>
-    /// Gets blob metadata using the generated <see cref="AzureblobClient"/>.
-    /// </summary>
-    [Function("GetBlobMetadata")]
-    public async Task<HttpResponseData> GetBlobMetadataAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/metadata")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        var storageAccount = request.Query["account"];
-        var blobPath = request.Query["path"];
-
-        var metadata = await this._azureBlobClient
-            .GetFileMetadataByPathAsync(storageAccount, blobPath, cancellationToken: cancellationToken)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        var response = request.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(metadata).ConfigureAwait(continueOnCapturedContext: false);
-        return response;
-    }
-
-    /// <summary>
-    /// Downloads blob content using the generated <see cref="AzureblobClient"/>.
-    /// </summary>
-    [Function("DownloadBlob")]
-    public async Task<HttpResponseData> DownloadBlobAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/download")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        var storageAccount = request.Query["account"];
-        var blobPath = request.Query["path"];
-
-        var fileBytes = await this._azureBlobClient
-            .GetFileContentByPathAsync(storageAccount, blobPath, cancellationToken: cancellationToken)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        var fileName = System.IO.Path.GetFileName(blobPath);
-        var response = request.CreateResponse(HttpStatusCode.OK);
-        response.Headers.Add("Content-Type", "application/octet-stream");
-        response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
-        await response.Body.WriteAsync(fileBytes, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-        return response;
-    }
-
-    /// <summary>
-    /// Uploads a blob using the generated <see cref="AzureblobClient"/>.
-    /// </summary>
-    [Function("UploadBlob")]
-    public async Task<HttpResponseData> UploadBlobAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "blob/upload")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        var storageAccount = request.Query["account"];
-        var folder = request.Query["folder"];
-        var blobName = request.Query["name"];
-
-        using var memoryStream = new MemoryStream();
-        await request.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-        var metadata = await this._azureBlobClient
-            .CreateFileAsync(storageAccount, memoryStream.ToArray(), folder, blobName, cancellationToken)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        var response = request.CreateResponse(HttpStatusCode.Created);
-        await response.WriteAsJsonAsync(metadata).ConfigureAwait(continueOnCapturedContext: false);
-        return response;
-    }
-
-    /// <summary>
-    /// Deletes a blob using the generated <see cref="AzureblobClient"/>.
-    /// </summary>
-    [Function("DeleteBlob")]
-    public async Task<HttpResponseData> DeleteBlobAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "blob/delete")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        var storageAccount = request.Query["account"];
-        var blobId = request.Query["id"];
-
-        await this._azureBlobClient
-            .DeleteFileAsync(storageAccount, blobId, cancellationToken)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        var response = request.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(new { success = true, deleted = blobId }).ConfigureAwait(continueOnCapturedContext: false);
-        return response;
-    }
 
     [Function("MqSendMessage")]
     public async Task<HttpResponseData> MqSendMessageAsync(

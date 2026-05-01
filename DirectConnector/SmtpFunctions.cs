@@ -55,7 +55,7 @@ public class SmtpFunctions
 
             var input = JsonSerializer.Deserialize<SmtpSendEmailRequest>(body, SmtpFunctions.JsonOptions);
 
-            if (input == null || string.IsNullOrEmpty(input.To) || string.IsNullOrEmpty(input.From))
+            if (input == null || string.IsNullOrWhiteSpace(input.To) || string.IsNullOrWhiteSpace(input.From))
             {
                 var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
                 await badRequest

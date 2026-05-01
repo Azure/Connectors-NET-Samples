@@ -277,7 +277,7 @@ public class MqFunctions
     /// </summary>
     [Function("MqDeleteMessage")]
     public async Task<HttpResponseData> MqDeleteMessageAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "mq/delete")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/delete")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("MqDeleteMessage: Delete message from MQ queue.");

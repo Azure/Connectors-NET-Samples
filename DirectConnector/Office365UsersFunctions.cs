@@ -62,16 +62,16 @@ public class Office365UsersFunctions
 
     [Function("GetUserProfile")]
     public async Task<HttpResponseData> GetUserProfileAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userUPN}")] HttpRequestData request,
-        string userUPN,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}")] HttpRequestData request,
+        string userPrincipalName,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetUserProfile: Looking up user {UserUPN}.", userUPN);
+        this._logger.LogInformation("GetUserProfile: Looking up user {UserPrincipalName}.", userPrincipalName);
 
         try
         {
             var profile = await this._office365UsersClient
-                .UserProfileAsync(userUPN: userUPN, cancellationToken: cancellationToken)
+                .UserProfileAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -96,16 +96,16 @@ public class Office365UsersFunctions
 
     [Function("GetManager")]
     public async Task<HttpResponseData> GetManagerAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userUPN}/manager")] HttpRequestData request,
-        string userUPN,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}/manager")] HttpRequestData request,
+        string userPrincipalName,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetManager: Looking up manager for {UserUPN}.", userUPN);
+        this._logger.LogInformation("GetManager: Looking up manager for {UserPrincipalName}.", userPrincipalName);
 
         try
         {
             var manager = await this._office365UsersClient
-                .ManagerAsync(userUPN: userUPN, cancellationToken: cancellationToken)
+                .ManagerAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -130,16 +130,16 @@ public class Office365UsersFunctions
 
     [Function("GetDirectReports")]
     public async Task<HttpResponseData> GetDirectReportsAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userUPN}/reports")] HttpRequestData request,
-        string userUPN,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}/reports")] HttpRequestData request,
+        string userPrincipalName,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetDirectReports: Looking up reports for {UserUPN}.", userUPN);
+        this._logger.LogInformation("GetDirectReports: Looking up reports for {UserPrincipalName}.", userPrincipalName);
 
         try
         {
             var reports = await this._office365UsersClient
-                .DirectReportsAsync(userUPN: userUPN, cancellationToken: cancellationToken)
+                .DirectReportsAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -175,7 +175,9 @@ public class Office365UsersFunctions
             var pageable = this._office365UsersClient.SearchUserAsync(searchTerm: searchTerm);
 
             var users = new List<User>();
-            await foreach (var user in pageable.WithCancellation(cancellationToken).ConfigureAwait(continueOnCapturedContext: false))
+            await foreach (var user in pageable
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false))
             {
                 users.Add(user);
             }

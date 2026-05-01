@@ -62,7 +62,7 @@ public class AzureLogAnalyticsFunctions
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -117,7 +117,7 @@ public class AzureLogAnalyticsFunctions
 
             var errorResponse = request.CreateResponse((HttpStatusCode)ex.StatusCode);
             await errorResponse
-                .WriteStringAsync(ex.ResponseBody, cancellationToken)
+                .WriteStringAsync(ex.ResponseBody ?? string.Empty, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

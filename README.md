@@ -1,6 +1,6 @@
 # Azure Connectors .NET SDK — Samples
 
-Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) — calling managed connectors directly from Azure Functions, **without a workflow engine**.
+Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) — calling managed connectors directly from Azure Functions.
 
 ## What's Inside
 

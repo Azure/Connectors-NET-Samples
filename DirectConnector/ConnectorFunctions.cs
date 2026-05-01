@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Azure.Connectors.DirectClient.Office365;
 using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
 using Microsoft.Azure.Connectors.DirectClient.Teams;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
@@ -58,7 +57,6 @@ public class ConnectorFunctions
     private readonly ILogger<ConnectorFunctions> _logger;
     private readonly Office365Client _office365Client;
     private readonly SharepointonlineClient _sharePointClient;
-    private readonly SmtpClient _smtpClient;
     private readonly TeamsClient _teamsClient;
 
     /// <summary>
@@ -67,19 +65,16 @@ public class ConnectorFunctions
     /// <param name="logger">The logger instance.</param>
     /// <param name="office365Client">The DI-injected Office365 client (disposed by the host).</param>
     /// <param name="sharePointClient">The DI-injected SharePoint client (disposed by the host).</param>
-    /// <param name="smtpClient">The DI-injected SMTP client (disposed by the host).</param>
     /// <param name="teamsClient">The DI-injected Teams client (disposed by the host).</param>
     public ConnectorFunctions(
         ILogger<ConnectorFunctions> logger,
         Office365Client office365Client,
         SharepointonlineClient sharePointClient,
-        SmtpClient smtpClient,
         TeamsClient teamsClient)
     {
         this._logger = logger;
         this._office365Client = office365Client;
         this._sharePointClient = sharePointClient;
-        this._smtpClient = smtpClient;
         this._teamsClient = teamsClient;
     }
 
@@ -1361,49 +1356,4 @@ public class ConnectorFunctions
             return errorResponse;
         }
     }
-
-    [Function("SmtpSendEmail")]
-    public async Task<HttpResponseData> SmtpSendEmailAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "smtp/email")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        this._logger.LogInformation("SmtpSendEmail: Using generated SmtpClient from SDK.");
-
-        try
-        {
-            using var reader = new StreamReader(request.Body);
-            var body = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            var input = JsonSerializer.Deserialize<SmtpSendEmailRequest>(body, ConnectorFunctions.JsonOptions);
-
-            if (input == null || string.IsNullOrEmpty(input.To) || string.IsNullOrEmpty(input.From))
-            {
-                var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
-                await badRequest.WriteAsJsonAsync(new { error = "'from' and 'to' are required." }).ConfigureAwait(continueOnCapturedContext: false);
-                return badRequest;
-            }
-
-            var email = new Email { From = input.From, To = input.To, Subject = input.Subject ?? "No Subject", Body = input.Body ?? string.Empty };
-            await this._smtpClient.SendEmailAsync(input: email, cancellationToken: cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-            var response = request.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(new { success = true, message = "Email sent via SmtpClient.", from = input.From, to = input.To, subject = input.Subject, timestamp = DateTime.UtcNow }).ConfigureAwait(continueOnCapturedContext: false);
-            return response;
-        }
-        catch (SmtpConnectorException ex)
-        {
-            this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.StatusCode);
-            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
-            await errorResponse.WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }).ConfigureAwait(continueOnCapturedContext: false);
-            return errorResponse;
-        }
-        catch (Exception ex) when (!ex.IsFatal())
-        {
-            this._logger.LogError(ex, "Error in SmtpSendEmail.");
-            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
-            await errorResponse.WriteAsJsonAsync(new { success = false, error = ex.Message }).ConfigureAwait(continueOnCapturedContext: false);
-            return errorResponse;
-        }
-    }
-
-    private record SmtpSendEmailRequest(string? From, string? To, string? Subject, string? Body);
 }

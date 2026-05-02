@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
+using Microsoft.Azure.Connectors.Sdk.Mq;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating IBM MQ operations using the generated
-/// <see cref="MqClient"/> from the DirectClient SDK.
+/// <see cref="MqClient"/> from the Connectors SDK.
 /// </summary>
 /// <remarks>
 /// IBM MQ uses parameter-based auth (server, queue manager, channel, credentials).

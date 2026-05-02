@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
+using Microsoft.Azure.Connectors.Sdk.Smtp;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating SMTP operations using the generated
-/// <see cref="SmtpClient"/> from the DirectClient SDK.
+/// <see cref="SmtpClient"/> from the Connectors SDK.
 /// </summary>
 public class SmtpFunctions
 {

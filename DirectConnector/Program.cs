@@ -3,16 +3,16 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
-using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
-using Microsoft.Azure.Connectors.DirectClient.Office365;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
-using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
-using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
-using Microsoft.Azure.Connectors.DirectClient.Teams;
+using Microsoft.Azure.Connectors.Sdk.Azureblob;
+using Microsoft.Azure.Connectors.Sdk.Azureloganalytics;
+using Microsoft.Azure.Connectors.Sdk.Mq;
+using Microsoft.Azure.Connectors.Sdk.Msgraphgroupsanduser;
+using Microsoft.Azure.Connectors.Sdk.Office365;
+using Microsoft.Azure.Connectors.Sdk.Office365users;
+using Microsoft.Azure.Connectors.Sdk.Onedriveforbusiness;
+using Microsoft.Azure.Connectors.Sdk.Sharepointonline;
+using Microsoft.Azure.Connectors.Sdk.Smtp;
+using Microsoft.Azure.Connectors.Sdk.Teams;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

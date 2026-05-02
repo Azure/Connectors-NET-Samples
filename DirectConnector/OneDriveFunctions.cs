@@ -5,18 +5,18 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
+using Microsoft.Azure.Connectors.Sdk.Onedriveforbusiness;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using OneDriveBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadata;
+using OneDriveBlobMetadata = Microsoft.Azure.Connectors.Sdk.Onedriveforbusiness.BlobMetadata;
 
 namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating OneDrive for Business operations using the generated
-/// <see cref="OnedriveforbusinessClient"/> from the DirectClient SDK.
+/// <see cref="OnedriveforbusinessClient"/> from the Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Exercises folder listing, file download/upload, search, sharing links,

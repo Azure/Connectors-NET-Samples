@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
+using Microsoft.Azure.Connectors.Sdk.Office365users;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +13,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Office 365 Users operations using the generated
-/// <see cref="Office365usersClient"/> from the DirectClient SDK.
+/// <see cref="Office365usersClient"/> from the Connectors SDK.
 /// </summary>
 public class Office365UsersFunctions
 {

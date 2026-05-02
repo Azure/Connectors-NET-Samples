@@ -14,7 +14,9 @@
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.8.0-preview.1" />
+    <!-- Temporary: consume local SDK branch for namespace-rename validation.
+         Revert to NuGet package reference after SDK v0.9.0 is published. -->
+    <ProjectReference Include="..\..\Connectors-NET-SDK-ns-rename\src\Microsoft.Azure.Connectors.Sdk\Microsoft.Azure.Connectors.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

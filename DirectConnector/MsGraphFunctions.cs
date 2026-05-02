@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
+using Microsoft.Azure.Connectors.Sdk.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +13,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating MS Graph Groups &amp; Users operations using the generated
-/// <see cref="MsgraphgroupsanduserClient"/> from the DirectClient SDK.
+/// <see cref="MsgraphgroupsanduserClient"/> from the Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Exercises user listing, group search, and group property retrieval.

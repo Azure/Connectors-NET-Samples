@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Microsoft.Azure.Connectors.Sdk.Azureblob;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +13,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Blob Storage operations using the generated
-/// <see cref="AzureblobClient"/> from the DirectClient SDK.
+/// <see cref="AzureblobClient"/> from the Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Azure Blob Storage uses key-based auth (accountName + accessKey), not OAuth.

@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
+using Microsoft.Azure.Connectors.Sdk.Azureloganalytics;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +13,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Log Analytics operations using the generated
-/// <see cref="AzureloganalyticsClient"/> from the DirectClient SDK.
+/// <see cref="AzureloganalyticsClient"/> from the Connectors SDK.
 /// </summary>
 public class AzureLogAnalyticsFunctions
 {

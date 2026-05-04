@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
+using Microsoft.Azure.Connectors.DirectClient.Arm;
 using Microsoft.Azure.Connectors.DirectClient.Azureblob;
 using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
 using Microsoft.Azure.Connectors.DirectClient.Mq;
@@ -155,6 +156,17 @@ var host = new HostBuilder()
                     options.AzureLogAnalytics.ConnectionRuntimeUrl,
                     options.AzureLogAnalytics.ManagedIdentityClientId)
                 : new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl);
+        });
+
+        services.AddSingleton<ArmClient>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            return options.Arm.ManagedIdentityClientId != null
+                ? new ArmClient(
+                    options.Arm.ConnectionRuntimeUrl,
+                    options.Arm.ManagedIdentityClientId)
+                : new ArmClient(options.Arm.ConnectionRuntimeUrl);
         });
     })
     .Build();

@@ -48,6 +48,12 @@ public class ConnectorOptions
     public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
 
     /// <summary>
+    /// Azure Resource Manager (ARM) connector options.
+    /// </summary>
+    [ValidateObjectMembers]
+    public ArmOptions Arm { get; set; } = new ArmOptions();
+
+    /// <summary>
     /// Azure Blob Storage connector options.
     /// </summary>
     [ValidateObjectMembers]
@@ -258,6 +264,25 @@ public class AzureLogAnalyticsOptions
     /// The API connection runtime URL for Azure Log Analytics.
     /// </summary>
     [Required(ErrorMessage = "Connectors:AzureLogAnalytics:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Set to empty string for system-assigned managed identity.
+    /// Leave unset (null) to use the DefaultAzureCredential chain (CLI, env vars, etc.).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+}
+
+/// <summary>
+/// Configuration options for the Azure Resource Manager (ARM) connector.
+/// </summary>
+public class ArmOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Resource Manager.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Arm:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

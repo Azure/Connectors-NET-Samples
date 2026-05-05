@@ -5,10 +5,10 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Connectors.Sdk.Office365;
 using Microsoft.Azure.Connectors.Sdk.Sharepointonline;
 using Microsoft.Azure.Connectors.Sdk.Teams;
-using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

@@ -4,7 +4,7 @@ Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://git
 
 ## What's Inside
 
-The `DirectConnector/` project is an Azure Functions (isolated worker) app with 40 sample functions across 10 connectors. Newer connectors have dedicated Functions classes; the original three (Office 365, SharePoint, Teams) share `ConnectorFunctions.cs`:
+The `DirectConnector/` project is an Azure Functions (isolated worker) app with 38 sample functions across 9 connectors. Newer connectors have dedicated Functions classes; the original three (Office 365, SharePoint, Teams) share `ConnectorFunctions.cs`:
 
 | File | Connector | Sample Operations |
 |------|-----------|-------------------|

@@ -3,8 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.Sdk.Azureblob;
 using Microsoft.Azure.Connectors.Sdk;
+using Microsoft.Azure.Connectors.Sdk.Azureblob;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

@@ -4,8 +4,8 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.Sdk.Mq;
 using Microsoft.Azure.Connectors.Sdk;
+using Microsoft.Azure.Connectors.Sdk.Mq;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

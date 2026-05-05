@@ -17,7 +17,6 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | MqFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
 | SmtpFunctions.cs | SMTP | Send email via SMTP |
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
-| AzureLogAnalyticsFunctions.cs | Azure Log Analytics | List subscriptions, list workspaces |
 
 ### Key Patterns Demonstrated
 

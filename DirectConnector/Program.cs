@@ -4,7 +4,6 @@
 
 using DirectConnector.Configuration;
 using Microsoft.Azure.Connectors.Sdk.Azureblob;
-using Microsoft.Azure.Connectors.Sdk.Azureloganalytics;
 using Microsoft.Azure.Connectors.Sdk.Mq;
 using Microsoft.Azure.Connectors.Sdk.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.Sdk.Office365;
@@ -144,17 +143,6 @@ var host = new HostBuilder()
                     options.Office365Users.ConnectionRuntimeUrl,
                     options.Office365Users.ManagedIdentityClientId)
                 : new Office365usersClient(options.Office365Users.ConnectionRuntimeUrl);
-        });
-
-        services.AddSingleton<AzureloganalyticsClient>(serviceProvider =>
-        {
-            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
-
-            return options.AzureLogAnalytics.ManagedIdentityClientId != null
-                ? new AzureloganalyticsClient(
-                    options.AzureLogAnalytics.ConnectionRuntimeUrl,
-                    options.AzureLogAnalytics.ManagedIdentityClientId)
-                : new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl);
         });
     })
     .Build();

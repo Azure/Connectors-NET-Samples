@@ -30,7 +30,7 @@ public class AzureLogAnalyticsFunctions
 
     /// <summary>
     /// Lists Azure subscriptions available to the authenticated connection.
-    /// Demonstrates paginated enumeration via <c>await foreach</c> over <c>ConnectorPageable</c>.
+    /// Demonstrates paginated enumeration via <c>await foreach</c> over <c>AsyncPageable</c>.
     /// </summary>
     [Function("ListLogAnalyticsSubscriptions")]
     public async Task<HttpResponseData> ListSubscriptionsAsync(

@@ -1040,7 +1040,7 @@ public class ConnectorFunctions
     /// </summary>
     /// <remarks>
     /// Demonstrates <see cref="IAsyncEnumerable{T}"/> pagination: <c>GetMessagesFromChannelAsync</c>
-    /// returns a <c>ConnectorPageable</c> that follows <c>@odata.nextLink</c> automatically.
+    /// returns a <c>AsyncPageable</c> that follows <c>@odata.nextLink</c> automatically.
     /// The caller uses <c>await foreach</c> and never sees pagination details.
     /// </remarks>
     /// <param name="request">The HTTP request with teamId and channelId query parameters.</param>

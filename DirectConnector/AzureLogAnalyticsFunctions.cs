@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
+using Microsoft.Azure.Connectors.Sdk.Azuremonitorlogs;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,16 +13,16 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Log Analytics operations using the generated
-/// <see cref="AzureloganalyticsClient"/> from the DirectClient SDK.
+/// <see cref="AzuremonitorlogsClient"/> from the DirectClient SDK.
 /// </summary>
 public class AzureLogAnalyticsFunctions
 {
     private readonly ILogger<AzureLogAnalyticsFunctions> _logger;
-    private readonly AzureloganalyticsClient _logAnalyticsClient;
+    private readonly AzuremonitorlogsClient _logAnalyticsClient;
 
     public AzureLogAnalyticsFunctions(
         ILogger<AzureLogAnalyticsFunctions> logger,
-        AzureloganalyticsClient logAnalyticsClient)
+        AzuremonitorlogsClient logAnalyticsClient)
     {
         this._logger = logger;
         this._logAnalyticsClient = logAnalyticsClient;
@@ -37,7 +37,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/subscriptions")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzureloganalyticsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzuremonitorlogsClient from SDK.");
 
         try
         {
@@ -57,7 +57,7 @@ public class AzureLogAnalyticsFunctions
 
             return response;
         }
-        catch (AzureloganalyticsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -94,7 +94,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/workspaces")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzureloganalyticsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzuremonitorlogsClient from SDK.");
 
         var subscription = request.Query["subscription"];
         var resourceGroup = request.Query["resourceGroup"];
@@ -111,10 +111,10 @@ public class AzureLogAnalyticsFunctions
 
         try
         {
-            // Note: SDK returns ResourceGroup type for workspace entries per the connector API schema
-            var workspaces = new List<ResourceGroup>();
+            // Note: SDK returns ResourceItem type for workspace entries per the connector API schema
+            var workspaces = new List<ResourceItem>();
             await foreach (var workspace in this._logAnalyticsClient
-                .ListWorkspaceNamesAsync(subscription: subscription, resourceGroup: resourceGroup)
+                .ListResourcesAsync(subscription: subscription, resourceGroup: resourceGroup, resourceType: "Microsoft.OperationalInsights/workspaces")
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false))
             {
@@ -128,7 +128,7 @@ public class AzureLogAnalyticsFunctions
 
             return response;
         }
-        catch (AzureloganalyticsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status '{StatusCode}'.", ex.StatusCode);
 

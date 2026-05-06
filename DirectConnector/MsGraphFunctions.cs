@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
+using Microsoft.Azure.Connectors.Sdk.Msgraphgroupsanduser;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -66,7 +66,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -130,7 +130,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -206,7 +206,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 

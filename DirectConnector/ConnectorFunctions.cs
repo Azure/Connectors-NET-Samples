@@ -5,14 +5,14 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Office365;
-using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Teams;
+using Microsoft.Azure.Connectors.Sdk.Office365;
+using Microsoft.Azure.Connectors.Sdk.Sharepointonline;
+using Microsoft.Azure.Connectors.Sdk.Teams;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using SharePointBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Sharepointonline.BlobMetadata;
+using SharePointBlobMetadata = Microsoft.Azure.Connectors.Sdk.Sharepointonline.BlobMetadata;
 
 namespace DirectConnector;
 
@@ -148,7 +148,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -212,7 +212,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -290,7 +290,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -386,7 +386,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -471,7 +471,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -593,7 +593,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -670,7 +670,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -928,7 +928,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -1005,7 +1005,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -1098,7 +1098,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -1178,7 +1178,7 @@ public class ConnectorFunctions
             // The actual message body properties are determined at runtime by the connector's schema
             // discovery endpoint. With [JsonExtensionData] on AdditionalProperties, arbitrary properties
             // are now serialized correctly. Populate the dictionary with the expected message fields.
-            var messageRequest = new Microsoft.Azure.Connectors.DirectClient.Teams.DynamicPostMessageRequest();
+            var messageRequest = new Microsoft.Azure.Connectors.Sdk.Teams.DynamicPostMessageRequest();
             messageRequest.AdditionalProperties["recipient"] = JsonSerializer.SerializeToElement(
                 new
                 {
@@ -1210,7 +1210,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -1323,7 +1323,7 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
 

@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
+using Microsoft.Azure.Connectors.Sdk.Office365users;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -48,7 +48,7 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "GetMyProfile failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -97,7 +97,7 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "GetUserProfile failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -146,7 +146,7 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "GetManager failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -195,7 +195,7 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "GetDirectReports failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -260,7 +260,7 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "SearchUsers failed with status '{StatusCode}'.", ex.StatusCode);
 

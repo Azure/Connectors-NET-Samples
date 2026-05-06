@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Arm;
+using Microsoft.Azure.Connectors.Sdk.Arm;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -67,7 +67,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (ArmConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -119,7 +119,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (ArmConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -190,7 +190,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (ArmConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -243,7 +243,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (ArmConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.StatusCode);
 

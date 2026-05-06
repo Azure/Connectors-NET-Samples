@@ -3,7 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Microsoft.Azure.Connectors.Sdk.Azureblob;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -71,7 +71,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -140,7 +140,7 @@ public class AzureBlobFunctions
 
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -210,7 +210,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -271,7 +271,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 

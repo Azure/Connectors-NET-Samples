@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
+using Microsoft.Azure.Connectors.Sdk.Mq;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -85,7 +85,7 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MQ send failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -156,7 +156,7 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MQ browse failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -231,7 +231,7 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MQ browse batch failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -302,7 +302,7 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MQ receive failed with status '{StatusCode}'.", ex.StatusCode);
 
@@ -378,7 +378,7 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
             this._logger.LogError(ex, "MQ delete failed with status '{StatusCode}'.", ex.StatusCode);
 

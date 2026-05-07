@@ -5,12 +5,12 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Onedriveforbusiness;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using OneDriveBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadata;
+using OneDriveBlobMetadata = Azure.Connectors.Sdk.Onedriveforbusiness.BlobMetadata;
 
 namespace DirectConnector;
 
@@ -103,9 +103,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -113,14 +113,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListOneDriveRoot.");
 
@@ -194,9 +194,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -204,14 +204,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListOneDriveFolder.");
 
@@ -272,9 +272,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -282,14 +282,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in DownloadOneDriveFile.");
 
@@ -391,9 +391,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -401,14 +401,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in UploadOneDriveFile.");
 
@@ -477,9 +477,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -487,14 +487,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SearchOneDriveFiles.");
 
@@ -577,9 +577,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -587,14 +587,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in CreateOneDriveShareLink.");
 
@@ -817,7 +817,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in OneDriveTriggerCallback.");
 

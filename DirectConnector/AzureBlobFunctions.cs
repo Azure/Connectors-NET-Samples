@@ -3,8 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Azureblob;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -71,17 +71,17 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody })
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetBlobMetadata.");
 
@@ -140,17 +140,17 @@ public class AzureBlobFunctions
 
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody })
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in DownloadBlob.");
 
@@ -210,17 +210,17 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody })
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in UploadBlob.");
 
@@ -271,17 +271,17 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody })
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in DeleteBlob.");
 

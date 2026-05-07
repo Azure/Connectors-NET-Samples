@@ -3,8 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Msgraphgroupsanduser;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -66,9 +66,9 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -76,14 +76,14 @@ public class MsGraphFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListGraphUsers.");
 
@@ -130,9 +130,9 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -140,14 +140,14 @@ public class MsGraphFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListGraphGroups.");
 
@@ -206,9 +206,9 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -216,14 +216,14 @@ public class MsGraphFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetGraphGroupProperties.");
 

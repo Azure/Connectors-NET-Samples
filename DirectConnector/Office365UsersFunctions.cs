@@ -3,8 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Office365users;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -48,18 +48,18 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "GetMyProfile failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "GetMyProfile failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetMyProfile.");
 
@@ -97,18 +97,18 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "GetUserProfile failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "GetUserProfile failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetUserProfile.");
 
@@ -146,18 +146,18 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "GetManager failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "GetManager failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetManager.");
 
@@ -195,18 +195,18 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "GetDirectReports failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "GetDirectReports failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetDirectReports.");
 
@@ -260,18 +260,18 @@ public class Office365UsersFunctions
 
             return response;
         }
-        catch (Office365usersConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SearchUsers failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SearchUsers failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SearchUsers.");
 

@@ -10,11 +10,11 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
-    <PackageReference Include="Azure.Identity" Version="1.21.0" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Connectors.Sdk" Version="0.8.0-preview.1" />
+    <!-- NOTE(daviburg): Project reference for development. Replace with NuGet package
+         reference when the next SDK version is published to nuget.org. -->
+    <ProjectReference Include="..\..\Connectors-NET-SDK-di-extensions\src\Azure.Connectors.Sdk\Azure.Connectors.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

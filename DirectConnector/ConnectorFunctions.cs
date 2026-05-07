@@ -5,14 +5,14 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Office365;
-using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Teams;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Office365;
+using Azure.Connectors.Sdk.Sharepointonline;
+using Azure.Connectors.Sdk.Teams;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using SharePointBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Sharepointonline.BlobMetadata;
+using SharePointBlobMetadata = Azure.Connectors.Sdk.Sharepointonline.BlobMetadata;
 
 namespace DirectConnector;
 
@@ -148,9 +148,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -158,14 +158,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SendEmail.");
 
@@ -212,9 +212,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -222,13 +222,13 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode
+                    statusCode = ex.Status
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetCategories.");
 
@@ -290,9 +290,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -300,14 +300,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetSharePointLists.");
 
@@ -386,9 +386,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -396,14 +396,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListFolder.");
 
@@ -471,9 +471,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -481,14 +481,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in DownloadFile.");
 
@@ -593,9 +593,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -603,14 +603,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in UploadFile.");
 
@@ -670,9 +670,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -680,13 +680,13 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode
+                    statusCode = ex.Status
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ExportEmail.");
 
@@ -846,7 +846,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in TriggerCallback.");
 
@@ -928,9 +928,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -938,14 +938,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetAllTeams.");
 
@@ -1005,9 +1005,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1015,14 +1015,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetTeamChannels.");
 
@@ -1098,9 +1098,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1108,14 +1108,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in GetChannelMessages.");
 
@@ -1178,7 +1178,7 @@ public class ConnectorFunctions
             // The actual message body properties are determined at runtime by the connector's schema
             // discovery endpoint. With [JsonExtensionData] on AdditionalProperties, arbitrary properties
             // are now serialized correctly. Populate the dictionary with the expected message fields.
-            var messageRequest = new Microsoft.Azure.Connectors.DirectClient.Teams.DynamicPostMessageRequest();
+            var messageRequest = new Azure.Connectors.Sdk.Teams.DynamicPostMessageRequest();
             messageRequest.AdditionalProperties["recipient"] = JsonSerializer.SerializeToElement(
                 new
                 {
@@ -1210,9 +1210,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1220,14 +1220,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in PostTeamsMessage.");
 
@@ -1323,9 +1323,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1333,14 +1333,14 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in CreateCalendarEvent.");
 

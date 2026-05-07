@@ -4,8 +4,8 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -91,9 +91,9 @@ public class SmtpFunctions
 
             return response;
         }
-        catch (SmtpConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -101,7 +101,7 @@ public class SmtpFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -119,7 +119,7 @@ public class SmtpFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SmtpSendEmail.");
 

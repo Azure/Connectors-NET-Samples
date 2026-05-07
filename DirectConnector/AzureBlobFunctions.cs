@@ -3,7 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Azure.Connectors.Sdk.AzureBlob;
+using Azure.Connectors.Sdk.AzureBlob.Models;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Blob Storage operations using the generated
-/// <see cref="AzureblobClient"/> from the DirectClient SDK.
+/// <see cref="AzureBlobClient"/> from the DirectClient SDK.
 /// </summary>
 /// <remarks>
 /// Azure Blob Storage uses key-based auth (accountName + accessKey), not OAuth.
@@ -22,18 +23,18 @@ namespace DirectConnector;
 public class AzureBlobFunctions
 {
     private readonly ILogger<AzureBlobFunctions> _logger;
-    private readonly AzureblobClient _azureBlobClient;
+    private readonly AzureBlobClient _azureBlobClient;
 
     public AzureBlobFunctions(
         ILogger<AzureBlobFunctions> logger,
-        AzureblobClient azureBlobClient)
+        AzureBlobClient azureBlobClient)
     {
         this._logger = logger;
         this._azureBlobClient = azureBlobClient;
     }
 
     /// <summary>
-    /// Gets blob metadata using the generated <see cref="AzureblobClient"/>.
+    /// Gets blob metadata using the generated <see cref="AzureBlobClient"/>.
     /// Exercises the <see cref="DataWithSensitivityLabelInfo"/> response type.
     /// </summary>
     [Function("GetBlobMetadata")]
@@ -41,7 +42,7 @@ public class AzureBlobFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/metadata")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetBlobMetadata: Using generated AzureblobClient.");
+        this._logger.LogInformation("GetBlobMetadata: Using generated AzureBlobClient.");
 
         var storageAccount = request.Query["account"];
         var blobPath = request.Query["path"];
@@ -71,7 +72,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (AzureBlobConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -94,7 +95,7 @@ public class AzureBlobFunctions
     }
 
     /// <summary>
-    /// Downloads blob content using the generated <see cref="AzureblobClient"/>.
+    /// Downloads blob content using the generated <see cref="AzureBlobClient"/>.
     /// Exercises the byte[] return path.
     /// </summary>
     [Function("DownloadBlob")]
@@ -102,7 +103,7 @@ public class AzureBlobFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "blob/download")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("DownloadBlob: Using generated AzureblobClient byte[] response path.");
+        this._logger.LogInformation("DownloadBlob: Using generated AzureBlobClient byte[] response path.");
 
         var storageAccount = request.Query["account"];
         var blobPath = request.Query["path"];
@@ -140,7 +141,7 @@ public class AzureBlobFunctions
 
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (AzureBlobConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -163,7 +164,7 @@ public class AzureBlobFunctions
     }
 
     /// <summary>
-    /// Uploads a blob using the generated <see cref="AzureblobClient"/>.
+    /// Uploads a blob using the generated <see cref="AzureBlobClient"/>.
     /// Exercises the byte[] input path with <see cref="BlobMetadata"/> response.
     /// </summary>
     [Function("UploadBlob")]
@@ -171,7 +172,7 @@ public class AzureBlobFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "blob/upload")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("UploadBlob: Using generated AzureblobClient.");
+        this._logger.LogInformation("UploadBlob: Using generated AzureBlobClient.");
 
         var storageAccount = request.Query["account"];
         var folder = request.Query["folder"];
@@ -210,7 +211,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (AzureBlobConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -233,7 +234,7 @@ public class AzureBlobFunctions
     }
 
     /// <summary>
-    /// Deletes a blob using the generated <see cref="AzureblobClient"/>.
+    /// Deletes a blob using the generated <see cref="AzureBlobClient"/>.
     /// Exercises the void (no response body) path.
     /// </summary>
     [Function("DeleteBlob")]
@@ -241,7 +242,7 @@ public class AzureBlobFunctions
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "blob/delete")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("DeleteBlob: Using generated AzureblobClient.");
+        this._logger.LogInformation("DeleteBlob: Using generated AzureBlobClient.");
 
         var storageAccount = request.Query["account"];
         var blobId = request.Query["id"];
@@ -271,7 +272,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
-        catch (AzureblobConnectorException ex)
+        catch (AzureBlobConnectorException ex)
         {
             this._logger.LogError(ex, "Azure Blob connector error: '{StatusCode}'.", ex.StatusCode);
 

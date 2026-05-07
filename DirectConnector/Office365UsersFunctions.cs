@@ -3,7 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
+using Azure.Connectors.Sdk.Office365users;
+using Azure.Connectors.Sdk.Office365users.Models;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;

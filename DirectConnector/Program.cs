@@ -3,16 +3,25 @@
 //------------------------------------------------------------
 
 using DirectConnector.Configuration;
-using Microsoft.Azure.Connectors.DirectClient.Azureblob;
+using Azure.Connectors.Sdk.AzureBlob;
+using Azure.Connectors.Sdk.AzureBlob.Models;
 using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
-using Microsoft.Azure.Connectors.DirectClient.Office365;
-using Microsoft.Azure.Connectors.DirectClient.Office365users;
-using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
-using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
-using Microsoft.Azure.Connectors.DirectClient.Teams;
+using Azure.Connectors.Sdk.Mq;
+using Azure.Connectors.Sdk.Mq.Models;
+using Azure.Connectors.Sdk.MsGraphGroupsAndUsers;
+using Azure.Connectors.Sdk.MsGraphGroupsAndUsers.Models;
+using Azure.Connectors.Sdk.Office365;
+using Azure.Connectors.Sdk.Office365.Models;
+using Azure.Connectors.Sdk.Office365users;
+using Azure.Connectors.Sdk.Office365users.Models;
+using Azure.Connectors.Sdk.OneDriveForBusiness;
+using Azure.Connectors.Sdk.OneDriveForBusiness.Models;
+using Azure.Connectors.Sdk.SharePointOnline;
+using Azure.Connectors.Sdk.SharePointOnline.Models;
+using Azure.Connectors.Sdk.Smtp;
+using Azure.Connectors.Sdk.Smtp.Models;
+using Azure.Connectors.Sdk.Teams;
+using Azure.Connectors.Sdk.Teams.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,7 +64,7 @@ var host = new HostBuilder()
                 : new Office365Client(options.Office365.ConnectionRuntimeUrl);
         });
 
-        services.AddSingleton<SharepointonlineClient>(serviceProvider =>
+        services.AddSingleton<SharePointOnlineClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
@@ -63,10 +72,10 @@ var host = new HostBuilder()
             // the client relies on DefaultAzureCredential. When ManagedIdentityClientId is non-null
             // (empty string = system-assigned MSI, non-empty = user-assigned MSI), use the MSI constructor.
             return options.SharePoint.ManagedIdentityClientId != null
-                ? new SharepointonlineClient(
+                ? new SharePointOnlineClient(
                     options.SharePoint.ConnectionRuntimeUrl,
                     options.SharePoint.ManagedIdentityClientId)
-                : new SharepointonlineClient(options.SharePoint.ConnectionRuntimeUrl);
+                : new SharePointOnlineClient(options.SharePoint.ConnectionRuntimeUrl);
         });
 
         services.AddSingleton<TeamsClient>(serviceProvider =>
@@ -80,37 +89,37 @@ var host = new HostBuilder()
                 : new TeamsClient(options.Teams.ConnectionRuntimeUrl);
         });
 
-        services.AddSingleton<OnedriveforbusinessClient>(serviceProvider =>
+        services.AddSingleton<OneDriveForBusinessClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
             return options.OneDrive.ManagedIdentityClientId != null
-                ? new OnedriveforbusinessClient(
+                ? new OneDriveForBusinessClient(
                     options.OneDrive.ConnectionRuntimeUrl,
                     options.OneDrive.ManagedIdentityClientId)
-                : new OnedriveforbusinessClient(options.OneDrive.ConnectionRuntimeUrl);
+                : new OneDriveForBusinessClient(options.OneDrive.ConnectionRuntimeUrl);
         });
 
-        services.AddSingleton<MsgraphgroupsanduserClient>(serviceProvider =>
+        services.AddSingleton<MsGraphGroupsAndUsersClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
             return options.MsGraph.ManagedIdentityClientId != null
-                ? new MsgraphgroupsanduserClient(
+                ? new MsGraphGroupsAndUsersClient(
                     options.MsGraph.ConnectionRuntimeUrl,
                     options.MsGraph.ManagedIdentityClientId)
-                : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+                : new MsGraphGroupsAndUsersClient(options.MsGraph.ConnectionRuntimeUrl);
         });
 
-        services.AddSingleton<AzureblobClient>(serviceProvider =>
+        services.AddSingleton<AzureBlobClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
 
             return options.AzureBlob.ManagedIdentityClientId != null
-                ? new AzureblobClient(
+                ? new AzureBlobClient(
                     options.AzureBlob.ConnectionRuntimeUrl,
                     options.AzureBlob.ManagedIdentityClientId)
-                : new AzureblobClient(options.AzureBlob.ConnectionRuntimeUrl);
+                : new AzureBlobClient(options.AzureBlob.ConnectionRuntimeUrl);
         });
 
         services.AddSingleton<SmtpClient>(serviceProvider =>

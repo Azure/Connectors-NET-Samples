@@ -3,7 +3,8 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Msgraphgroupsanduser;
+using Azure.Connectors.Sdk.MsGraphGroupsAndUsers;
+using Azure.Connectors.Sdk.MsGraphGroupsAndUsers.Models;
 using Microsoft.Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating MS Graph Groups &amp; Users operations using the generated
-/// <see cref="MsgraphgroupsanduserClient"/> from the DirectClient SDK.
+/// <see cref="MsGraphGroupsAndUsersClient"/> from the DirectClient SDK.
 /// </summary>
 /// <remarks>
 /// Exercises user listing, group search, and group property retrieval.
@@ -21,7 +22,7 @@ namespace DirectConnector;
 public class MsGraphFunctions
 {
     private readonly ILogger<MsGraphFunctions> _logger;
-    private readonly MsgraphgroupsanduserClient _msGraphClient;
+    private readonly MsGraphGroupsAndUsersClient _msGraphClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MsGraphFunctions"/> class.
@@ -30,14 +31,14 @@ public class MsGraphFunctions
     /// <param name="msGraphClient">The DI-injected MS Graph Groups &amp; Users client (disposed by the host).</param>
     public MsGraphFunctions(
         ILogger<MsGraphFunctions> logger,
-        MsgraphgroupsanduserClient msGraphClient)
+        MsGraphGroupsAndUsersClient msGraphClient)
     {
         this._logger = logger;
         this._msGraphClient = msGraphClient;
     }
 
     /// <summary>
-    /// Lists a page of users in the tenant using the generated <see cref="MsgraphgroupsanduserClient"/>.
+    /// Lists a page of users in the tenant using the generated <see cref="MsGraphGroupsAndUsersClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -46,7 +47,7 @@ public class MsGraphFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "graph/users")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListGraphUsers: Using generated MsgraphgroupsanduserClient from SDK.");
+        this._logger.LogInformation("ListGraphUsers: Using generated MsGraphGroupsAndUsersClient from SDK.");
 
         try
         {
@@ -66,7 +67,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (MsGraphGroupsAndUsersConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -97,7 +98,7 @@ public class MsGraphFunctions
     }
 
     /// <summary>
-    /// Searches for groups by display name using the generated <see cref="MsgraphgroupsanduserClient"/>.
+    /// Searches for groups by display name using the generated <see cref="MsGraphGroupsAndUsersClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request with optional 'search' query parameter.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -106,7 +107,7 @@ public class MsGraphFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "graph/groups")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListGraphGroups: Using generated MsgraphgroupsanduserClient from SDK.");
+        this._logger.LogInformation("ListGraphGroups: Using generated MsGraphGroupsAndUsersClient from SDK.");
 
         var rawSearch = request.Query["search"];
         var search = string.IsNullOrWhiteSpace(rawSearch) ? null : rawSearch;
@@ -130,7 +131,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (MsGraphGroupsAndUsersConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 
@@ -161,7 +162,7 @@ public class MsGraphFunctions
     }
 
     /// <summary>
-    /// Gets properties of a specific group using the generated <see cref="MsgraphgroupsanduserClient"/>.
+    /// Gets properties of a specific group using the generated <see cref="MsGraphGroupsAndUsersClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request with 'groupId' query parameter.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -170,7 +171,7 @@ public class MsGraphFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "graph/groups/properties")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetGraphGroupProperties: Using generated MsgraphgroupsanduserClient from SDK.");
+        this._logger.LogInformation("GetGraphGroupProperties: Using generated MsGraphGroupsAndUsersClient from SDK.");
 
         var rawGroupId = request.Query["groupId"];
         var groupId = rawGroupId?.Trim();
@@ -206,7 +207,7 @@ public class MsGraphFunctions
 
             return response;
         }
-        catch (MsgraphgroupsanduserConnectorException ex)
+        catch (MsGraphGroupsAndUsersConnectorException ex)
         {
             this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.StatusCode);
 

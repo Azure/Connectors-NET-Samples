@@ -34,7 +34,7 @@ public sealed class ConnectorTriggerMetadataAttribute : Attribute
 
     /// <summary>
     /// The trigger operation name. Use constants from the connector's <c>*TriggerOperations</c> class
-    /// (e.g., <see cref="Microsoft.Azure.Connectors.DirectClient.Office365.Office365TriggerOperations"/>).
+    /// (e.g., <see cref="Azure.Connectors.Sdk.Office365.Office365TriggerOperations"/>).
     /// </summary>
     public string OperationName { get; set; } = "";
 

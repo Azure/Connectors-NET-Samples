@@ -2,6 +2,8 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
+using Azure.Core;
+using Azure.Identity;
 using DirectConnector.Configuration;
 using Microsoft.Azure.Connectors.DirectClient.Azureblob;
 using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
@@ -35,126 +37,111 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
 
+        // NOTE: Resolve the credential once for all connector clients.
+        // In Azure: defaults to ManagedIdentityCredential (system-assigned).
+        // For user-assigned MSI: set ManagedIdentityClientId in configuration.
+        // For local dev: set UseAzureCliCredential=true in local.settings.json.
+        services.AddSingleton<TokenCredential>(serviceProvider =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+
+            if (options.UseAzureCliCredential)
+            {
+                return new AzureCliCredential();
+            }
+
+            if (!string.IsNullOrEmpty(options.ManagedIdentityClientId))
+            {
+                return new ManagedIdentityCredential(
+                    ManagedIdentityId.FromUserAssignedClientId(options.ManagedIdentityClientId));
+            }
+
+            return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+        });
+
         // NOTE: Register generated connector clients as singletons.
-        // The factory overload lets DI own the instance lifetime and call Dispose,
-        // which exercises the ownership-based disposal pattern: the client will
-        // dispose its internally-created HttpClient and DefaultAzureCredential.
+        // The factory overload lets DI own the instance lifetime and call Dispose.
+        // All clients share the same credential resolved above.
         // NOTE: Validation of ConnectionRuntimeUrl is handled by
         // [Required] attribute + ValidateOnStart() at host initialization.
         services.AddSingleton<Office365Client>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            // NOTE: When ManagedIdentityClientId is null, use the default constructor so
-            // the client relies on DefaultAzureCredential. When ManagedIdentityClientId is non-null
-            // (empty string = system-assigned MSI, non-empty = user-assigned MSI), use the MSI constructor.
-            return options.Office365.ManagedIdentityClientId != null
-                ? new Office365Client(
-                    options.Office365.ConnectionRuntimeUrl,
-                    options.Office365.ManagedIdentityClientId)
-                : new Office365Client(options.Office365.ConnectionRuntimeUrl);
+            return new Office365Client(options.Office365.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<SharepointonlineClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            // NOTE: When ManagedIdentityClientId is null, use the default constructor so
-            // the client relies on DefaultAzureCredential. When ManagedIdentityClientId is non-null
-            // (empty string = system-assigned MSI, non-empty = user-assigned MSI), use the MSI constructor.
-            return options.SharePoint.ManagedIdentityClientId != null
-                ? new SharepointonlineClient(
-                    options.SharePoint.ConnectionRuntimeUrl,
-                    options.SharePoint.ManagedIdentityClientId)
-                : new SharepointonlineClient(options.SharePoint.ConnectionRuntimeUrl);
+            return new SharepointonlineClient(options.SharePoint.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<TeamsClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.Teams.ManagedIdentityClientId != null
-                ? new TeamsClient(
-                    options.Teams.ConnectionRuntimeUrl,
-                    options.Teams.ManagedIdentityClientId)
-                : new TeamsClient(options.Teams.ConnectionRuntimeUrl);
+            return new TeamsClient(options.Teams.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<OnedriveforbusinessClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.OneDrive.ManagedIdentityClientId != null
-                ? new OnedriveforbusinessClient(
-                    options.OneDrive.ConnectionRuntimeUrl,
-                    options.OneDrive.ManagedIdentityClientId)
-                : new OnedriveforbusinessClient(options.OneDrive.ConnectionRuntimeUrl);
+            return new OnedriveforbusinessClient(options.OneDrive.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<MsgraphgroupsanduserClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.MsGraph.ManagedIdentityClientId != null
-                ? new MsgraphgroupsanduserClient(
-                    options.MsGraph.ConnectionRuntimeUrl,
-                    options.MsGraph.ManagedIdentityClientId)
-                : new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl);
+            return new MsgraphgroupsanduserClient(options.MsGraph.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<AzureblobClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.AzureBlob.ManagedIdentityClientId != null
-                ? new AzureblobClient(
-                    options.AzureBlob.ConnectionRuntimeUrl,
-                    options.AzureBlob.ManagedIdentityClientId)
-                : new AzureblobClient(options.AzureBlob.ConnectionRuntimeUrl);
+            return new AzureblobClient(options.AzureBlob.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<SmtpClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.Smtp.ManagedIdentityClientId != null
-                ? new SmtpClient(
-                    options.Smtp.ConnectionRuntimeUrl,
-                    options.Smtp.ManagedIdentityClientId)
-                : new SmtpClient(options.Smtp.ConnectionRuntimeUrl);
+            return new SmtpClient(options.Smtp.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<MqClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.Mq.ManagedIdentityClientId != null
-                ? new MqClient(
-                    options.Mq.ConnectionRuntimeUrl,
-                    options.Mq.ManagedIdentityClientId)
-                : new MqClient(options.Mq.ConnectionRuntimeUrl);
+            return new MqClient(options.Mq.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<Office365usersClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.Office365Users.ManagedIdentityClientId != null
-                ? new Office365usersClient(
-                    options.Office365Users.ConnectionRuntimeUrl,
-                    options.Office365Users.ManagedIdentityClientId)
-                : new Office365usersClient(options.Office365Users.ConnectionRuntimeUrl);
+            return new Office365usersClient(options.Office365Users.ConnectionRuntimeUrl, credential);
         });
 
         services.AddSingleton<AzureloganalyticsClient>(serviceProvider =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<ConnectorOptions>>().Value;
+            var credential = serviceProvider.GetRequiredService<TokenCredential>();
 
-            return options.AzureLogAnalytics.ManagedIdentityClientId != null
-                ? new AzureloganalyticsClient(
-                    options.AzureLogAnalytics.ConnectionRuntimeUrl,
-                    options.AzureLogAnalytics.ManagedIdentityClientId)
-                : new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl);
+            return new AzureloganalyticsClient(options.AzureLogAnalytics.ConnectionRuntimeUrl, credential);
         });
     })
     .Build();

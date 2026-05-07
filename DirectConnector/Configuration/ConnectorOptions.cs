@@ -18,6 +18,18 @@ public class ConnectorOptions
     public const string SectionName = "Connectors";
 
     /// <summary>
+    /// When true, use <see cref="Azure.Identity.AzureCliCredential"/> for local development.
+    /// Set to true in local.settings.json for local dev; leave false (default) in Azure.
+    /// </summary>
+    public bool UseAzureCliCredential { get; set; }
+
+    /// <summary>
+    /// Managed identity client ID for user-assigned identity.
+    /// Leave unset (null or empty) for system-assigned managed identity (default).
+    /// </summary>
+    public string? ManagedIdentityClientId { get; set; }
+
+    /// <summary>
     /// Office365 connector options.
     /// </summary>
     [ValidateObjectMembers]
@@ -76,6 +88,126 @@ public class ConnectorOptions
     /// </summary>
     [ValidateObjectMembers]
     public AzureLogAnalyticsOptions AzureLogAnalytics { get; set; } = new AzureLogAnalyticsOptions();
+}
+
+/// <summary>
+/// Configuration options for the Microsoft Teams connector.
+/// </summary>
+public class TeamsOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Microsoft Teams.
+    /// </summary>
+    [Required(ErrorMessage = "Teams ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the Office365 connector.
+/// </summary>
+public class Office365Options
+{
+    /// <summary>
+    /// The API connection runtime URL for Office365.
+    /// </summary>
+    [Required(ErrorMessage = "Office365 ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the SharePoint Online connector.
+/// </summary>
+public class SharePointOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for SharePoint Online.
+    /// </summary>
+    [Required(ErrorMessage = "SharePoint ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the OneDrive for Business connector.
+/// </summary>
+public class OneDriveOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for OneDrive for Business.
+    /// </summary>
+    [Required(ErrorMessage = "OneDrive ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the MS Graph Groups and Users connector.
+/// </summary>
+public class MsGraphOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for MS Graph Groups and Users.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the Azure Blob Storage connector.
+/// </summary>
+public class AzureBlobOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Blob Storage.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:AzureBlob:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the SMTP connector.
+/// </summary>
+public class SmtpOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for SMTP.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Smtp:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the IBM MQ connector.
+/// </summary>
+public class MqOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for IBM MQ.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Mq:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the Office 365 Users connector.
+/// </summary>
+public class Office365UsersOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Office 365 Users.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:Office365Users:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Configuration options for the Azure Log Analytics connector.
+/// </summary>
+public class AzureLogAnalyticsOptions
+{
+    /// <summary>
+    /// The API connection runtime URL for Azure Log Analytics.
+    /// </summary>
+    [Required(ErrorMessage = "Connectors:AzureLogAnalytics:ConnectionRuntimeUrl is required.")]
+    public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 }
 
 /// <summary>

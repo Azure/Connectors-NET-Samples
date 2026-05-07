@@ -119,7 +119,7 @@ public class SmtpFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in SmtpSendEmail.");
 

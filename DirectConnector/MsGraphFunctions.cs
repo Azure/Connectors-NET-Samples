@@ -83,7 +83,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in ListGraphUsers.");
 
@@ -147,7 +147,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in ListGraphGroups.");
 
@@ -223,7 +223,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in GetGraphGroupProperties.");
 

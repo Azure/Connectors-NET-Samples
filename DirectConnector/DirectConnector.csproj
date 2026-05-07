@@ -12,9 +12,12 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <!-- NOTE(daviburg): Project reference for development. Replace with NuGet package
-         reference when the next SDK version is published to nuget.org. -->
-    <ProjectReference Include="..\..\Connectors-NET-SDK-di-extensions\src\Azure.Connectors.Sdk\Azure.Connectors.Sdk.csproj" />
+    <!-- NOTE(daviburg): Version 0.9.0-preview.1 will include the DI extension methods
+         from Azure/Connectors-NET-SDK#117. Until that version is published to nuget.org,
+         use a local project reference for development by uncommenting the ProjectReference below
+         and commenting out the PackageReference. -->
+    <PackageReference Include="Azure.Connectors.Sdk" Version="0.9.0-preview.1" />
+    <!-- <ProjectReference Include="..\..\Connectors-NET-SDK-di-extensions\src\Azure.Connectors.Sdk\Azure.Connectors.Sdk.csproj" /> -->
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

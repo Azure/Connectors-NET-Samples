@@ -59,7 +59,7 @@ public class Office365UsersFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in GetMyProfile.");
 
@@ -108,7 +108,7 @@ public class Office365UsersFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in GetUserProfile.");
 
@@ -157,7 +157,7 @@ public class Office365UsersFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in GetManager.");
 
@@ -206,7 +206,7 @@ public class Office365UsersFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in GetDirectReports.");
 
@@ -271,7 +271,7 @@ public class Office365UsersFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in SearchUsers.");
 

@@ -120,7 +120,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in ListOneDriveRoot.");
 
@@ -211,7 +211,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in ListOneDriveFolder.");
 
@@ -289,7 +289,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in DownloadOneDriveFile.");
 
@@ -408,7 +408,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in UploadOneDriveFile.");
 
@@ -494,7 +494,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in SearchOneDriveFiles.");
 
@@ -594,7 +594,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in CreateOneDriveShareLink.");
 
@@ -817,7 +817,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             this._logger.LogError(ex, "Error in OneDriveTriggerCallback.");
 

@@ -36,7 +36,7 @@ public class ArmFunctions
     /// <summary>
     /// Lists all subscriptions accessible to the authenticated user.
     /// </summary>
-    [Function("ListSubscriptions")]
+    [Function("ArmListSubscriptions")]
     public async Task<HttpResponseData> ListSubscriptionsAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "arm/subscriptions")] HttpRequestData request,
         CancellationToken cancellationToken)
@@ -87,7 +87,7 @@ public class ArmFunctions
     /// <summary>
     /// Lists resource groups in a subscription.
     /// </summary>
-    [Function("ListResourceGroups")]
+    [Function("ArmListResourceGroups")]
     public async Task<HttpResponseData> ListResourceGroupsAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "arm/subscriptions/{subscriptionId}/resourcegroups")] HttpRequestData request,
         string subscriptionId,
@@ -139,7 +139,7 @@ public class ArmFunctions
     /// <summary>
     /// Reads a specific resource by its resource group, provider, and short resource ID.
     /// </summary>
-    [Function("ReadResource")]
+    [Function("ArmReadResource")]
     public async Task<HttpResponseData> ReadResourceAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "arm/resource")] HttpRequestData request,
         CancellationToken cancellationToken)
@@ -210,7 +210,7 @@ public class ArmFunctions
     /// <summary>
     /// Lists resources in a resource group.
     /// </summary>
-    [Function("ListResourcesByResourceGroup")]
+    [Function("ArmListResources")]
     public async Task<HttpResponseData> ListResourcesByResourceGroupAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/resources")] HttpRequestData request,
         string subscriptionId,

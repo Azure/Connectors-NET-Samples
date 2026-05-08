@@ -2,6 +2,17 @@
 
 Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) — calling managed connectors directly from Azure Functions.
 
+> [!CAUTION]
+> **Early Preview — Not for Production Use**
+>
+> These samples use the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK), which is currently in early preview and under active development. They are intended for evaluation, experimentation, and feedback purposes only.
+>
+> - **Do not use in production environments.**
+> - **Breaking changes should be expected** across the SDK's APIs, data models, and behavior in future releases, which may require updates to these samples.
+> - Features may be added, modified, or removed without prior notice.
+>
+> We welcome feedback and contributions — please [open an issue](https://github.com/Azure/Connectors-NET-Samples/issues) with questions, suggestions, or bug reports.
+
 ## What's Inside
 
 The `DirectConnector/` project is an Azure Functions (isolated worker) app with 40 sample functions across 10 connectors. Newer connectors have dedicated Functions classes; the original three (Office 365, SharePoint, Teams) share `ConnectorFunctions.cs`:

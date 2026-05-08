@@ -58,7 +58,7 @@ public class ArmFunctions
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(subscriptions)
+                .WriteAsJsonAsync(new { success = true, count = subscriptions.Count, subscriptions })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
@@ -110,7 +110,7 @@ public class ArmFunctions
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(resourceGroups)
+                .WriteAsJsonAsync(new { success = true, count = resourceGroups.Count, resourceGroups })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
@@ -181,7 +181,7 @@ public class ArmFunctions
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(resource)
+                .WriteAsJsonAsync(new { success = true, resource })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
@@ -234,7 +234,7 @@ public class ArmFunctions
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(resources)
+                .WriteAsJsonAsync(new { success = true, count = resources.Count, resources })
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }

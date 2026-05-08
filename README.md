@@ -29,7 +29,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | SmtpFunctions.cs | SMTP | Send email via SMTP |
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
 | AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions, list resources |
-| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions, resource groups, deployments |
+| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions, resource groups, read resources |
 
 ### Key Patterns Demonstrated
 

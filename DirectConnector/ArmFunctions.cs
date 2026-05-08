@@ -15,7 +15,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Resource Manager operations using the generated
-/// <see cref="ArmClient"/> from the DirectClient SDK.
+/// <see cref="ArmClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// ARM connector uses OAuth (user-delegated Azure AD token).

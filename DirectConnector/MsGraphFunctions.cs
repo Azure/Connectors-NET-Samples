@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating MS Graph Groups &amp; Users operations using the generated
-/// <see cref="MsGraphGroupsAndUsersClient"/> from the DirectClient SDK.
+/// <see cref="MsGraphGroupsAndUsersClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Exercises user listing, group search, and group property retrieval.

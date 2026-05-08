@@ -15,7 +15,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating IBM MQ operations using the generated
-/// <see cref="MqClient"/> from the DirectClient SDK.
+/// <see cref="MqClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// IBM MQ uses parameter-based auth (server, queue manager, channel, credentials).

@@ -21,7 +21,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions that use the generated <see cref="Office365Client"/>, <see cref="SharePointOnlineClient"/>,
-/// and <see cref="TeamsClient"/> from the DirectClient SDK.
+/// and <see cref="TeamsClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Demonstrates DI-based lifetime management, JSON deserialization for structured responses,

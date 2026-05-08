@@ -13,14 +13,15 @@ var host = new HostBuilder()
     {
         var configuration = hostContext.Configuration;
 
-        // NOTE: Register generated connector clients as singletons using
-        // the DI extension methods from the SDK. Each method reads
-        // ConnectionRuntimeUrl from the IConfiguration section.
-        // TokenCredential is resolved from DI if registered, otherwise
-        // defaults to system-assigned managed identity.
-        // For local dev, register DefaultAzureCredential in DI:
-        services.AddSingleton<Azure.Core.TokenCredential>(
-            new Azure.Identity.DefaultAzureCredential());
+        // NOTE: Register a TokenCredential for connector clients.
+        // In Development, use DefaultAzureCredential (supports CLI, env vars, etc.).
+        // In Production, the SDK defaults to system-assigned managed identity
+        // when no TokenCredential is registered in DI.
+        if (hostContext.HostingEnvironment.IsDevelopment())
+        {
+            services.AddSingleton<Azure.Core.TokenCredential>(
+                new Azure.Identity.DefaultAzureCredential());
+        }
 
         services.AddOffice365Client(configuration.GetSection("Connectors:Office365"));
         services.AddSharePointOnlineClient(configuration.GetSection("Connectors:SharePoint"));

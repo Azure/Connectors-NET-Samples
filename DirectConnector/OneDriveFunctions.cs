@@ -17,7 +17,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating OneDrive for Business operations using the generated
-/// <see cref="OneDriveForBusinessClient"/> from the DirectClient SDK.
+/// <see cref="OneDriveForBusinessClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Exercises folder listing, file download/upload, search, sharing links,

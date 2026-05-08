@@ -13,9 +13,13 @@ using Microsoft.Extensions.Logging;
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions demonstrating Azure Log Analytics operations using the generated
-/// <see cref="AzuremonitorlogsClient"/> from the DirectClient SDK.
+/// Azure Functions demonstrating Azure Monitor Logs operations using the generated
+/// <see cref="AzuremonitorlogsClient"/> from the Azure Connectors SDK.
 /// </summary>
+/// <remarks>
+/// This connector replaces the deprecated Azure Log Analytics connector.
+/// The file retains the "LogAnalytics" name in routes for backward compatibility.
+/// </remarks>
 public class AzureLogAnalyticsFunctions
 {
     private readonly ILogger<AzureLogAnalyticsFunctions> _logger;

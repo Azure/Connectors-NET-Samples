@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Office 365 Users operations using the generated
-/// <see cref="Office365usersClient"/> from the DirectClient SDK.
+/// <see cref="Office365usersClient"/> from the Azure Connectors SDK.
 /// </summary>
 public class Office365UsersFunctions
 {

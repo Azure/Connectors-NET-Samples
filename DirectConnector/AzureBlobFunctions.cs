@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Blob Storage operations using the generated
-/// <see cref="AzureBlobClient"/> from the DirectClient SDK.
+/// <see cref="AzureBlobClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Azure Blob Storage uses key-based auth (accountName + accessKey), not OAuth.
@@ -23,14 +23,14 @@ namespace DirectConnector;
 public class AzureBlobFunctions
 {
     private readonly ILogger<AzureBlobFunctions> _logger;
-    private readonly AzureBlobClient _AzureBlobClient;
+    private readonly AzureBlobClient _azureBlobClient;
 
     public AzureBlobFunctions(
         ILogger<AzureBlobFunctions> logger,
-        AzureBlobClient AzureBlobClient)
+        AzureBlobClient azureBlobClient)
     {
         this._logger = logger;
-        this._AzureBlobClient = AzureBlobClient;
+        this._azureBlobClient = azureBlobClient;
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public class AzureBlobFunctions
 
         try
         {
-            var metadata = await this._AzureBlobClient
+            var metadata = await this._azureBlobClient
                 .GetFileMetadataByPathAsync(
                     storageAccountNameOrBlobEndpoint: storageAccount,
                     blobPath: blobPath,
@@ -118,7 +118,7 @@ public class AzureBlobFunctions
 
         try
         {
-            var fileBytes = await this._AzureBlobClient
+            var fileBytes = await this._azureBlobClient
                 .GetFileContentByPathAsync(
                     storageAccountNameOrBlobEndpoint: storageAccount,
                     blobPath: blobPath,
@@ -194,7 +194,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             var bodyBytes = memoryStream.ToArray();
 
-            var metadata = await this._AzureBlobClient
+            var metadata = await this._azureBlobClient
                 .CreateFileAsync(
                     storageAccountNameOrBlobEndpoint: storageAccount,
                     input: bodyBytes,
@@ -257,7 +257,7 @@ public class AzureBlobFunctions
 
         try
         {
-            await this._AzureBlobClient
+            await this._azureBlobClient
                 .DeleteFileAsync(
                     storageAccountNameOrBlobEndpoint: storageAccount,
                     blob: blobId,

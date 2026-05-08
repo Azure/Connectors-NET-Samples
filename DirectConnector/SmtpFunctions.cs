@@ -15,7 +15,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating SMTP operations using the generated
-/// <see cref="SmtpClient"/> from the DirectClient SDK.
+/// <see cref="SmtpClient"/> from the Azure Connectors SDK.
 /// </summary>
 public class SmtpFunctions
 {
@@ -25,14 +25,14 @@ public class SmtpFunctions
     };
 
     private readonly ILogger<SmtpFunctions> _logger;
-    private readonly SmtpClient _SmtpClient;
+    private readonly SmtpClient _smtpClient;
 
     public SmtpFunctions(
         ILogger<SmtpFunctions> logger,
-        SmtpClient SmtpClient)
+        SmtpClient smtpClient)
     {
         this._logger = logger;
-        this._SmtpClient = SmtpClient;
+        this._smtpClient = smtpClient;
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public class SmtpFunctions
                 Body = input.Body ?? string.Empty
             };
 
-            await this._SmtpClient
+            await this._smtpClient
                 .SendEmailAsync(input: email, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 

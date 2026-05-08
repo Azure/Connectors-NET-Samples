@@ -82,7 +82,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetBlobMetadata.");
 
@@ -151,7 +151,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in DownloadBlob.");
 
@@ -221,7 +221,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in UploadBlob.");
 
@@ -282,7 +282,7 @@ public class AzureBlobFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in DeleteBlob.");
 

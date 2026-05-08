@@ -78,7 +78,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListSubscriptions.");
 
@@ -130,7 +130,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListResourceGroups.");
 
@@ -201,7 +201,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ReadResource.");
 
@@ -254,7 +254,7 @@ public class ArmFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListResourcesByResourceGroup.");
 

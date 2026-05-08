@@ -120,7 +120,7 @@ public class SmtpFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in SmtpSendEmail.");
 

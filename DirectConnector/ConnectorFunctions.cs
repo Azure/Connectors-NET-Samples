@@ -168,7 +168,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in SendEmail.");
 
@@ -231,7 +231,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetCategories.");
 
@@ -310,7 +310,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetSharePointLists.");
 
@@ -406,7 +406,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListFolder.");
 
@@ -491,7 +491,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in DownloadFile.");
 
@@ -613,7 +613,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in UploadFile.");
 
@@ -689,7 +689,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ExportEmail.");
 
@@ -849,7 +849,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in TriggerCallback.");
 
@@ -948,7 +948,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetAllTeams.");
 
@@ -1025,7 +1025,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetTeamChannels.");
 
@@ -1118,7 +1118,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetChannelMessages.");
 
@@ -1230,7 +1230,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in PostTeamsMessage.");
 
@@ -1343,7 +1343,7 @@ public class ConnectorFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in CreateCalendarEvent.");
 

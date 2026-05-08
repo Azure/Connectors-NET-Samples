@@ -108,7 +108,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in MqSendMessage.");
 
@@ -179,7 +179,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in MqBrowseMessage.");
 
@@ -254,7 +254,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in MqBrowseMessages.");
 
@@ -325,7 +325,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in MqReceiveMessage.");
 
@@ -401,7 +401,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in MqDeleteMessage.");
 

@@ -84,7 +84,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListGraphUsers.");
 
@@ -148,7 +148,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in ListGraphGroups.");
 
@@ -224,7 +224,7 @@ public class MsGraphFunctions
 
             return errorResponse;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ex.IsFatal())
         {
             this._logger.LogError(ex, "Error in GetGraphGroupProperties.");
 

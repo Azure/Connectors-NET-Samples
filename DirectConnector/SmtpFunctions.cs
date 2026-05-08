@@ -4,8 +4,9 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Smtp;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Smtp;
+using Azure.Connectors.Sdk.Smtp.Models;
+using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -24,14 +25,14 @@ public class SmtpFunctions
     };
 
     private readonly ILogger<SmtpFunctions> _logger;
-    private readonly SmtpClient _smtpClient;
+    private readonly SmtpClient _SmtpClient;
 
     public SmtpFunctions(
         ILogger<SmtpFunctions> logger,
-        SmtpClient smtpClient)
+        SmtpClient SmtpClient)
     {
         this._logger = logger;
-        this._smtpClient = smtpClient;
+        this._SmtpClient = SmtpClient;
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ public class SmtpFunctions
                 Body = input.Body ?? string.Empty
             };
 
-            await this._smtpClient
+            await this._SmtpClient
                 .SendEmailAsync(input: email, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
@@ -91,9 +92,9 @@ public class SmtpFunctions
 
             return response;
         }
-        catch (SmtpConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SMTP connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -101,7 +102,7 @@ public class SmtpFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -119,7 +120,7 @@ public class SmtpFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SmtpSendEmail.");
 

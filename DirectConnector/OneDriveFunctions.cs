@@ -5,18 +5,19 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.OneDriveForBusiness;
+using Azure.Connectors.Sdk.OneDriveForBusiness.Models;
+using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using OneDriveBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Onedriveforbusiness.BlobMetadata;
+using OneDriveBlobMetadata = Azure.Connectors.Sdk.OneDriveForBusiness.Models.BlobMetadata;
 
 namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating OneDrive for Business operations using the generated
-/// <see cref="OnedriveforbusinessClient"/> from the DirectClient SDK.
+/// <see cref="OneDriveForBusinessClient"/> from the DirectClient SDK.
 /// </summary>
 /// <remarks>
 /// Exercises folder listing, file download/upload, search, sharing links,
@@ -49,7 +50,7 @@ public class OneDriveFunctions
     };
 
     private readonly ILogger<OneDriveFunctions> _logger;
-    private readonly OnedriveforbusinessClient _oneDriveClient;
+    private readonly OneDriveForBusinessClient _oneDriveClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OneDriveFunctions"/> class.
@@ -58,7 +59,7 @@ public class OneDriveFunctions
     /// <param name="oneDriveClient">The DI-injected OneDrive for Business client (disposed by the host).</param>
     public OneDriveFunctions(
         ILogger<OneDriveFunctions> logger,
-        OnedriveforbusinessClient oneDriveClient)
+        OneDriveForBusinessClient oneDriveClient)
     {
         this._logger = logger;
         this._oneDriveClient = oneDriveClient;
@@ -74,7 +75,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "onedrive/root")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListOneDriveRoot: Using generated OnedriveforbusinessClient from SDK.");
+        this._logger.LogInformation("ListOneDriveRoot: Using generated OneDriveForBusinessClient from SDK.");
 
         try
         {
@@ -103,9 +104,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -113,14 +114,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListOneDriveRoot.");
 
@@ -137,7 +138,7 @@ public class OneDriveFunctions
     /// Lists files in a specific OneDrive folder.
     /// </summary>
     /// <remarks>
-    /// Exercises <see cref="OnedriveforbusinessClient.ListFolderAsync"/> which returns an
+    /// Exercises <see cref="OneDriveForBusinessClient.ListFolderAsync"/> which returns an
     /// <see cref="IAsyncEnumerable{T}"/> that automatically follows pagination across all pages.
     /// </remarks>
     /// <param name="request">The HTTP request containing the folder identifier.</param>
@@ -147,7 +148,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "onedrive/files")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListOneDriveFolder: Using generated OnedriveforbusinessClient from SDK.");
+        this._logger.LogInformation("ListOneDriveFolder: Using generated OneDriveForBusinessClient from SDK.");
 
         var folderId = request.Query["folder"];
         if (string.IsNullOrEmpty(folderId))
@@ -194,9 +195,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -204,14 +205,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in ListOneDriveFolder.");
 
@@ -228,7 +229,7 @@ public class OneDriveFunctions
     /// Downloads a file from OneDrive for Business as binary bytes.
     /// </summary>
     /// <remarks>
-    /// Exercises the <c>byte[]</c> response path in <see cref="OnedriveforbusinessClient.GetFileContentByPathAsync"/>.
+    /// Exercises the <c>byte[]</c> response path in <see cref="OneDriveForBusinessClient.GetFileContentByPathAsync"/>.
     /// </remarks>
     /// <param name="request">The HTTP request containing the file path.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -237,7 +238,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "onedrive/download")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("DownloadOneDriveFile: Using generated OnedriveforbusinessClient byte[] response path.");
+        this._logger.LogInformation("DownloadOneDriveFile: Using generated OneDriveForBusinessClient byte[] response path.");
 
         var filePath = request.Query["path"];
         if (string.IsNullOrEmpty(filePath))
@@ -272,9 +273,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -282,14 +283,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in DownloadOneDriveFile.");
 
@@ -306,7 +307,7 @@ public class OneDriveFunctions
     /// Uploads a file to OneDrive for Business.
     /// </summary>
     /// <remarks>
-    /// Exercises the <c>byte[]</c> input path in <see cref="OnedriveforbusinessClient.CreateFileAsync"/>.
+    /// Exercises the <c>byte[]</c> input path in <see cref="OneDriveForBusinessClient.CreateFileAsync"/>.
     /// </remarks>
     /// <param name="request">The HTTP request containing upload details.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -315,7 +316,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "onedrive/upload")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("UploadOneDriveFile: Using generated OnedriveforbusinessClient byte[] input path.");
+        this._logger.LogInformation("UploadOneDriveFile: Using generated OneDriveForBusinessClient byte[] input path.");
 
         try
         {
@@ -391,9 +392,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -401,14 +402,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in UploadOneDriveFile.");
 
@@ -431,7 +432,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "onedrive/search")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("SearchOneDriveFiles: Using generated OnedriveforbusinessClient from SDK.");
+        this._logger.LogInformation("SearchOneDriveFiles: Using generated OneDriveForBusinessClient from SDK.");
 
         var query = request.Query["query"];
         if (string.IsNullOrEmpty(query))
@@ -477,9 +478,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -487,14 +488,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in SearchOneDriveFiles.");
 
@@ -517,7 +518,7 @@ public class OneDriveFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "onedrive/share")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("CreateOneDriveShareLink: Using generated OnedriveforbusinessClient from SDK.");
+        this._logger.LogInformation("CreateOneDriveShareLink: Using generated OneDriveForBusinessClient from SDK.");
 
         try
         {
@@ -577,9 +578,9 @@ public class OneDriveFunctions
 
             return response;
         }
-        catch (OnedriveforbusinessConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "OneDrive connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -587,14 +588,14 @@ public class OneDriveFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in CreateOneDriveShareLink.");
 
@@ -627,7 +628,7 @@ public class OneDriveFunctions
     /// <term>Object body (OnNewFilesV2 / OnUpdatedFilesV2)</term>
     /// <description>
     /// The <c>body</c> field is a <c>{"value":[...]}</c> object with <see cref="OneDriveBlobMetadata"/> items.
-    /// The payload deserializes to <see cref="OnedriveforbusinessOnNewFilesTriggerPayload"/>.
+    /// The payload deserializes to <see cref="OneDriveForBusinessOnNewFilesTriggerPayload"/>.
     /// </description>
     /// </item>
     /// </list>
@@ -636,8 +637,8 @@ public class OneDriveFunctions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("OneDriveTriggerCallback")]
     [ConnectorTriggerMetadata(
-        ConnectorName = ConnectorNames.Onedriveforbusiness,
-        OperationName = OnedriveforbusinessTriggerOperations.OnNewFiles,
+        ConnectorName = ConnectorNames.OneDriveForBusiness,
+        OperationName = OneDriveForBusinessTriggerOperations.OnNewFiles,
         Connection = "Connectors:OneDrive")]
     public async Task<HttpResponseData> OneDriveTriggerCallbackAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "onedriveTriggerCallback")] HttpRequestData request,
@@ -758,7 +759,7 @@ public class OneDriveFunctions
 
             // NOTE: OnNewFilesV2 / OnUpdatedFilesV2 (properties-only trigger).
             // The "body" field is a {"value":[...]} object with BlobMetadata items.
-            var payload = JsonSerializer.Deserialize<OnedriveforbusinessOnNewFilesTriggerPayload>(
+            var payload = JsonSerializer.Deserialize<OneDriveForBusinessOnNewFilesTriggerPayload>(
                 body,
                 OneDriveFunctions.JsonOptions);
 
@@ -817,7 +818,7 @@ public class OneDriveFunctions
 
             return errorResponse;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in OneDriveTriggerCallback.");
 

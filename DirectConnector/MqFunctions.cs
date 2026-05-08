@@ -4,8 +4,9 @@
 
 using System.Net;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Mq;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Mq;
+using Azure.Connectors.Sdk.Mq.Models;
+using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -85,13 +86,13 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ send failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ send failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -107,7 +108,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in MqSendMessage.");
 
@@ -156,13 +157,13 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ browse failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ browse failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -178,7 +179,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in MqBrowseMessage.");
 
@@ -231,13 +232,13 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ browse batch failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ browse batch failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -253,7 +254,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in MqBrowseMessages.");
 
@@ -302,13 +303,13 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ receive failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ receive failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -324,7 +325,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in MqReceiveMessage.");
 
@@ -378,13 +379,13 @@ public class MqFunctions
 
             return response;
         }
-        catch (MqConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MQ delete failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "MQ delete failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -400,7 +401,7 @@ public class MqFunctions
 
             return badRequest;
         }
-        catch (Exception ex) when (!ex.IsFatal())
+        catch (Exception ex)
         {
             this._logger.LogError(ex, "Error in MqDeleteMessage.");
 

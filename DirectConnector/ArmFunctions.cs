@@ -3,10 +3,9 @@
 //------------------------------------------------------------
 
 using System.Net;
-using System.Text.Json;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Arm;
 using Azure.Connectors.Sdk.Arm.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -23,11 +22,6 @@ namespace DirectConnector;
 /// </remarks>
 public class ArmFunctions
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     private readonly ILogger<ArmFunctions> _logger;
     private readonly ArmClient _armClient;
 

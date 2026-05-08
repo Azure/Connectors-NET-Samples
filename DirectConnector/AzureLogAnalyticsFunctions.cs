@@ -3,9 +3,9 @@
 //------------------------------------------------------------
 
 using System.Net;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Azuremonitorlogs;
 using Azure.Connectors.Sdk.Azuremonitorlogs.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -128,7 +128,7 @@ public class AzureLogAnalyticsFunctions
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(new { success = true, count = resources.Count, resources }, cancellationToken)
+                .WriteAsJsonAsync(new { success = true, count = resources.Count, workspaces = resources }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return response;

@@ -3,9 +3,9 @@
 //------------------------------------------------------------
 
 using System.Net;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.AzureBlob;
 using Azure.Connectors.Sdk.AzureBlob.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

@@ -5,13 +5,13 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Office365;
 using Azure.Connectors.Sdk.Office365.Models;
 using Azure.Connectors.Sdk.SharePointOnline;
 using Azure.Connectors.Sdk.SharePointOnline.Models;
 using Azure.Connectors.Sdk.Teams;
 using Azure.Connectors.Sdk.Teams.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

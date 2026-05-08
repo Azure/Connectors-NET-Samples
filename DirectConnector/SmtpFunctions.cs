@@ -4,9 +4,9 @@
 
 using System.Net;
 using System.Text.Json;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Smtp;
 using Azure.Connectors.Sdk.Smtp.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

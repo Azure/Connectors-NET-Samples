@@ -5,9 +5,9 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.OneDriveForBusiness;
 using Azure.Connectors.Sdk.OneDriveForBusiness.Models;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

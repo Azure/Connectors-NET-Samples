@@ -22,6 +22,8 @@ namespace DirectConnector;
 /// </remarks>
 public class AzureLogAnalyticsFunctions
 {
+    private const string OperationalInsightsWorkspaceResourceType = "Microsoft.OperationalInsights/workspaces";
+
     private readonly ILogger<AzureLogAnalyticsFunctions> _logger;
     private readonly AzuremonitorlogsClient _logAnalyticsClient;
 
@@ -119,7 +121,7 @@ public class AzureLogAnalyticsFunctions
             // Note: SDK returns ResourceItem for resource entries per the connector API schema
             var resources = new List<ResourceItem>();
             await foreach (var resource in this._logAnalyticsClient
-                .ListResourcesAsync(subscription: subscription, resourceGroup: resourceGroup, resourceType: "Microsoft.OperationalInsights/workspaces")
+                .ListResourcesAsync(subscription: subscription, resourceGroup: resourceGroup, resourceType: AzureLogAnalyticsFunctions.OperationalInsightsWorkspaceResourceType)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false))
             {

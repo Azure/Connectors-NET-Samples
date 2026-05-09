@@ -5,20 +5,23 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Azure.Connectors.DirectClient.Office365;
-using Microsoft.Azure.Connectors.DirectClient.Sharepointonline;
-using Microsoft.Azure.Connectors.DirectClient.Teams;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Office365;
+using Azure.Connectors.Sdk.Office365.Models;
+using Azure.Connectors.Sdk.SharePointOnline;
+using Azure.Connectors.Sdk.SharePointOnline.Models;
+using Azure.Connectors.Sdk.Teams;
+using Azure.Connectors.Sdk.Teams.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using SharePointBlobMetadata = Microsoft.Azure.Connectors.DirectClient.Sharepointonline.BlobMetadata;
+using SharePointBlobMetadata = Azure.Connectors.Sdk.SharePointOnline.Models.BlobMetadata;
 
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions that use the generated <see cref="Office365Client"/>, <see cref="SharepointonlineClient"/>,
-/// and <see cref="TeamsClient"/> from the DirectClient SDK.
+/// Azure Functions that use the generated <see cref="Office365Client"/>, <see cref="SharePointOnlineClient"/>,
+/// and <see cref="TeamsClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// Demonstrates DI-based lifetime management, JSON deserialization for structured responses,
@@ -56,7 +59,7 @@ public class ConnectorFunctions
 
     private readonly ILogger<ConnectorFunctions> _logger;
     private readonly Office365Client _office365Client;
-    private readonly SharepointonlineClient _sharePointClient;
+    private readonly SharePointOnlineClient _sharePointClient;
     private readonly TeamsClient _teamsClient;
 
     /// <summary>
@@ -69,7 +72,7 @@ public class ConnectorFunctions
     public ConnectorFunctions(
         ILogger<ConnectorFunctions> logger,
         Office365Client office365Client,
-        SharepointonlineClient sharePointClient,
+        SharePointOnlineClient sharePointClient,
         TeamsClient teamsClient)
     {
         this._logger = logger;
@@ -148,9 +151,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -158,7 +161,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -212,9 +215,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -222,7 +225,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode
+                    statusCode = ex.Status
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
@@ -246,7 +249,7 @@ public class ConnectorFunctions
     }
 
     /// <summary>
-    /// Gets all SharePoint lists and libraries for a site using the generated <see cref="SharepointonlineClient"/>.
+    /// Gets all SharePoint lists and libraries for a site using the generated <see cref="SharePointOnlineClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request containing the site address.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -255,7 +258,7 @@ public class ConnectorFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/lists")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetSharePointLists: Using generated SharepointonlineClient from SDK.");
+        this._logger.LogInformation("GetSharePointLists: Using generated SharePointOnlineClient from SDK.");
 
         var siteAddress = request.Query["site"];
         if (string.IsNullOrEmpty(siteAddress))
@@ -290,9 +293,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -300,7 +303,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -325,7 +328,7 @@ public class ConnectorFunctions
     }
 
     /// <summary>
-    /// Lists files in a SharePoint folder using the generated <see cref="SharepointonlineClient"/>.
+    /// Lists files in a SharePoint folder using the generated <see cref="SharePointOnlineClient"/>.
     /// </summary>
     /// <remarks>
     /// Exercises the <see cref="SharePointBlobMetadata"/> model for folder browsing.
@@ -337,7 +340,7 @@ public class ConnectorFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/files")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListFolder: Using generated SharepointonlineClient from SDK.");
+        this._logger.LogInformation("ListFolder: Using generated SharePointOnlineClient from SDK.");
 
         var siteAddress = request.Query["site"];
         if (string.IsNullOrEmpty(siteAddress))
@@ -386,9 +389,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -396,7 +399,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -420,7 +423,7 @@ public class ConnectorFunctions
     /// Downloads file content from SharePoint as binary bytes.
     /// </summary>
     /// <remarks>
-    /// Exercises the <c>byte[]</c> response path in <see cref="SharepointonlineClient.GetFileContentByPathAsync"/>.
+    /// Exercises the <c>byte[]</c> response path in <see cref="SharePointOnlineClient.GetFileContentByPathAsync"/>.
     /// The generated <c>CallConnectorAsync</c> detects <c>byte[]</c> as the response type and uses
     /// <c>ReadAsByteArrayAsync</c> instead of JSON deserialization.
     /// </remarks>
@@ -431,7 +434,7 @@ public class ConnectorFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/download")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("DownloadFile: Using generated SharepointonlineClient byte[] response path.");
+        this._logger.LogInformation("DownloadFile: Using generated SharePointOnlineClient byte[] response path.");
 
         var siteAddress = request.Query["site"];
         var filePath = request.Query["path"];
@@ -471,9 +474,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -481,7 +484,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -505,7 +508,7 @@ public class ConnectorFunctions
     /// Uploads a file to a SharePoint document library.
     /// </summary>
     /// <remarks>
-    /// Exercises the <c>byte[]</c> input path in <see cref="SharepointonlineClient.CreateFileAsync"/>.
+    /// Exercises the <c>byte[]</c> input path in <see cref="SharePointOnlineClient.CreateFileAsync"/>.
     /// Accepts a JSON body with base64-encoded content or plain text, and uploads it to
     /// the specified SharePoint folder.
     /// </remarks>
@@ -516,7 +519,7 @@ public class ConnectorFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "sharepoint/upload")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("UploadFile: Using generated SharepointonlineClient byte[] input path.");
+        this._logger.LogInformation("UploadFile: Using generated SharePointOnlineClient byte[] input path.");
 
         try
         {
@@ -593,9 +596,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (SharepointonlineConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -603,7 +606,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -670,9 +673,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -680,7 +683,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode
+                    statusCode = ex.Status
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
@@ -928,9 +931,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -938,7 +941,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -1005,9 +1008,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1015,7 +1018,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -1098,9 +1101,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1108,7 +1111,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -1178,7 +1181,7 @@ public class ConnectorFunctions
             // The actual message body properties are determined at runtime by the connector's schema
             // discovery endpoint. With [JsonExtensionData] on AdditionalProperties, arbitrary properties
             // are now serialized correctly. Populate the dictionary with the expected message fields.
-            var messageRequest = new Microsoft.Azure.Connectors.DirectClient.Teams.DynamicPostMessageRequest();
+            var messageRequest = new Azure.Connectors.Sdk.Teams.Models.DynamicPostMessageRequest();
             messageRequest.AdditionalProperties["recipient"] = JsonSerializer.SerializeToElement(
                 new
                 {
@@ -1210,9 +1213,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (TeamsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Teams connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1220,7 +1223,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -1323,9 +1326,9 @@ public class ConnectorFunctions
 
             return response;
         }
-        catch (Office365ConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -1333,7 +1336,7 @@ public class ConnectorFunctions
                 {
                     success = false,
                     error = ex.Message,
-                    statusCode = ex.StatusCode,
+                    statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);

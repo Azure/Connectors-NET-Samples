@@ -3,8 +3,9 @@
 //------------------------------------------------------------
 
 using System.Net;
-using Microsoft.Azure.Connectors.DirectClient.Azureloganalytics;
-using Microsoft.Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Azuremonitorlogs;
+using Azure.Connectors.Sdk.Azuremonitorlogs.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -12,17 +13,23 @@ using Microsoft.Extensions.Logging;
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions demonstrating Azure Log Analytics operations using the generated
-/// <see cref="AzureloganalyticsClient"/> from the DirectClient SDK.
+/// Azure Functions demonstrating Azure Monitor Logs operations using the generated
+/// <see cref="AzuremonitorlogsClient"/> from the Azure Connectors SDK.
 /// </summary>
+/// <remarks>
+/// This connector replaces the deprecated Azure Log Analytics connector.
+/// The file retains the "LogAnalytics" name in routes for backward compatibility.
+/// </remarks>
 public class AzureLogAnalyticsFunctions
 {
+    private const string OperationalInsightsWorkspaceResourceType = "Microsoft.OperationalInsights/workspaces";
+
     private readonly ILogger<AzureLogAnalyticsFunctions> _logger;
-    private readonly AzureloganalyticsClient _logAnalyticsClient;
+    private readonly AzuremonitorlogsClient _logAnalyticsClient;
 
     public AzureLogAnalyticsFunctions(
         ILogger<AzureLogAnalyticsFunctions> logger,
-        AzureloganalyticsClient logAnalyticsClient)
+        AzuremonitorlogsClient logAnalyticsClient)
     {
         this._logger = logger;
         this._logAnalyticsClient = logAnalyticsClient;
@@ -37,7 +44,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/subscriptions")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzureloganalyticsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzuremonitorlogsClient from SDK.");
 
         try
         {
@@ -57,13 +64,13 @@ public class AzureLogAnalyticsFunctions
 
             return response;
         }
-        catch (AzureloganalyticsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "ListLogAnalyticsSubscriptions failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;
@@ -94,7 +101,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/workspaces")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzureloganalyticsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzuremonitorlogsClient from SDK.");
 
         var subscription = request.Query["subscription"];
         var resourceGroup = request.Query["resourceGroup"];
@@ -111,30 +118,30 @@ public class AzureLogAnalyticsFunctions
 
         try
         {
-            // Note: SDK returns ResourceGroup type for workspace entries per the connector API schema
-            var workspaces = new List<ResourceGroup>();
-            await foreach (var workspace in this._logAnalyticsClient
-                .ListWorkspaceNamesAsync(subscription: subscription, resourceGroup: resourceGroup)
+            // Note: SDK returns ResourceItem for resource entries per the connector API schema
+            var resources = new List<ResourceItem>();
+            await foreach (var resource in this._logAnalyticsClient
+                .ListResourcesAsync(subscription: subscription, resourceGroup: resourceGroup, resourceType: AzureLogAnalyticsFunctions.OperationalInsightsWorkspaceResourceType)
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false))
             {
-                workspaces.Add(workspace);
+                resources.Add(resource);
             }
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
-                .WriteAsJsonAsync(new { success = true, count = workspaces.Count, workspaces }, cancellationToken)
+                .WriteAsJsonAsync(new { success = true, count = resources.Count, workspaces = resources }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return response;
         }
-        catch (AzureloganalyticsConnectorException ex)
+        catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status '{StatusCode}'.", ex.StatusCode);
+            this._logger.LogError(ex, "ListLogAnalyticsWorkspaces failed with status '{StatusCode}'.", ex.Status);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
-                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.StatusCode, details = ex.ResponseBody }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return errorResponse;

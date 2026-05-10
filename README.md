@@ -15,13 +15,13 @@ Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://git
 
 ## What's Inside
 
-The `DirectConnector/` project is an Azure Functions (isolated worker) app with sample functions across 11 connectors. Newer connectors have dedicated Functions classes; the original three (Office 365, SharePoint, Teams) share `ConnectorFunctions.cs`:
+The `DirectConnector/` project is an Azure Functions (isolated worker) app with sample functions across 11 connectors, each in its own Functions class:
 
 | File | Connector | Sample Operations |
 |------|-----------|-------------------|
-| ConnectorFunctions.cs | Office 365 (Mail/Calendar) | Send email, get categories, export email, create calendar event, trigger callbacks |
-| ConnectorFunctions.cs | SharePoint Online | List libraries, browse folders, download/upload files |
-| ConnectorFunctions.cs | Microsoft Teams | List teams/channels, get messages, post messages |
+| Office365Functions.cs | Office 365 (Mail/Calendar) | Send email, get categories, export email, create calendar event, trigger callbacks |
+| SharePointFunctions.cs | SharePoint Online | List libraries, browse folders, download/upload files |
+| TeamsFunctions.cs | Microsoft Teams | List teams/channels, get messages, post messages |
 | MsGraphFunctions.cs | MS Graph Groups & Users | List users, search groups, get group properties |
 | OneDriveFunctions.cs | OneDrive for Business | Browse folders, download/upload files, search, share links |
 | Office365UsersFunctions.cs | Office 365 Users | Get my profile, user lookup, manager/reports chain, search users |

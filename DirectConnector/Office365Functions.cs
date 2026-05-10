@@ -112,7 +112,7 @@ public class Office365Functions
                     success = true,
                     message = "Email sent via generated Office365Client from SDK.",
                     to = input.To,
-                    subject = input.Subject,
+                    subject = emailMessage.Subject,
                     timestamp = DateTime.UtcNow
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);

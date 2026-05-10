@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.SharePointOnline;
-using Azure.Connectors.Sdk.SharePointOnline.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

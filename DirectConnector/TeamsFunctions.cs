@@ -28,12 +28,6 @@ public class TeamsFunctions
     };
 
     /// <summary>
-    /// Teams connector API path template for posting messages.
-    /// Parameters: {0} = poster (e.g., "Flow bot"), {1} = location (e.g., "Channel").
-    /// </summary>
-    private const string TeamsPostMessagePathTemplate = "/beta/teams/conversation/message/poster/{0}/location/{1}";
-
-    /// <summary>
     /// Default poster identity for Teams messages posted via the connector.
     /// </summary>
     private const string TeamsDefaultPoster = "Flow bot";
@@ -339,7 +333,7 @@ public class TeamsFunctions
             // The actual message body properties are determined at runtime by the connector's schema
             // discovery endpoint. With [JsonExtensionData] on AdditionalProperties, arbitrary properties
             // are now serialized correctly. Populate the dictionary with the expected message fields.
-            var messageRequest = new Azure.Connectors.Sdk.Teams.Models.DynamicPostMessageRequest();
+            var messageRequest = new DynamicPostMessageRequest();
             messageRequest.AdditionalProperties["recipient"] = JsonSerializer.SerializeToElement(
                 new
                 {

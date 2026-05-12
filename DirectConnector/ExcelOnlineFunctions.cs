@@ -5,7 +5,6 @@
 using System.Net;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.ExcelOnline;
-using Azure.Connectors.Sdk.ExcelOnline.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -37,12 +36,24 @@ public class ExcelOnlineFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "excel/tables")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
+        var documentLibrary = request.Query["documentLibrary"] ?? "Documents";
+        var file = request.Query["file"];
+
+        if (string.IsNullOrEmpty(file))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'file'. Example: ?file=TestWorkbook.xlsx&documentLibrary=Documents" }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
         this._logger.LogInformation("ExcelGetTables: Using generated ExcelOnlineClient from SDK.");
 
         try
         {
             var tables = await this._excelOnlineClient
-                .GetTablesAsync(documentLibrary: "Documents", file: "TestWorkbook.xlsx", cancellationToken: cancellationToken)
+                .GetTablesAsync(documentLibrary: documentLibrary, file: file, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);

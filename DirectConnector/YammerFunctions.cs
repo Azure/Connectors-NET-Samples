@@ -5,7 +5,6 @@
 using System.Net;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Yammer;
-using Azure.Connectors.Sdk.Yammer.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

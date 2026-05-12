@@ -4,8 +4,8 @@
 
 using System.Net;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Office365users;
-using Azure.Connectors.Sdk.Office365users.Models;
+using Azure.Connectors.Sdk.Office365Users;
+using Azure.Connectors.Sdk.Office365Users.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -14,16 +14,16 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Office 365 Users operations using the generated
-/// <see cref="Office365usersClient"/> from the Azure Connectors SDK.
+/// <see cref="Office365UsersClient"/> from the Azure Connectors SDK.
 /// </summary>
 public class Office365UsersFunctions
 {
     private readonly ILogger<Office365UsersFunctions> _logger;
-    private readonly Office365usersClient _office365UsersClient;
+    private readonly Office365UsersClient _office365UsersClient;
 
     public Office365UsersFunctions(
         ILogger<Office365UsersFunctions> logger,
-        Office365usersClient office365UsersClient)
+        Office365UsersClient office365UsersClient)
     {
         this._logger = logger;
         this._office365UsersClient = office365UsersClient;
@@ -34,7 +34,7 @@ public class Office365UsersFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/me")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("GetMyProfile: Using generated Office365usersClient from SDK.");
+        this._logger.LogInformation("GetMyProfile: Using generated Office365UsersClient from SDK.");
 
         try
         {

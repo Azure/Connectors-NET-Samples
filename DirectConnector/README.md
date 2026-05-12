@@ -20,6 +20,12 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `GET /api/onedrive/search?query=...` | OneDrive | File search with `FindFilesByPathAsync` |
 | `POST /api/onedrive/share` | OneDrive | Create sharing link (`view` or `edit`) |
 | `POST /api/onedriveTriggerCallback` | OneDrive | **Trigger callback** — handles both JSON metadata (OnNewFilesV2) and binary file-content (OnNewFileV2) payloads |
+| `GET /api/excel/tables` | Excel Online | List tables in a workbook |
+| `GET /api/eventgrid/topictypes` | Azure Event Grid | List available topic types |
+| `GET /api/eventgrid/subscriptions` | Azure Event Grid | List event subscriptions |
+| `GET /api/yammer/networks` | Yammer (Viva Engage) | List networks for the authenticated user |
+| `GET /api/wdatp/alerts` | Microsoft Defender ATP | List alerts (paginated via `await foreach`) |
+| `GET /api/universalprint/shares` | Universal Print | List recent printer shares |
 
 ### Key Patterns
 

@@ -43,7 +43,7 @@ public class ExcelOnlineFunctions
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
-                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'file'. Example: ?file=TestWorkbook.xlsx&documentLibrary=Documents" }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'file'. Example: ?file=TestWorkbook.xlsx&documentLibrary=Documents." }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
             return badRequest;
         }

@@ -4,8 +4,8 @@
 
 using System.Net;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Azuremonitorlogs;
-using Azure.Connectors.Sdk.Azuremonitorlogs.Models;
+using Azure.Connectors.Sdk.AzureMonitorLogs;
+using Azure.Connectors.Sdk.AzureMonitorLogs.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Monitor Logs operations using the generated
-/// <see cref="AzuremonitorlogsClient"/> from the Azure Connectors SDK.
+/// <see cref="AzureMonitorLogsClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// This connector replaces the deprecated Azure Log Analytics connector.
@@ -25,11 +25,11 @@ public class AzureLogAnalyticsFunctions
     private const string OperationalInsightsWorkspaceResourceType = "Microsoft.OperationalInsights/workspaces";
 
     private readonly ILogger<AzureLogAnalyticsFunctions> _logger;
-    private readonly AzuremonitorlogsClient _logAnalyticsClient;
+    private readonly AzureMonitorLogsClient _logAnalyticsClient;
 
     public AzureLogAnalyticsFunctions(
         ILogger<AzureLogAnalyticsFunctions> logger,
-        AzuremonitorlogsClient logAnalyticsClient)
+        AzureMonitorLogsClient logAnalyticsClient)
     {
         this._logger = logger;
         this._logAnalyticsClient = logAnalyticsClient;
@@ -44,7 +44,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/subscriptions")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzuremonitorlogsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsSubscriptions: Using generated AzureMonitorLogsClient from SDK.");
 
         try
         {
@@ -101,7 +101,7 @@ public class AzureLogAnalyticsFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "loganalytics/workspaces")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzuremonitorlogsClient from SDK.");
+        this._logger.LogInformation("ListLogAnalyticsWorkspaces: Using generated AzureMonitorLogsClient from SDK.");
 
         var subscription = request.Query["subscription"];
         var resourceGroup = request.Query["resourceGroup"];

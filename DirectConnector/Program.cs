@@ -32,9 +32,14 @@ var host = new HostBuilder()
         services.AddAzureBlobClient(configuration.GetSection("Connectors:AzureBlob"));
         services.AddSmtpClient(configuration.GetSection("Connectors:Smtp"));
         services.AddMqClient(configuration.GetSection("Connectors:Mq"));
-        services.AddOffice365usersClient(configuration.GetSection("Connectors:Office365Users"));
-        services.AddAzuremonitorlogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
+        services.AddOffice365UsersClient(configuration.GetSection("Connectors:Office365Users"));
+        services.AddAzureMonitorLogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
         services.AddArmClient(configuration.GetSection("Connectors:Arm"));
+        services.AddExcelOnlineClient(configuration.GetSection("Connectors:ExcelOnline"));
+        services.AddAzureEventGridClient(configuration.GetSection("Connectors:AzureEventGrid"));
+        services.AddYammerClient(configuration.GetSection("Connectors:Yammer"));
+        services.AddWdatpClient(configuration.GetSection("Connectors:Wdatp"));
+        services.AddUniversalPrintClient(configuration.GetSection("Connectors:UniversalPrint"));
     })
     .Build();
 

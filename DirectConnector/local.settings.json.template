@@ -46,6 +46,26 @@
 
     "Connectors:Arm:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/arm/YOUR-CONNECTION-ID",
     "__comment_Arm_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:Arm:ManagedIdentityClientId": ""
+    "__Connectors:Arm:ManagedIdentityClientId": "",
+
+    "Connectors:ExcelOnline:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/excelonline/YOUR-CONNECTION-ID",
+    "__comment_ExcelOnline_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:ExcelOnline:ManagedIdentityClientId": "",
+
+    "Connectors:AzureEventGrid:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azureeventgrid/YOUR-CONNECTION-ID",
+    "__comment_AzureEventGrid_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureEventGrid:ManagedIdentityClientId": "",
+
+    "Connectors:Yammer:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/yammer/YOUR-CONNECTION-ID",
+    "__comment_Yammer_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Yammer:ManagedIdentityClientId": "",
+
+    "Connectors:Wdatp:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/wdatp/YOUR-CONNECTION-ID",
+    "__comment_Wdatp_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Wdatp:ManagedIdentityClientId": "",
+
+    "Connectors:UniversalPrint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/universalprint/YOUR-CONNECTION-ID",
+    "__comment_UniversalPrint_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:UniversalPrint:ManagedIdentityClientId": ""
   }
 }

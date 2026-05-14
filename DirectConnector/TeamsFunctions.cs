@@ -150,7 +150,7 @@ public class TeamsFunctions
                     count = result?.ChannelList?.Count ?? 0,
                     channels = result?.ChannelList?.Select(channel => new
                     {
-                        id = channel.ChannelID,
+                        id = channel.ChannelId,
                         displayName = channel.DisplayName,
                         description = channel.DescriptionOfChannel,
                         membershipType = channel.TheTypeOfTheChannel
@@ -357,7 +357,7 @@ public class TeamsFunctions
                 {
                     success = true,
                     message = "Message posted to Teams channel via generated TeamsClient from SDK.",
-                    messageId = result?.MessageID,
+                    messageId = result?.MessageId,
                     messageLink = result?.MessageLink,
                     timestamp = DateTime.UtcNow
                 })

@@ -187,7 +187,7 @@ public class MsGraphFunctions
         try
         {
             var group = await this._msGraphClient
-                .GetGroupPropertiesAsync(objectIDOfTheMicrosoftEntraIDGroup: groupId, cancellationToken: cancellationToken)
+                .GetGroupPropertiesAsync(objectIdOfTheMicrosoftEntraIdGroup: groupId, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);

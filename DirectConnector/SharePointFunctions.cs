@@ -152,14 +152,14 @@ public class SharePointFunctions
         {
             var folderId = request.Query["folder"];
 
-            // NOTE: ListRootFolderAsync vs ListFolderAsync demonstrates
+            // NOTE: GetFolderMetadataAsync vs GetFolderMetadataByPathAsync demonstrates
             // two overloads with the same return type but different parameter sets.
-            var files = string.IsNullOrEmpty(folderId)
+            var file = string.IsNullOrEmpty(folderId)
                 ? await this._sharePointClient
-                    .ListRootFolderAsync(siteAddress, cancellationToken)
+                    .GetFolderMetadataAsync(siteAddress, "/", cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false)
                 : await this._sharePointClient
-                    .ListFolderAsync(siteAddress, folderId, cancellationToken)
+                    .GetFolderMetadataByPathAsync(siteAddress, folderId, cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -169,17 +169,20 @@ public class SharePointFunctions
                     success = true,
                     site = siteAddress,
                     folder = string.IsNullOrEmpty(folderId) ? "(root)" : folderId,
-                    count = files?.Count ?? 0,
-                    files = (files ?? Enumerable.Empty<SharePointBlobMetadata>()).Select(file => new
+                    count = file is null ? 0 : 1,
+                    files = file is null ? [] : new[]
                     {
-                        id = file.Id,
-                        name = file.Name,
-                        displayName = file.DisplayName,
-                        path = file.Path,
-                        size = file.Size,
-                        mediaType = file.MediaType,
-                        isFolder = file.IsFolder
-                    })
+                        new
+                        {
+                            id = file.Id,
+                            name = file.Name,
+                            displayName = file.DisplayName,
+                            path = file.Path,
+                            size = file.Size,
+                            mediaType = file.MediaType,
+                            isFolder = file.IsFolder
+                        }
+                    }
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 

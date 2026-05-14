@@ -40,6 +40,14 @@ var host = new HostBuilder()
         services.AddYammerClient(configuration.GetSection("Connectors:Yammer"));
         services.AddWdatpClient(configuration.GetSection("Connectors:Wdatp"));
         services.AddUniversalPrintClient(configuration.GetSection("Connectors:UniversalPrint"));
+        services.AddAzureQueuesClient(configuration.GetSection("Connectors:AzureQueues"));
+        services.AddAzureTablesClient(configuration.GetSection("Connectors:AzureTables"));
+        services.AddDocumentDbClient(configuration.GetSection("Connectors:DocumentDB"));
+        services.AddEventHubsClient(configuration.GetSection("Connectors:EventHubs"));
+        services.AddExcelOnlineBusinessClient(configuration.GetSection("Connectors:ExcelOnlineBusiness"));
+        services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
+        services.AddServiceBusClient(configuration.GetSection("Connectors:ServiceBus"));
+        services.AddWordOnlineBusinessClient(configuration.GetSection("Connectors:WordOnlineBusiness"));
     })
     .Build();
 

@@ -152,15 +152,17 @@ public class SharePointFunctions
         {
             var folderId = request.Query["folder"];
 
-            // NOTE: ListRootFolderAsync vs ListFolderAsync demonstrates
-            // two overloads with the same return type but different parameter sets.
-            var files = string.IsNullOrEmpty(folderId)
-                ? await this._sharePointClient
-                    .ListRootFolderAsync(siteAddress, cancellationToken)
-                    .ConfigureAwait(continueOnCapturedContext: false)
-                : await this._sharePointClient
-                    .ListFolderAsync(siteAddress, folderId, cancellationToken)
-                    .ConfigureAwait(continueOnCapturedContext: false);
+            // NOTE: ListRootFolderAsync/ListFolderAsync were removed in the batch-5 SDK.
+            // Using GetFileItemsAsync (which requires a library name) as a replacement.
+            // Pass library name via query param ?library=, defaulting to "Documents".
+            var libraryName = request.Query["library"] ?? "Documents";
+            var items = await this._sharePointClient
+                .GetFileItemsAsync(
+                    siteAddress,
+                    libraryName,
+                    limitEntriesToFolder: string.IsNullOrEmpty(folderId) ? default : folderId,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
@@ -168,17 +170,12 @@ public class SharePointFunctions
                 {
                     success = true,
                     site = siteAddress,
+                    library = libraryName,
                     folder = string.IsNullOrEmpty(folderId) ? "(root)" : folderId,
-                    count = files?.Count ?? 0,
-                    files = (files ?? Enumerable.Empty<SharePointBlobMetadata>()).Select(file => new
+                    count = items?.Value?.Count ?? 0,
+                    files = (items?.Value ?? []).Select(item => new
                     {
-                        id = file.Id,
-                        name = file.Name,
-                        displayName = file.DisplayName,
-                        path = file.Path,
-                        size = file.Size,
-                        mediaType = file.MediaType,
-                        isFolder = file.IsFolder
+                        properties = item.AdditionalProperties
                     })
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);

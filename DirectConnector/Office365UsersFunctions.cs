@@ -79,7 +79,7 @@ public class Office365UsersFunctions
 
     [Function("GetUserProfile")]
     public async Task<HttpResponseData> GetUserProfileAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = @"users/{userPrincipalName:regex(^(?!search$).+)}")] HttpRequestData request,
         string userPrincipalName,
         CancellationToken cancellationToken)
     {
@@ -128,7 +128,7 @@ public class Office365UsersFunctions
 
     [Function("GetManager")]
     public async Task<HttpResponseData> GetManagerAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}/manager")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = @"users/{userPrincipalName:regex(^(?!search$).+)}/manager")] HttpRequestData request,
         string userPrincipalName,
         CancellationToken cancellationToken)
     {
@@ -177,7 +177,7 @@ public class Office365UsersFunctions
 
     [Function("GetDirectReports")]
     public async Task<HttpResponseData> GetDirectReportsAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "users/{userPrincipalName}/reports")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = @"users/{userPrincipalName:regex(^(?!search$).+)}/reports")] HttpRequestData request,
         string userPrincipalName,
         CancellationToken cancellationToken)
     {

@@ -48,9 +48,9 @@
     "__comment_Arm_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
     "__Connectors:Arm:ManagedIdentityClientId": "",
 
-    "Connectors:ExcelOnline:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/excelonline/YOUR-CONNECTION-ID",
-    "__comment_ExcelOnline_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:ExcelOnline:ManagedIdentityClientId": "",
+    "Connectors:ExcelOnlineBusiness:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/excelonlinebusiness/YOUR-CONNECTION-ID",
+    "__comment_ExcelOnlineBusiness_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:ExcelOnlineBusiness:ManagedIdentityClientId": "",
 
     "Connectors:AzureEventGrid:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azureeventgrid/YOUR-CONNECTION-ID",
     "__comment_AzureEventGrid_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
@@ -66,6 +66,34 @@
 
     "Connectors:UniversalPrint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/universalprint/YOUR-CONNECTION-ID",
     "__comment_UniversalPrint_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:UniversalPrint:ManagedIdentityClientId": ""
+    "__Connectors:UniversalPrint:ManagedIdentityClientId": "",
+
+    "Connectors:AzureQueues:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azurequeues/YOUR-CONNECTION-ID",
+    "__comment_AzureQueues_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureQueues:ManagedIdentityClientId": "",
+
+    "Connectors:AzureTables:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azuretables/YOUR-CONNECTION-ID",
+    "__comment_AzureTables_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureTables:ManagedIdentityClientId": "",
+
+    "Connectors:DocumentDB:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/documentdb/YOUR-CONNECTION-ID",
+    "__comment_DocumentDB_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:DocumentDB:ManagedIdentityClientId": "",
+
+    "Connectors:EventHubs:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/eventhubs/YOUR-CONNECTION-ID",
+    "__comment_EventHubs_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:EventHubs:ManagedIdentityClientId": "",
+
+    "Connectors:Outlook:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/outlook/YOUR-CONNECTION-ID",
+    "__comment_Outlook_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Outlook:ManagedIdentityClientId": "",
+
+    "Connectors:ServiceBus:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/servicebus/YOUR-CONNECTION-ID",
+    "__comment_ServiceBus_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:ServiceBus:ManagedIdentityClientId": "",
+
+    "Connectors:WordOnlineBusiness:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/wordonlinebusiness/YOUR-CONNECTION-ID",
+    "__comment_WordOnlineBusiness_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:WordOnlineBusiness:ManagedIdentityClientId": ""
   }
 }

@@ -15,7 +15,7 @@ Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://git
 
 ## What's Inside
 
-The `DirectConnector/` project is an Azure Functions (isolated worker) app with sample functions across 11 connectors, each in its own Functions class:
+The `DirectConnector/` project is an Azure Functions (isolated worker) app with sample functions across 23 connectors, each in its own Functions class:
 
 | File | Connector | Sample Operations |
 |------|-----------|-------------------|
@@ -30,6 +30,18 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
 | AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions, list resources |
 | ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions, resource groups, read resources |
+| ExcelOnlineFunctions.cs | Excel Online (Business) | Get sources, get drives, get tables |
+| AzureEventGridFunctions.cs | Azure Event Grid | List topic types, list subscriptions |
+| YammerFunctions.cs | Yammer (Viva Engage) | Get networks |
+| WdatpFunctions.cs | Microsoft Defender ATP | Get alerts |
+| UniversalPrintFunctions.cs | Universal Print | List shares |
+| AzureQueuesFunctions.cs | Azure Storage Queues | List storage accounts, list queues |
+| AzureTablesFunctions.cs | Azure Storage Tables | List storage accounts, list tables |
+| DocumentDbFunctions.cs | Azure Cosmos DB | List accounts, list databases |
+| EventHubsFunctions.cs | Azure Event Hubs | List hubs, list content types |
+| OutlookFunctions.cs | Outlook | List calendars, list contact folders |
+| ServiceBusFunctions.cs | Azure Service Bus | List queues, list topics, list entities |
+| WordOnlineBusinessFunctions.cs | Word Online (Business) | Get sources, get drives |
 
 ### Key Patterns Demonstrated
 

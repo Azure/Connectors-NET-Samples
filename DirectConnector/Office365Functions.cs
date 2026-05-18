@@ -379,6 +379,8 @@ public class Office365Functions
             // NOTE: Use SDK's per-trigger convenience type for typed deserialization.
             // Office365OnNewEmailTriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
             // that provides discoverability — the developer no longer needs to know the inner type.
+            // The SDK's TriggerCallbackBodyConverter<T> (fix for issue #149) normalizes both
+            // single-item and batch shapes so payload.Body.Value is always populated.
             var payload = JsonSerializer.Deserialize<Office365OnNewEmailTriggerPayload>(
                 body,
                 Office365Functions.JsonOptions);
@@ -386,9 +388,7 @@ public class Office365Functions
             var emails = payload?.Body?.Value;
             var emailCount = emails?.Count ?? 0;
 
-            this._logger.LogInformation(
-                "TriggerCallback: Deserialized '{EmailCount}' email(s) using Office365OnNewEmailTriggerPayload.",
-                emailCount);
+            this._logger.LogInformation("TriggerCallback: Deserialized email trigger payload using Office365OnNewEmailTriggerPayload.");
 
             // NOTE: Cap per-email logging to avoid unbounded log volume on batch triggers.
             // Log only message IDs (not PII like Subject/From) to reduce accidental exposure.

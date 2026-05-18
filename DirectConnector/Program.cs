@@ -35,11 +35,18 @@ var host = new HostBuilder()
         services.AddOffice365UsersClient(configuration.GetSection("Connectors:Office365Users"));
         services.AddAzureMonitorLogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
         services.AddArmClient(configuration.GetSection("Connectors:Arm"));
-        services.AddExcelOnlineClient(configuration.GetSection("Connectors:ExcelOnline"));
+        services.AddExcelOnlineBusinessClient(configuration.GetSection("Connectors:ExcelOnlineBusiness"));
         services.AddAzureEventGridClient(configuration.GetSection("Connectors:AzureEventGrid"));
         services.AddYammerClient(configuration.GetSection("Connectors:Yammer"));
         services.AddWdatpClient(configuration.GetSection("Connectors:Wdatp"));
         services.AddUniversalPrintClient(configuration.GetSection("Connectors:UniversalPrint"));
+        services.AddAzureQueuesClient(configuration.GetSection("Connectors:AzureQueues"));
+        services.AddAzureTablesClient(configuration.GetSection("Connectors:AzureTables"));
+        services.AddDocumentDbClient(configuration.GetSection("Connectors:DocumentDB"));
+        services.AddEventHubsClient(configuration.GetSection("Connectors:EventHubs"));
+        services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
+        services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
+        services.AddWordOnlineBusinessClient(configuration.GetSection("Connectors:WordOnlineBusiness"));
     })
     .Build();
 

@@ -98,7 +98,7 @@ public class ExcelOnlineFunctions
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
-                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'location'. Example: ?location=https://microsoft.sharepoint.com" }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'location'. Example: ?location=https://microsoft.sharepoint.com." }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
             return badRequest;
         }
@@ -167,7 +167,7 @@ public class ExcelOnlineFunctions
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
-                .WriteAsJsonAsync(new { success = false, error = "Missing required parameters. Example: ?location=https://microsoft.sharepoint.com&documentLibrary={driveId}&file=TestWorkbook.xlsx" }, cancellationToken)
+                .WriteAsJsonAsync(new { success = false, error = "Missing required parameters. Example: ?location=https://microsoft.sharepoint.com&documentLibrary={driveId}&file=TestWorkbook.xlsx." }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
             return badRequest;
         }

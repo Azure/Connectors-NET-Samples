@@ -376,61 +376,6 @@ public class Office365Functions
 
             var body = new string(buffer, 0, charsRead);
 
-            // Schema probe for GitHub issue #149 — log raw payload shape before deserialization.
-            // This confirms whether the Connector Namespace sends a batch {"body":{"value":[...]}}
-            // or a single-item {"body":{...email object...}} payload at runtime.
-            this._logger.LogWarning(
-                "TriggerCallback [SchemaProbe]: Body length={BodyLength}, prefix={BodyPrefix}",
-                body.Length,
-                body.Length > 500 ? body[..500] : body);
-
-            try
-            {
-                using var probeDoc = JsonDocument.Parse(body);
-                var probeRoot = probeDoc.RootElement;
-                var topKeys = string.Join(",", probeRoot.EnumerateObject().Select(p => p.Name).Take(15));
-                this._logger.LogWarning("TriggerCallback [SchemaProbe]: Top-level keys=[{TopKeys}]", topKeys);
-
-                if (probeRoot.TryGetProperty("body", out var bodyEl))
-                {
-                    if (bodyEl.ValueKind == JsonValueKind.Object)
-                    {
-                        var bodyKeys = string.Join(",", bodyEl.EnumerateObject().Select(p => p.Name).Take(15));
-                        if (bodyEl.TryGetProperty("value", out var valueEl) && valueEl.ValueKind == JsonValueKind.Array)
-                        {
-                            this._logger.LogWarning(
-                                "TriggerCallback [SchemaProbe]: Shape=BATCH — body.value is array with {ItemCount} item(s). Body keys=[{BodyKeys}]",
-                                valueEl.GetArrayLength(),
-                                bodyKeys);
-                        }
-                        else
-                        {
-                            this._logger.LogWarning(
-                                "TriggerCallback [SchemaProbe]: Shape=SINGLE-ITEM — body is object without 'value' array. Body keys=[{BodyKeys}]",
-                                bodyKeys);
-                        }
-                    }
-                    else
-                    {
-                        this._logger.LogWarning(
-                            "TriggerCallback [SchemaProbe]: Shape=BINARY — body element kind={BodyKind}.",
-                            bodyEl.ValueKind);
-                    }
-                }
-                else
-                {
-                    this._logger.LogWarning(
-                        "TriggerCallback [SchemaProbe]: No 'body' property in payload root. Keys=[{TopKeys}]",
-                        topKeys);
-                }
-            }
-            catch (JsonException probeEx)
-            {
-                this._logger.LogWarning(
-                    "TriggerCallback [SchemaProbe]: Failed to parse body for schema probe: {Message}",
-                    probeEx.Message);
-            }
-
             // NOTE: Use SDK's per-trigger convenience type for typed deserialization.
             // Office365OnNewEmailTriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
             // that provides discoverability — the developer no longer needs to know the inner type.
@@ -443,14 +388,7 @@ public class Office365Functions
             var emails = payload?.Body?.Value;
             var emailCount = emails?.Count ?? 0;
 
-            this._logger.LogWarning(
-                "TriggerCallback [SchemaProbe]: SDK deserialization result — emailCount={EmailCount}, Body.Value={HasValue}.",
-                emailCount,
-                payload?.Body?.Value != null ? "populated" : "null");
-
-            this._logger.LogInformation(
-                "TriggerCallback: Deserialized '{EmailCount}' email(s) using Office365OnNewEmailTriggerPayload.",
-                emailCount);
+            this._logger.LogInformation("TriggerCallback: Deserialized email trigger payload using Office365OnNewEmailTriggerPayload.");
 
             // NOTE: Cap per-email logging to avoid unbounded log volume on batch triggers.
             // Log only message IDs (not PII like Subject/From) to reduce accidental exposure.

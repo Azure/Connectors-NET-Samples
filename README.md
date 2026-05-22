@@ -1,5 +1,7 @@
 # Azure Connectors .NET SDK — Samples
 
+[![CI](https://github.com/Azure/Connectors-NET-Samples/actions/workflows/ci.yml/badge.svg)](https://github.com/Azure/Connectors-NET-Samples/actions/workflows/ci.yml)
+
 Sample Azure Functions demonstrating the [Azure Connectors .NET SDK](https://github.com/Azure/Connectors-NET-SDK) — calling managed connectors directly from Azure Functions.
 
 > [!CAUTION]

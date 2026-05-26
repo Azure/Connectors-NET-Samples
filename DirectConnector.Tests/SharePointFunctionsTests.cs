@@ -133,7 +133,7 @@ public class SharePointFunctionsTests
             TestHelpers.CreateNullLogger<SharePointFunctions>(),
             client);
 
-        var request = TestHelpers.CreateRequest(url: "https://localhost/api/sharepoint/folder");
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/sharepoint/files");
 
         // Act
         var response = await functions.ListFolderAsync(request, CancellationToken.None)

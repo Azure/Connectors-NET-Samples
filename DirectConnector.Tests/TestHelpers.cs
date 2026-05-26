@@ -3,10 +3,10 @@
 //------------------------------------------------------------
 
 using System.Net.Http;
+using Azure.Connectors.Sdk;
 using Azure.Core;
 using Azure.Core.Pipeline;
 using Azure.Core.Serialization;
-using Azure.Connectors.Sdk;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -71,7 +71,8 @@ internal static class TestHelpers
     }
 
     /// <summary>
-    /// Creates a <see cref="MockHttpRequestData"/> with optional body, method, URL, and query parameters.
+    /// Creates a <see cref="MockHttpRequestData"/> with optional body, method, and URL.
+    /// Query parameters can be provided as part of the <paramref name="url"/>.
     /// </summary>
     public static MockHttpRequestData CreateRequest(
         string? body = null,

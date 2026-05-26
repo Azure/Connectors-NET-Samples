@@ -11,11 +11,6 @@ namespace DirectConnector.Tests;
 [TestClass]
 public class Office365FunctionsTests
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
-
     private static Office365Client CreateMockedClient(Func<HttpResponseMessage> responseFactory)
     {
         var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory);

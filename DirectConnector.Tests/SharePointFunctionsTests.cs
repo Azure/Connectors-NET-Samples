@@ -4,7 +4,6 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.SharePointOnline;
 
 namespace DirectConnector.Tests;
@@ -121,9 +120,9 @@ public class SharePointFunctionsTests
     }
 
     [TestMethod]
-    public async Task ListFolderAsync_WithMissingLibrary_Returns400()
+    public async Task ListFolderAsync_WithMissingSite_Returns400()
     {
-        // Arrange — no library query parameter
+        // Arrange — no site query parameter (site is required; library defaults to "Documents")
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,

@@ -4,9 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Office365;
-using Moq;
 
 namespace DirectConnector.Tests;
 

@@ -4,9 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Teams;
-using Azure.Connectors.Sdk.Teams.Models;
 
 namespace DirectConnector.Tests;
 
@@ -85,9 +83,9 @@ public class TeamsFunctionsTests
     }
 
     [TestMethod]
-    public async Task GetTeamChannelsAsync_WithMissingGroupId_Returns400()
+    public async Task GetTeamChannelsAsync_WithMissingTeamId_Returns400()
     {
-        // Arrange — no groupId query parameter
+        // Arrange — no teamId query parameter
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
@@ -109,7 +107,7 @@ public class TeamsFunctionsTests
     }
 
     [TestMethod]
-    public async Task GetTeamChannelsAsync_WithGroupId_ReturnsChannels()
+    public async Task GetTeamChannelsAsync_WithTeamId_ReturnsChannels()
     {
         // Arrange — sanitized payload based on real Teams channels response
         var channelsResponse = new

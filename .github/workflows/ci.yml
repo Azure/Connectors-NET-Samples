@@ -54,7 +54,7 @@ jobs:
     - name: Generate coverage report
       if: matrix.os == 'ubuntu-latest'
       run: |
-        dotnet tool install --global dotnet-reportgenerator-globaltool
+        dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.4.5
         reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura
 
     - name: Upload coverage artifact

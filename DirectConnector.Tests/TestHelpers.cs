@@ -66,7 +66,7 @@ internal static class TestHelpers
         var serviceProvider = services.BuildServiceProvider();
 
         var mockContext = new Mock<FunctionContext>();
-        mockContext.Setup(c => c.InstanceServices).Returns(serviceProvider);
+        mockContext.Setup(context => context.InstanceServices).Returns(serviceProvider);
         return mockContext.Object;
     }
 

@@ -96,7 +96,7 @@ public class ArmFunctionsTests
     public async Task ListResourceGroupsAsync_WithSubscriptionId_ReturnsResourceGroups()
     {
         // Arrange — sanitized payload based on real ARM resource groups response
-        var rgResponse = new
+        var resourceGroupsResponse = new
         {
             value = new[]
             {
@@ -108,7 +108,7 @@ public class ArmFunctionsTests
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(JsonSerializer.Serialize(rgResponse)),
+            Content = new StringContent(JsonSerializer.Serialize(resourceGroupsResponse)),
         });
 
         var functions = new ArmFunctions(

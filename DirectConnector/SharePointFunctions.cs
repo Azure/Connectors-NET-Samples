@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.SharePointOnline;
+using Azure.Connectors.Sdk.SharePointOnline.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -428,4 +429,103 @@ public class SharePointFunctions
         string? FileName,
         string? Content,
         string? ContentBase64);
+
+    /// <summary>
+    /// Trigger callback for SharePoint item changes (v0.12.0 typed trigger payload).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Demonstrates <see cref="SharePointOnlineOnNewFileItemsTriggerPayload"/> — the typed trigger payload
+    /// for the "When a file is created in a folder" trigger. Connector Namespace calls this endpoint
+    /// when a new file appears in the subscribed library/folder.
+    /// </para>
+    /// <para>
+    /// The payload body contains <see cref="Azure.Connectors.Sdk.SharePointOnline.Models.Item"/> entries
+    /// with <c>AdditionalProperties</c> (dynamic columns from the list schema) and a
+    /// <c>DynamicProperties</c> bag.
+    /// </para>
+    /// </remarks>
+    [Function("SharePointNewFileTrigger")]
+    [ConnectorTriggerMetadata(
+        ConnectorName = ConnectorNames.SharePoint,
+        OperationName = SharePointOnlineTriggerOperations.OnNewFileItems,
+        Connection = "Connectors:SharePoint")]
+    public async Task<HttpResponseData> SharePointNewFileTriggerAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "sharepoint/trigger/newfile")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("SharePointNewFileTrigger: Callback received.");
+
+        using var reader = new StreamReader(request.Body);
+        var body = await reader
+            .ReadToEndAsync(cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        if (string.IsNullOrEmpty(body))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Empty trigger payload." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        SharePointOnlineOnNewFileItemsTriggerPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize<SharePointOnlineOnNewFileItemsTriggerPayload>(
+                body,
+                SharePointFunctions.JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogError(ex, "SharePointNewFileTrigger: Invalid JSON in trigger payload.");
+
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload is not valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        if (payload is null)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload deserialized to null." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        var items = payload?.Body?.Value;
+        var itemCount = items?.Count ?? 0;
+
+        this._logger.LogInformation(
+            "SharePointNewFileTrigger: Deserialized {Count} item(s) using SharePointOnlineOnNewFileItemsTriggerPayload.",
+            itemCount);
+
+        // Log dynamic properties from each item (SharePoint list columns are dynamic).
+        if (items != null)
+        {
+            foreach (var item in items.Take(count: 5))
+            {
+                this._logger.LogDebug(
+                    "SharePointNewFileTrigger: Item with {PropertyCount} additional properties.",
+                    item.AdditionalProperties?.Count ?? 0);
+            }
+        }
+
+        var response = request.CreateResponse(HttpStatusCode.OK);
+        await response
+            .WriteAsJsonAsync(new
+            {
+                success = true,
+                message = "SharePoint new file trigger callback received.",
+                receivedAt = DateTime.UtcNow,
+                itemCount
+            })
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        return response;
+    }
 }

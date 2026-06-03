@@ -121,7 +121,12 @@ public class Office365Functions
         }
         catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "Connector error: '{StatusCode}'.", ex.Status);
+            // SDK v0.12.0: ErrorCode is parsed from the connector's JSON error response.
+            this._logger.LogError(
+                ex,
+                "Connector error: Status='{Status}', ErrorCode='{ErrorCode}'.",
+                ex.Status,
+                ex.ErrorCode);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -129,6 +134,7 @@ public class Office365Functions
                 {
                     success = false,
                     error = ex.Message,
+                    errorCode = ex.ErrorCode,
                     statusCode = ex.Status,
                     details = ex.ResponseBody
                 })
@@ -309,7 +315,7 @@ public class Office365Functions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("TriggerCallback")]
     [ConnectorTriggerMetadata(
-        ConnectorName = ConnectorNames.Office365,
+        ConnectorName = ConnectorNames.Office365Outlook,
         OperationName = Office365TriggerOperations.OnNewEmail,
         Connection = "Connectors:Office365")]
     public async Task<HttpResponseData> TriggerCallbackAsync(

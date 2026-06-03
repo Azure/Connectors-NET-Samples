@@ -2,7 +2,9 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
+using System.Diagnostics;
 using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,6 +49,31 @@ var host = new HostBuilder()
         services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
         services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
         services.AddWordOnlineBusinessClient(configuration.GetSection("Connectors:WordOnlineBusiness"));
+
+        // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
+        // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
+        // (e.g., "Azure.Connectors.Sdk.teams", "Azure.Connectors.Sdk.office365").
+        // In production, use OpenTelemetry SDK with per-connector AddSource calls
+        // (e.g., AddSource("Azure.Connectors.Sdk.teams")) or enumerate all sources
+        // matching the "Azure.Connectors.Sdk" prefix for structured export to
+        // Application Insights, Jaeger, or other OTLP backends.
+        if (hostContext.HostingEnvironment.IsDevelopment())
+        {
+            ActivitySource.AddActivityListener(new ActivityListener
+            {
+                // Match all connector SDK activity sources by prefix.
+                ShouldListenTo = source => source.Name.StartsWith(
+                    ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
+                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
+                ActivityStarted = activity => Console.WriteLine(
+                    $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
+                ActivityStopped = activity => Console.WriteLine(
+                    $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
+                    + (activity.Status == ActivityStatusCode.Error
+                        ? $" ERROR: {activity.StatusDescription}"
+                        : string.Empty)),
+            });
+        }
     })
     .Build();
 

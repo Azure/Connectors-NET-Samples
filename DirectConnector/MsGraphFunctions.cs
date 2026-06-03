@@ -55,13 +55,30 @@ public class MsGraphFunctions
                 .ListUsersAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
+            // SDK v0.12.0: Dynamic model properties are now JsonElement? (was object).
+            // List<JsonElement?> requires explicit extraction of typed values.
+            // Use GetProperty/GetString to navigate the free-form JSON structure.
+            var userSummaries = users?.Value?
+                .Where(element => element.HasValue)
+                .Select(element =>
+                {
+                    var user = element!.Value;
+                    return new
+                    {
+                        displayName = user.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() : null,
+                        mail = user.TryGetProperty("mail", out var mailElement) ? mailElement.GetString() : null,
+                        id = user.TryGetProperty("id", out var idElement) ? idElement.GetString() : null,
+                    };
+                })
+                .ToList();
+
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
                 .WriteAsJsonAsync(new
                 {
                     success = true,
-                    count = users?.Value?.Count ?? 0,
-                    users = users
+                    count = userSummaries?.Count ?? 0,
+                    users = userSummaries
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 
@@ -69,7 +86,12 @@ public class MsGraphFunctions
         }
         catch (ConnectorException ex)
         {
-            this._logger.LogError(ex, "MS Graph connector error: '{StatusCode}'.", ex.Status);
+            // SDK v0.12.0: ErrorCode is parsed from the connector's JSON error response.
+            this._logger.LogError(
+                ex,
+                "MS Graph connector error: Status='{Status}', ErrorCode='{ErrorCode}'.",
+                ex.Status,
+                ex.ErrorCode);
 
             var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
             await errorResponse
@@ -77,6 +99,7 @@ public class MsGraphFunctions
                 {
                     success = false,
                     error = ex.Message,
+                    errorCode = ex.ErrorCode,
                     statusCode = ex.Status,
                     details = ex.ResponseBody
                 })

@@ -142,4 +142,55 @@ public class SharePointFunctionsTests
         // Assert
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [TestMethod]
+    public async Task SharePointNewFileTriggerAsync_WithEmptyBody_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new SharePointFunctions(
+            TestHelpers.CreateNullLogger<SharePointFunctions>(),
+            client);
+
+        var request = TestHelpers.CreateRequest(body: "");
+
+        var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task SharePointNewFileTriggerAsync_WithInvalidJson_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new SharePointFunctions(
+            TestHelpers.CreateNullLogger<SharePointFunctions>(),
+            client);
+
+        var request = TestHelpers.CreateRequest(body: "not valid json {{{");
+
+        var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task SharePointNewFileTriggerAsync_WithValidPayload_Returns200()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new SharePointFunctions(
+            TestHelpers.CreateNullLogger<SharePointFunctions>(),
+            client);
+
+        var payload = """{"body":{"value":[{"dynamicProperties":{}}]}}""";
+        var request = TestHelpers.CreateRequest(body: payload);
+
+        var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("\"itemCount\":1", StringComparison.Ordinal));
+    }
 }

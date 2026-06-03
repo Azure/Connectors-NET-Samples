@@ -54,18 +54,21 @@ var host = new HostBuilder()
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
         // (e.g., "Azure.Connectors.Sdk.teams", "Azure.Connectors.Sdk.office365").
         // Use a wildcard listener to capture all connector operations:
-        ActivitySource.AddActivityListener(new ActivityListener
-        {
-            // Match all connector SDK activity sources by prefix.
-            ShouldListenTo = source => source.Name.StartsWith(
-                ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
-            ActivityStarted = activity => Console.WriteLine(
-                $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
-            ActivityStopped = activity => Console.WriteLine(
-                $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
-                + (activity.Status == ActivityStatusCode.Error ? $" ERROR: {activity.StatusDescription}" : string.Empty)),
-        });
+        //
+        // ActivitySource.AddActivityListener(new ActivityListener
+        // {
+        //     ShouldListenTo = source => source.Name.StartsWith(
+        //         ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
+        //     Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+        //     ActivityStarted = activity => Console.WriteLine(
+        //         $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
+        //     ActivityStopped = activity => Console.WriteLine(
+        //         $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
+        //         + (activity.Status == ActivityStatusCode.Error ? $" ERROR: {activity.StatusDescription}" : string.Empty)),
+        // });
+        //
+        // In production, use OpenTelemetry SDK with AddSource("Azure.Connectors.Sdk") for
+        // structured export to Application Insights, Jaeger, or other OTLP backends.
     })
     .Build();
 

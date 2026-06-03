@@ -449,9 +449,9 @@ public class SharePointFunctions
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.SharePoint,
         OperationName = SharePointOnlineTriggerOperations.OnNewFileItems,
-        Connection = "Connectors:SharePointOnline")]
+        Connection = "Connectors:SharePoint")]
     public async Task<HttpResponseData> SharePointNewFileTriggerAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "sharepoint/trigger/newfile")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("SharePointNewFileTrigger: Callback received.");

@@ -424,7 +424,7 @@ public class TeamsFunctions
         OperationName = TeamsTriggerOperations.OnNewChannelMessage,
         Connection = "Connectors:Teams")]
     public async Task<HttpResponseData> TeamsChannelMessageTriggerAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "teams/trigger/channelmessage")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("TeamsChannelMessageTrigger: Callback received.");
@@ -512,7 +512,7 @@ public class TeamsFunctions
     /// </remarks>
     [Function("GetTeamsWithErrorHandling")]
     public async Task<HttpResponseData> GetTeamsWithErrorHandlingAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "teams/teams-with-error-handling")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         this._logger.LogInformation("GetTeamsWithErrorHandling: Listing teams with structured error handling.");

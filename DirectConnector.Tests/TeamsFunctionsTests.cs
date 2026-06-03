@@ -5,6 +5,7 @@
 using System.Net;
 using System.Text.Json;
 using Azure.Connectors.Sdk.Teams;
+using Azure.Connectors.Sdk.Teams.Models;
 
 namespace DirectConnector.Tests;
 
@@ -153,5 +154,83 @@ public class TeamsFunctionsTests
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("General", StringComparison.Ordinal));
         Assert.IsTrue(body.Contains("Engineering", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Demonstrates SDK v0.12.0 init-only setters and ModelFactory pattern.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Output-only model properties (e.g., <c>ETag</c>, <c>CreatedDateTime</c>) changed from
+    /// <c>{ get; internal set; }</c> to <c>{ get; init; }</c> in v0.12.0. External code can no
+    /// longer do <c>model.ETag = "...";</c> — use object initializers or the per-connector
+    /// <c>*ModelFactory</c> class to construct models with output-only properties in tests.
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void ModelFactory_GetChannelResponse_SetsInitOnlyProperties()
+    {
+        // Arrange + Act — use TeamsModelFactory to set init-only output properties.
+        // This is the recommended pattern for constructing test fixtures since v0.12.0.
+        var channel = TeamsModelFactory.GetChannelResponse(
+            channelId: "19:general@thread.tacv2",
+            displayName: "General",
+            descriptionOfChannel: "The default channel",
+            theEmailAddressForTheChannel: "general@contoso.com");
+
+        // Assert — init-only properties are set via the factory method.
+        Assert.AreEqual("19:general@thread.tacv2", channel.ChannelId);
+        Assert.AreEqual("General", channel.DisplayName);
+        Assert.AreEqual("The default channel", channel.DescriptionOfChannel);
+        Assert.AreEqual("general@contoso.com", channel.TheEmailAddressForTheChannel);
+    }
+
+    /// <summary>
+    /// Demonstrates SDK v0.12.0 JsonElement? property handling.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Dynamic model properties changed from <c>object</c> to <c>JsonElement?</c> in v0.12.0.
+    /// Properties like <c>GetAllTeamsResponse.TeamsList</c> are now <c>List&lt;JsonElement?&gt;</c>.
+    /// Use <c>TryGetProperty</c> and <c>GetString</c>/<c>GetInt32</c> to extract typed values.
+    /// </para>
+    /// </remarks>
+    [TestMethod]
+    public void JsonElementProperties_ExtractTypedValues_FromDynamicResponse()
+    {
+        // Arrange — simulate a Teams API response with JsonElement? list items
+        var json = """
+            {
+                "@odata.context": "https://graph.microsoft.com/v1.0/$metadata",
+                "value": [
+                    { "id": "team-001", "displayName": "Engineering", "description": "Dev team" },
+                    { "id": "team-002", "displayName": "Marketing", "description": null }
+                ]
+            }
+            """;
+
+        var response = JsonSerializer.Deserialize<GetAllTeamsResponse>(json);
+
+        // Act — extract typed values from List<JsonElement?> using TryGetProperty/GetString
+        var teams = response?.TeamsList?
+            .Where(element => element.HasValue)
+            .Select(element =>
+            {
+                var team = element!.Value;
+                return new
+                {
+                    Id = team.TryGetProperty("id", out var id) ? id.GetString() : null,
+                    Name = team.TryGetProperty("displayName", out var name) ? name.GetString() : null,
+                };
+            })
+            .ToList();
+
+        // Assert
+        Assert.IsNotNull(teams);
+        Assert.AreEqual(2, teams.Count);
+        Assert.AreEqual("team-001", teams[0].Id);
+        Assert.AreEqual("Engineering", teams[0].Name);
+        Assert.AreEqual("team-002", teams[1].Id);
+        Assert.AreEqual("Marketing", teams[1].Name);
     }
 }

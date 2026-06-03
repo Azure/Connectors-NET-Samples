@@ -67,7 +67,9 @@ var host = new HostBuilder()
                     $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
                 ActivityStopped = activity => Console.WriteLine(
                     $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
-                    + (activity.Status == ActivityStatusCode.Error ? $" ERROR: {activity.StatusDescription}" : string.Empty)),
+                    + (activity.Status == ActivityStatusCode.Error
+                        ? $" ERROR: {activity.StatusDescription}"
+                        : string.Empty)),
             });
         }
     })

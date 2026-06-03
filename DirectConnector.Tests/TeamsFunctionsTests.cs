@@ -233,4 +233,55 @@ public class TeamsFunctionsTests
         Assert.AreEqual("team-002", teams[1].Id);
         Assert.AreEqual("Marketing", teams[1].Name);
     }
+
+    [TestMethod]
+    public async Task TeamsChannelMessageTriggerAsync_WithEmptyBody_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new TeamsFunctions(
+            TestHelpers.CreateNullLogger<TeamsFunctions>(),
+            client);
+
+        var request = TestHelpers.CreateRequest(body: "");
+
+        var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task TeamsChannelMessageTriggerAsync_WithInvalidJson_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new TeamsFunctions(
+            TestHelpers.CreateNullLogger<TeamsFunctions>(),
+            client);
+
+        var request = TestHelpers.CreateRequest(body: "not valid json {{{");
+
+        var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task TeamsChannelMessageTriggerAsync_WithValidPayload_Returns200()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new TeamsFunctions(
+            TestHelpers.CreateNullLogger<TeamsFunctions>(),
+            client);
+
+        var payload = """{"body":{"value":[{"id":"msg-1","body":{"content":"Hello"}}]}}""";
+        var request = TestHelpers.CreateRequest(body: payload);
+
+        var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("\"messageCount\":1", StringComparison.Ordinal));
+    }
 }

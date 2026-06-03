@@ -456,7 +456,9 @@ public class SharePointFunctions
     {
         this._logger.LogInformation("SharePointNewFileTrigger: Callback received.");
 
-        var body = await request.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
+        var body = await request
+            .ReadAsStringAsync()
+            .ConfigureAwait(continueOnCapturedContext: false);
 
         if (string.IsNullOrEmpty(body))
         {
@@ -467,12 +469,32 @@ public class SharePointFunctions
             return badRequest;
         }
 
-        // SDK v0.12.0 typed trigger payload — deserialize directly to the
-        // strongly-typed SharePointOnlineOnNewFileItemsTriggerPayload.
-        // The SDK's TriggerCallbackBodyConverter<T> handles both batch and single-item shapes.
-        var payload = JsonSerializer.Deserialize<SharePointOnlineOnNewFileItemsTriggerPayload>(
-            body,
-            SharePointFunctions.JsonOptions);
+        SharePointOnlineOnNewFileItemsTriggerPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize<SharePointOnlineOnNewFileItemsTriggerPayload>(
+                body,
+                SharePointFunctions.JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogError(ex, "SharePointNewFileTrigger: Invalid JSON in trigger payload.");
+
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload is not valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        if (payload is null)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload deserialized to null." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
 
         var items = payload?.Body?.Value;
         var itemCount = items?.Count ?? 0;

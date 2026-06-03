@@ -124,7 +124,7 @@ public class Office365Functions
             // SDK v0.12.0: ErrorCode is parsed from the connector's JSON error response.
             this._logger.LogError(
                 ex,
-                "Connector error: Status={Status}, ErrorCode='{ErrorCode}'.",
+                "Connector error: Status='{Status}', ErrorCode='{ErrorCode}'.",
                 ex.Status,
                 ex.ErrorCode);
 

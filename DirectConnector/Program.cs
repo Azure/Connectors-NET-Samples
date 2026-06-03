@@ -53,22 +53,23 @@ var host = new HostBuilder()
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
         // (e.g., "Azure.Connectors.Sdk.teams", "Azure.Connectors.Sdk.office365").
-        // Use a wildcard listener to capture all connector operations:
-        ActivitySource.AddActivityListener(new ActivityListener
-        {
-            // Match all connector SDK activity sources by prefix.
-            ShouldListenTo = source => source.Name.StartsWith(
-                ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
-            Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
-            ActivityStarted = activity => Console.WriteLine(
-                $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
-            ActivityStopped = activity => Console.WriteLine(
-                $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
-                + (activity.Status == ActivityStatusCode.Error ? $" ERROR: {activity.StatusDescription}" : string.Empty)),
-        });
-
         // In production, use OpenTelemetry SDK with AddSource("Azure.Connectors.Sdk") for
         // structured export to Application Insights, Jaeger, or other OTLP backends.
+        if (hostContext.HostingEnvironment.IsDevelopment())
+        {
+            ActivitySource.AddActivityListener(new ActivityListener
+            {
+                // Match all connector SDK activity sources by prefix.
+                ShouldListenTo = source => source.Name.StartsWith(
+                    ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+                ActivityStarted = activity => Console.WriteLine(
+                    $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
+                ActivityStopped = activity => Console.WriteLine(
+                    $"[Trace] STOP  {activity.OperationName} — {activity.Duration.TotalMilliseconds:F0}ms"
+                    + (activity.Status == ActivityStatusCode.Error ? $" ERROR: {activity.StatusDescription}" : string.Empty)),
+            });
+        }
     })
     .Build();
 

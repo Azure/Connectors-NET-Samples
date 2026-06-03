@@ -429,7 +429,9 @@ public class TeamsFunctions
     {
         this._logger.LogInformation("TeamsChannelMessageTrigger: Callback received.");
 
-        var body = await request.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
+        var body = await request
+            .ReadAsStringAsync()
+            .ConfigureAwait(continueOnCapturedContext: false);
 
         if (string.IsNullOrEmpty(body))
         {
@@ -440,12 +442,32 @@ public class TeamsFunctions
             return badRequest;
         }
 
-        // NOTE: SDK v0.12.0 typed trigger payload — deserialize directly to the
-        // strongly-typed TeamsOnNewChannelMessageTriggerPayload instead of raw JSON.
-        // The SDK's TriggerCallbackBodyConverter<T> handles both batch and single-item shapes.
-        var payload = JsonSerializer.Deserialize<TeamsOnNewChannelMessageTriggerPayload>(
-            body,
-            TeamsFunctions.JsonOptions);
+        TeamsOnNewChannelMessageTriggerPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize<TeamsOnNewChannelMessageTriggerPayload>(
+                body,
+                TeamsFunctions.JsonOptions);
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogError(ex, "TeamsChannelMessageTrigger: Invalid JSON in trigger payload.");
+
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload is not valid JSON." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        if (payload is null)
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Trigger payload deserialized to null." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
 
         var messages = payload?.Body?.Value;
         var messageCount = messages?.Count ?? 0;
@@ -513,7 +535,7 @@ public class TeamsFunctions
             // SDK v0.12.0: ErrorCode is now parsed from the connector's JSON error response.
             // Callers can switch on structured error codes instead of parsing error messages.
             this._logger.LogWarning(
-                "GetTeamsWithErrorHandling: Connector error — Status={Status}, ErrorCode='{ErrorCode}', Message='{Message}'.",
+                "GetTeamsWithErrorHandling: Connector error \u2014 Status='{Status}', ErrorCode='{ErrorCode}', Message='{Message}'.",
                 ex.Status,
                 ex.ErrorCode,
                 ex.Message);

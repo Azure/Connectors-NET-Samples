@@ -65,9 +65,9 @@ public class MsGraphFunctions
                     var user = element!.Value;
                     return new
                     {
-                        displayName = user.TryGetProperty("displayName", out var dn) ? dn.GetString() : null,
-                        mail = user.TryGetProperty("mail", out var m) ? m.GetString() : null,
-                        id = user.TryGetProperty("id", out var id) ? id.GetString() : null,
+                        displayName = user.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() : null,
+                        mail = user.TryGetProperty("mail", out var mailElement) ? mailElement.GetString() : null,
+                        id = user.TryGetProperty("id", out var idElement) ? idElement.GetString() : null,
                     };
                 })
                 .ToList();
@@ -89,7 +89,7 @@ public class MsGraphFunctions
             // SDK v0.12.0: ErrorCode is parsed from the connector's JSON error response.
             this._logger.LogError(
                 ex,
-                "MS Graph connector error: Status={Status}, ErrorCode='{ErrorCode}'.",
+                "MS Graph connector error: Status='{Status}', ErrorCode='{ErrorCode}'.",
                 ex.Status,
                 ex.ErrorCode);
 

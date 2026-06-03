@@ -403,4 +403,133 @@ public class TeamsFunctions
     /// Request model for posting a Teams message.
     /// </summary>
     private record PostTeamsMessageRequest(string? TeamId, string? ChannelId, string? Message);
+
+    /// <summary>
+    /// Trigger callback for Teams channel messages (v0.12.0 typed trigger payload).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Demonstrates the <see cref="TeamsOnNewChannelMessageTriggerPayload"/> typed trigger payload
+    /// added in SDK v0.12.0. Connector Namespace calls this endpoint when a new message is posted
+    /// to a subscribed channel.
+    /// </para>
+    /// <para>
+    /// Also demonstrates <see cref="TeamsTriggers.Operations"/> — the static registry that maps
+    /// trigger operation names to their typed payload types for dynamic dispatch scenarios.
+    /// </para>
+    /// </remarks>
+    [Function("TeamsChannelMessageTrigger")]
+    [ConnectorTriggerMetadata(
+        ConnectorName = ConnectorNames.MicrosoftTeams,
+        OperationName = TeamsTriggerOperations.OnNewChannelMessage,
+        Connection = "Connectors:Teams")]
+    public async Task<HttpResponseData> TeamsChannelMessageTriggerAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("TeamsChannelMessageTrigger: Callback received.");
+
+        var body = await request.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
+
+        if (string.IsNullOrEmpty(body))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Empty trigger payload." })
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return badRequest;
+        }
+
+        // NOTE: SDK v0.12.0 typed trigger payload — deserialize directly to the
+        // strongly-typed TeamsOnNewChannelMessageTriggerPayload instead of raw JSON.
+        // The SDK's TriggerCallbackBodyConverter<T> handles both batch and single-item shapes.
+        var payload = JsonSerializer.Deserialize<TeamsOnNewChannelMessageTriggerPayload>(
+            body,
+            TeamsFunctions.JsonOptions);
+
+        var messages = payload?.Body?.Value;
+        var messageCount = messages?.Count ?? 0;
+
+        this._logger.LogInformation(
+            "TeamsChannelMessageTrigger: Deserialized {Count} message(s) using TeamsOnNewChannelMessageTriggerPayload.",
+            messageCount);
+
+        // NOTE: TeamsTriggers.Operations maps operation names to payload types at runtime.
+        // Useful for dynamic dispatch when the operation name comes from configuration.
+        if (TeamsTriggers.Operations.TryGetValue(
+            TeamsTriggerOperations.OnNewChannelMessage, out var payloadType))
+        {
+            this._logger.LogDebug(
+                "TeamsChannelMessageTrigger: Operation '{Operation}' maps to payload type '{Type}'.",
+                TeamsTriggerOperations.OnNewChannelMessage,
+                payloadType.Name);
+        }
+
+        var response = request.CreateResponse(HttpStatusCode.OK);
+        await response
+            .WriteAsJsonAsync(new
+            {
+                success = true,
+                message = "Teams channel message trigger callback received.",
+                receivedAt = DateTime.UtcNow,
+                messageCount
+            })
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        return response;
+    }
+
+    /// <summary>
+    /// Demonstrates <see cref="ConnectorException.ErrorCode"/> parsing added in SDK v0.12.0.
+    /// </summary>
+    /// <remarks>
+    /// When a connector API returns an error response, <see cref="ConnectorException"/>
+    /// now extracts the structured error code from the response body and populates
+    /// <see cref="Azure.RequestFailedException.ErrorCode"/>, enabling callers to
+    /// switch on error codes rather than parsing error messages.
+    /// </remarks>
+    [Function("GetTeamsWithErrorHandling")]
+    public async Task<HttpResponseData> GetTeamsWithErrorHandlingAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("GetTeamsWithErrorHandling: Listing teams with structured error handling.");
+
+        try
+        {
+            var teams = await this._teamsClient
+                .GetAllTeamsAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, teamCount = teams?.TeamsList?.Count ?? 0 })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (ConnectorException ex)
+        {
+            // SDK v0.12.0: ErrorCode is now parsed from the connector's JSON error response.
+            // Callers can switch on structured error codes instead of parsing error messages.
+            this._logger.LogWarning(
+                "GetTeamsWithErrorHandling: Connector error — Status={Status}, ErrorCode='{ErrorCode}', Message='{Message}'.",
+                ex.Status,
+                ex.ErrorCode,
+                ex.Message);
+
+            var errorResponse = request.CreateResponse((HttpStatusCode)ex.Status);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    status = ex.Status,
+                    errorCode = ex.ErrorCode,
+                    message = ex.Message
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
 }

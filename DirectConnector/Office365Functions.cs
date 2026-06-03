@@ -309,7 +309,7 @@ public class Office365Functions
     /// <param name="cancellationToken">The cancellation token.</param>
     [Function("TriggerCallback")]
     [ConnectorTriggerMetadata(
-        ConnectorName = ConnectorNames.Office365,
+        ConnectorName = ConnectorNames.Office365Outlook,
         OperationName = Office365TriggerOperations.OnNewEmail,
         Connection = "Connectors:Office365")]
     public async Task<HttpResponseData> TriggerCallbackAsync(

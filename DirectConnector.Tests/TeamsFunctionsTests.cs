@@ -219,8 +219,8 @@ public class TeamsFunctionsTests
                 var team = element!.Value;
                 return new
                 {
-                    Id = team.TryGetProperty("id", out var id) ? id.GetString() : null,
-                    Name = team.TryGetProperty("displayName", out var name) ? name.GetString() : null,
+                    Id = team.TryGetProperty("id", out var idElement) ? idElement.GetString() : null,
+                    Name = team.TryGetProperty("displayName", out var displayNameElement) ? displayNameElement.GetString() : null,
                 };
             })
             .ToList();

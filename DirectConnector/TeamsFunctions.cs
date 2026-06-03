@@ -429,8 +429,9 @@ public class TeamsFunctions
     {
         this._logger.LogInformation("TeamsChannelMessageTrigger: Callback received.");
 
-        var body = await request
-            .ReadAsStringAsync()
+        using var reader = new StreamReader(request.Body);
+        var body = await reader
+            .ReadToEndAsync(cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
 
         if (string.IsNullOrEmpty(body))

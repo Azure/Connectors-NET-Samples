@@ -62,7 +62,7 @@ var host = new HostBuilder()
                 // Match all connector SDK activity sources by prefix.
                 ShouldListenTo = source => source.Name.StartsWith(
                     ConnectorHttpClient.ActivitySourceName, StringComparison.Ordinal),
-                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+                Sample = (ref ActivityCreationOptions<ActivityContext> options) => ActivitySamplingResult.AllData,
                 ActivityStarted = activity => Console.WriteLine(
                     $"[Trace] START {activity.OperationName} (source: {activity.Source.Name})"),
                 ActivityStopped = activity => Console.WriteLine(

@@ -53,8 +53,10 @@ var host = new HostBuilder()
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
         // (e.g., "Azure.Connectors.Sdk.teams", "Azure.Connectors.Sdk.office365").
-        // In production, use OpenTelemetry SDK with AddSource("Azure.Connectors.Sdk") for
-        // structured export to Application Insights, Jaeger, or other OTLP backends.
+        // In production, use OpenTelemetry SDK with per-connector AddSource calls
+        // (e.g., AddSource("Azure.Connectors.Sdk.teams")) or enumerate all sources
+        // matching the "Azure.Connectors.Sdk" prefix for structured export to
+        // Application Insights, Jaeger, or other OTLP backends.
         if (hostContext.HostingEnvironment.IsDevelopment())
         {
             ActivitySource.AddActivityListener(new ActivityListener

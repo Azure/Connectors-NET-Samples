@@ -48,9 +48,6 @@ public class SharePointFunctions
     /// <summary>
     /// Lists SharePoint sites available to the configured connection.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): Discovery prevents dependent list and file operations from using fabricated site values.
-    /// </remarks>
     [Function("ListSharePointSites")]
     public async Task<HttpResponseData> ListSharePointSitesAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/sites")] HttpRequestData request,

@@ -16,9 +16,6 @@ namespace DirectConnector;
 /// <summary>
 /// Azure Functions demonstrating Microsoft Dataverse discovery and record CRUD operations.
 /// </summary>
-/// <remarks>
-/// NOTE(daviburg): The endpoints form an end-to-end flow: discover an environment and table, then create, read, update, and delete a record.
-/// </remarks>
 public class DataverseFunctions
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -32,9 +29,6 @@ public class DataverseFunctions
     /// <summary>
     /// Initializes a new instance of the <see cref="DataverseFunctions"/> class.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): The host owns the singleton client's lifetime through dependency injection.
-    /// </remarks>
     public DataverseFunctions(
         ILogger<DataverseFunctions> logger,
         CommondataserviceClient dataverseClient)
@@ -46,9 +40,6 @@ public class DataverseFunctions
     /// <summary>
     /// Lists Dataverse environments that are available to the configured connection.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): Use each returned environment URL as the environment route parameter for the remaining endpoints.
-    /// </remarks>
     [Function("DataverseListEnvironments")]
     public Task<HttpResponseData> ListEnvironmentsAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/environments")] HttpRequestData request,
@@ -66,9 +57,6 @@ public class DataverseFunctions
     /// <summary>
     /// Lists tables in a Dataverse environment.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): Discover valid environment values with <see cref="ListEnvironmentsAsync(HttpRequestData, CancellationToken)"/>.
-    /// </remarks>
     [Function("DataverseListTables")]
     public Task<HttpResponseData> ListTablesAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/tables")] HttpRequestData request,
@@ -95,9 +83,6 @@ public class DataverseFunctions
     /// <summary>
     /// Lists records from a Dataverse table.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): The optional OData filter and ordering query parameters are forwarded to the generated client.
-    /// </remarks>
     [Function("DataverseListItems")]
     public Task<HttpResponseData> ListItemsAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/items")] HttpRequestData request,
@@ -113,9 +98,20 @@ public class DataverseFunctions
                 cancellationToken: cancellationToken);
         }
 
-        int? topCount = int.TryParse(request.Query["$top"], out var parsedTopCount)
-            ? parsedTopCount
-            : null;
+        var topCountValue = request.Query["$top"];
+        int? topCount = null;
+        if (!string.IsNullOrWhiteSpace(topCountValue))
+        {
+            if (!int.TryParse(topCountValue, out var parsedTopCount) || parsedTopCount <= 0)
+            {
+                return DataverseFunctions.CreateBadRequestAsync(
+                    request,
+                    message: "Query parameter '$top' must be a positive integer.",
+                    cancellationToken: cancellationToken);
+            }
+
+            topCount = parsedTopCount;
+        }
 
         return this.ExecuteAsync(
             request,
@@ -135,10 +131,6 @@ public class DataverseFunctions
     /// <summary>
     /// Follows a Dataverse connector next-link value to retrieve a subsequent page.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): The generated list model intentionally exposes typed records only, so callers
-    /// preserve the next-link value from the connector response and submit it unchanged here.
-    /// </remarks>
     [Function("DataverseGetNextPage")]
     public Task<HttpResponseData> GetNextPageAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/nextpage")] HttpRequestData request,
@@ -165,9 +157,6 @@ public class DataverseFunctions
     /// <summary>
     /// Gets a Dataverse record by identifier.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): Record properties are dynamic because each Dataverse table has its own schema.
-    /// </remarks>
     [Function("DataverseGetItem")]
     public Task<HttpResponseData> GetItemAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/items/{itemIdentifier}")] HttpRequestData request,
@@ -200,9 +189,6 @@ public class DataverseFunctions
     /// <summary>
     /// Creates a Dataverse record from a JSON request body.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): JSON fields are preserved as dynamic properties so the same endpoint supports any writable table.
-    /// </remarks>
     [Function("DataverseCreateItem")]
     public async Task<HttpResponseData> CreateItemAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dataverse/items")] HttpRequestData request,
@@ -243,9 +229,6 @@ public class DataverseFunctions
     /// <summary>
     /// Updates a Dataverse record from a JSON request body.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): JSON fields are preserved as dynamic properties so callers update only the fields they supply.
-    /// </remarks>
     [Function("DataverseUpdateItem")]
     public async Task<HttpResponseData> UpdateItemAsync(
         [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "dataverse/items/{itemIdentifier}")] HttpRequestData request,
@@ -288,9 +271,6 @@ public class DataverseFunctions
     /// <summary>
     /// Creates a note attachment for a Dataverse record from the request body bytes.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): This preserves the request body as bytes to exercise the generated binary-input path.
-    /// </remarks>
     [Function("DataverseCreateAttachment")]
     public async Task<HttpResponseData> CreateAttachmentAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dataverse/items/{itemIdentifier}/attachments")] HttpRequestData request,
@@ -333,9 +313,6 @@ public class DataverseFunctions
     /// <summary>
     /// Deletes a Dataverse record by identifier.
     /// </summary>
-    /// <remarks>
-    /// NOTE(daviburg): This endpoint completes only when the connector confirms the record was deleted.
-    /// </remarks>
     [Function("DataverseDeleteItem")]
     public async Task<HttpResponseData> DeleteItemAsync(
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "dataverse/items/{itemIdentifier}")] HttpRequestData request,
@@ -399,7 +376,15 @@ public class DataverseFunctions
 
     private async Task<T?> ReadBodyAsync<T>(HttpRequestData request, CancellationToken cancellationToken)
     {
-        return await JsonSerializer.DeserializeAsync<T>(request.Body, DataverseFunctions.JsonOptions, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+        try
+        {
+            return await JsonSerializer.DeserializeAsync<T>(request.Body, DataverseFunctions.JsonOptions, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogWarning(ex, "Unable to deserialize the Dataverse request body.");
+            return default;
+        }
     }
 
     private static async Task<HttpResponseData> CreateBadRequestAsync(

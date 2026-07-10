@@ -97,4 +97,62 @@ public class DataverseFunctionsTests
 
         Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [TestMethod]
+    public async Task ListItemsAsync_WithNonPositiveTopCount_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var environment = Uri.EscapeDataString("https://example.crm.dynamics.com");
+        var request = TestHelpers.CreateRequest(
+            url: $"https://localhost/api/dataverse/items?environment={environment}&tableName=accounts&$top=0");
+
+        var response = await functions.ListItemsAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task CreateItemAsync_WithInvalidJson_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var environment = Uri.EscapeDataString("https://example.crm.dynamics.com");
+        var request = TestHelpers.CreateRequest(
+            body: "{ invalid JSON",
+            method: "POST",
+            url: $"https://localhost/api/dataverse/items?environment={environment}&tableName=accounts");
+
+        var response = await functions.CreateItemAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task UpdateItemAsync_WithInvalidJson_Returns400()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var environment = Uri.EscapeDataString("https://example.crm.dynamics.com");
+        var request = TestHelpers.CreateRequest(
+            body: "{ invalid JSON",
+            method: "PATCH",
+            url: $"https://localhost/api/dataverse/items/record-id?environment={environment}&tableName=accounts");
+
+        var response = await functions.UpdateItemAsync(
+            request,
+            itemIdentifier: "record-id",
+            cancellationToken: CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

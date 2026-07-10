@@ -133,6 +133,36 @@ public class DataverseFunctions
     }
 
     /// <summary>
+    /// Follows a Dataverse connector next-link value to retrieve a subsequent page.
+    /// </summary>
+    /// <remarks>
+    /// NOTE(daviburg): The generated list model intentionally exposes typed records only, so callers
+    /// preserve the next-link value from the connector response and submit it unchanged here.
+    /// </remarks>
+    [Function("DataverseGetNextPage")]
+    public Task<HttpResponseData> GetNextPageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dataverse/nextpage")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var nextLink = request.Query["nextLink"];
+        if (string.IsNullOrWhiteSpace(nextLink))
+        {
+            return DataverseFunctions.CreateBadRequestAsync(
+                request,
+                message: "Query parameter 'nextLink' is required.",
+                cancellationToken: cancellationToken);
+        }
+
+        return this.ExecuteAsync(
+            request,
+            operationName: "DataverseGetNextPage",
+            operation: async () => await this._dataverseClient
+                .GetNextPageAsync(nextLinkValue: nextLink, cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
     /// Gets a Dataverse record by identifier.
     /// </summary>
     /// <remarks>
@@ -250,6 +280,51 @@ public class DataverseFunctions
                     tableName: tableName,
                     rowIdentifier: itemIdentifier,
                     input: input,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            cancellationToken: cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+    }
+
+    /// <summary>
+    /// Creates a note attachment for a Dataverse record from the request body bytes.
+    /// </summary>
+    /// <remarks>
+    /// NOTE(daviburg): This preserves the request body as bytes to exercise the generated binary-input path.
+    /// </remarks>
+    [Function("DataverseCreateAttachment")]
+    public async Task<HttpResponseData> CreateAttachmentAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dataverse/items/{itemIdentifier}/attachments")] HttpRequestData request,
+        string itemIdentifier,
+        CancellationToken cancellationToken)
+    {
+        var environment = request.Query["environment"];
+        var tableName = request.Query["tableName"];
+        var fileName = request.Query["fileName"];
+        if (string.IsNullOrWhiteSpace(environment) ||
+            string.IsNullOrWhiteSpace(tableName) ||
+            string.IsNullOrWhiteSpace(fileName))
+        {
+            return await DataverseFunctions.CreateBadRequestAsync(
+                request,
+                message: "Query parameters 'environment', 'tableName', and 'fileName' are required.",
+                cancellationToken: cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        using var content = new MemoryStream();
+        await request.Body
+            .CopyToAsync(content, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        return await this.ExecuteAsync(
+            request,
+            operationName: "DataverseCreateAttachment",
+            operation: async () => await this._dataverseClient
+                .CreateAttachmentAsync(
+                    dataset: environment,
+                    table: tableName,
+                    id: itemIdentifier,
+                    input: content.ToArray(),
+                    fileName: fileName,
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false),
             cancellationToken: cancellationToken).ConfigureAwait(continueOnCapturedContext: false);

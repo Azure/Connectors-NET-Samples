@@ -183,3 +183,10 @@ private readonly ILogger _logger;
 - Branch naming: `feature/description`, `fix/description`, `docs/description`
 - Never push directly to main
 - Always create PR for review
+
+## E2E Validation
+
+- A Function endpoint returning HTTP 502 is a failed connector invocation, not E2E validation. Inspect the structured response and resolve the downstream error before recording any validation claim.
+- Start connector validation with a discovery operation that requires no dependent resource identifier. Use a resource value returned in that session for every subsequent site-, account-, table-, container-, or item-scoped call; never use fabricated placeholders.
+- Record the generated operation and successful downstream result that establishes E2E coverage. Do not infer successful connector behavior from a Function wrapper status alone.
+- For mutating validation, use a uniquely named temporary resource and clean it up even when a later validation step fails. Do not commit resource names, runtime URLs, connection identifiers, test data, or credentials.

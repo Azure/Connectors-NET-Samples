@@ -26,6 +26,13 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `GET /api/yammer/networks` | Yammer (Viva Engage) | List networks for the authenticated user |
 | `GET /api/wdatp/alerts` | Microsoft Defender ATP | List alerts (paginated via `await foreach`) |
 | `GET /api/universalprint/shares` | Universal Print | List recent printer shares |
+| `GET /api/dataverse/environments` | Microsoft Dataverse | Discover accessible Dataverse environments |
+| `GET /api/dataverse/tables?environment=...` | Microsoft Dataverse | List tables in an environment |
+| `GET /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | List records with filtering and pagination options |
+| `GET /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Read a record by ID |
+| `POST /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | Create a record from a JSON body |
+| `PATCH /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Update record fields from a JSON body |
+| `DELETE /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Delete a record |
 
 ### Key Patterns
 
@@ -112,7 +119,8 @@ Add your connection runtime URLs to `local.settings.json`:
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "Connectors:Office365:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365/YOUR-CONNECTION-ID",
     "Connectors:SharePoint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/sharepointonline/YOUR-CONNECTION-ID",
-    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID"
+    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID",
+    "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID"
   }
 }
 ```
@@ -193,6 +201,25 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
 Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
     -Body '{"fileId":"FILE_ID","linkType":"edit","linkScope":"organization"}' `
     -ContentType "application/json"
+
+# Discover Dataverse environments. Use a returned environment URL in later calls.
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/environments"
+
+# List tables in an environment. The URL is encoded as a query parameter.
+$environment = [uri]::EscapeDataString("https://contoso.crm.dynamics.com")
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/tables?environment=$environment"
+
+# Create a record in a writable table, then use the identifier from its response for CRUD operations.
+$tableName = "accounts"
+$created = Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items?environment=$environment&tableName=$tableName" -Method POST `
+  -Body '{"name":"Connector SDK sample account"}' `
+  -ContentType "application/json"
+$itemIdentifier = $created.accountid
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName"
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName" -Method PATCH `
+  -Body '{"name":"Connector SDK sample account (updated)"}' `
+  -ContentType "application/json"
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName" -Method DELETE
 ```
 
 ## Architecture

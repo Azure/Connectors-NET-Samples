@@ -44,6 +44,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | OutlookFunctions.cs | Outlook | List calendars, list contact folders |
 | ServiceBusFunctions.cs | Azure Service Bus | List queues, list topics, list entities |
 | WordOnlineBusinessFunctions.cs | Word Online (Business) | Get sources, get drives |
+| DataverseFunctions.cs | Microsoft Dataverse | Discover environments and tables; create, read, update, and delete records |
 
 ### Key Patterns Demonstrated
 

@@ -8,6 +8,7 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 |----------|-----------|-------------------|
 | `POST /api/email` | Office365 | Void return, JSON input, `CancellationToken` propagation |
 | `GET /api/categories` | Office365 | JSON deserialization of structured response |
+| `POST /api/triggerCallback` | Office365 | Typed `OnNewEmail` trigger callback deserialization with `ConnectorTriggerPayload` |
 | `GET /api/sharepoint/lists?site=...` | SharePoint | JSON wrapper with collection of `{ name, displayName }` items |
 | `GET /api/sharepoint/files?site=...&folder=...` | SharePoint | Folder browsing, JSON wrapper with `files` array of projected `BlobMetadata` fields |
 | `GET /api/sharepoint/download?site=...&path=...` | SharePoint | **Binary content (`byte[]`) response** via `ReadAsByteArrayAsync` |

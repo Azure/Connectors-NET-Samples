@@ -37,6 +37,16 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `PATCH /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Update record fields from a JSON body |
 | `POST /api/dataverse/items/{itemIdentifier}/attachments?environment=...&tableName=...&fileName=...` | Microsoft Dataverse | Create a note attachment from binary request content |
 | `DELETE /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Delete a record |
+| `GET /api/loganalytics/subscriptions` | Azure Monitor Logs | Paginated subscription discovery |
+| `GET /api/loganalytics/workspaces?subscription=...&resourceGroup=...` | Azure Monitor Logs | List Log Analytics workspaces in a resource group |
+| `POST /api/loganalytics/query?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Dynamic-schema query results (`Row.AdditionalProperties`) |
+| `POST /api/loganalytics/queryschema?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Query-schema discovery from a plain-text KQL request body |
+| `GET /api/arm/subscriptions` | Azure Resource Manager | Paginated subscription discovery |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups` | Azure Resource Manager | Paginated resource-group discovery |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Read a resource group |
+| `PUT /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Create or update a resource group from a JSON body with `location` |
+| `DELETE /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Delete a resource group |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/resources` | Azure Resource Manager | List resources in a resource group |
 
 ### Key Patterns
 

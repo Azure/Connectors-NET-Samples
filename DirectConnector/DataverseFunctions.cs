@@ -361,7 +361,9 @@ public class DataverseFunctions
         {
             var result = await operation().ConfigureAwait(continueOnCapturedContext: false);
             var response = request.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(result, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+            await response
+                .WriteAsJsonAsync(result, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
         catch (ConnectorException ex)

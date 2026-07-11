@@ -30,8 +30,8 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | MqFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
 | SmtpFunctions.cs | SMTP | Send email via SMTP |
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
-| AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions, list resources |
-| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions, resource groups, read resources |
+| AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions and resources, run queries, discover query schemas |
+| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions/resource groups/resources, read, create or update, and delete resource groups |
 | ExcelOnlineFunctions.cs | Excel Online (Business) | Get sources, get drives, get tables |
 | AzureEventGridFunctions.cs | Azure Event Grid | List topic types, list subscriptions |
 | YammerFunctions.cs | Yammer (Viva Engage) | Get networks |

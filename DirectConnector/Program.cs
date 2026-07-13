@@ -4,7 +4,10 @@
 
 using System.Diagnostics;
 using Azure.Connectors.Sdk;
+using Azure.Connectors.Sdk.Commondataservice;
 using Azure.Connectors.Sdk.Http;
+using Azure.Core;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +52,27 @@ var host = new HostBuilder()
         services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
         services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
         services.AddWordOnlineBusinessClient(configuration.GetSection("Connectors:WordOnlineBusiness"));
+
+        var dataverseConfiguration = configuration.GetSection("Connectors:Dataverse");
+        var dataverseConnectionRuntimeUrl = dataverseConfiguration["ConnectionRuntimeUrl"]?.Trim();
+        if (!Uri.TryCreate(dataverseConnectionRuntimeUrl, UriKind.Absolute, out var dataverseConnectionRuntimeUri))
+        {
+            throw new InvalidOperationException(
+                message: "Configuration value 'Connectors:Dataverse:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
+        }
+
+        var dataverseManagedIdentityClientId = dataverseConfiguration["ManagedIdentityClientId"];
+        services.AddSingleton<CommondataserviceClient>(serviceProvider =>
+        {
+            var credential = dataverseManagedIdentityClientId != null
+                ? string.IsNullOrWhiteSpace(dataverseManagedIdentityClientId)
+                    ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
+                    : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(dataverseManagedIdentityClientId.Trim()))
+                : serviceProvider.GetService<TokenCredential>()
+                    ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+
+            return new CommondataserviceClient(dataverseConnectionRuntimeUri, credential);
+        });
 
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"

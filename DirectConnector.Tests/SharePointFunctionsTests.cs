@@ -21,6 +21,34 @@ public class SharePointFunctionsTests
     }
 
     [TestMethod]
+    public async Task ListSharePointSitesAsync_WithValidResponse_ReturnsSites()
+    {
+        var sitesResponse = new
+        {
+            value = new[]
+            {
+                new { Name = "https://contoso.sharepoint.com/sites/testsite", DisplayName = "Test site" },
+            },
+        };
+        using var client = CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(sitesResponse)),
+        });
+        var functions = new SharePointFunctions(
+            TestHelpers.CreateNullLogger<SharePointFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/sharepoint/sites");
+
+        var response = await functions.ListSharePointSitesAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("Test site", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public async Task GetSharePointListsAsync_WithValidResponse_ReturnsLists()
     {
         // Arrange — sanitized payload based on real SharePoint lists response

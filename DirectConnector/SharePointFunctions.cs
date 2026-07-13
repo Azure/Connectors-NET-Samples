@@ -46,6 +46,68 @@ public class SharePointFunctions
     }
 
     /// <summary>
+    /// Lists SharePoint sites available to the configured connection.
+    /// </summary>
+    [Function("ListSharePointSites")]
+    public async Task<HttpResponseData> ListSharePointSitesAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "sharepoint/sites")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("ListSharePointSites: Using generated SharePointOnlineClient.");
+
+        try
+        {
+            var dataSets = await this._sharePointClient
+                .GetDataSetsAsync(cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new
+                {
+                    success = true,
+                    count = dataSets?.Value?.Count ?? 0,
+                    sites = dataSets?.Value?.Select(dataSet => new
+                    {
+                        name = dataSet.Name,
+                        displayName = dataSet.DisplayName,
+                    }),
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (ConnectorException ex)
+        {
+            this._logger.LogError(ex, "SharePoint connector error: '{StatusCode}'.", ex.Status);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = false,
+                    error = ex.Message,
+                    statusCode = ex.Status,
+                    details = ex.ResponseBody,
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in ListSharePointSites.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
     /// Gets all SharePoint lists and libraries for a site using the generated <see cref="SharePointOnlineClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request containing the site address.</param>

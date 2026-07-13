@@ -22,7 +22,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | File | Connector | Sample Operations |
 |------|-----------|-------------------|
 | Office365Functions.cs | Office 365 (Mail/Calendar) | Send email, get categories, export email, create calendar event, trigger callbacks |
-| SharePointFunctions.cs | SharePoint Online | List libraries, browse folders, download/upload files |
+| SharePointFunctions.cs | SharePoint Online | Discover sites, list libraries, browse folders, download/upload files |
 | TeamsFunctions.cs | Microsoft Teams | List teams/channels, get messages, post messages |
 | MsGraphFunctions.cs | MS Graph Groups & Users | List users, search groups, get group properties |
 | OneDriveFunctions.cs | OneDrive for Business | Browse folders, download/upload files, search, share links |
@@ -30,8 +30,8 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | MqFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
 | SmtpFunctions.cs | SMTP | Send email via SMTP |
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
-| AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions, list resources |
-| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions, resource groups, read resources |
+| AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions and resources, run queries, discover query schemas |
+| ArmFunctions.cs | Azure Resource Manager (ARM) | List subscriptions/resource groups/resources, read, create or update, and delete resource groups |
 | ExcelOnlineFunctions.cs | Excel Online (Business) | Get sources, get drives, get tables |
 | AzureEventGridFunctions.cs | Azure Event Grid | List topic types, list subscriptions |
 | YammerFunctions.cs | Yammer (Viva Engage) | Get networks |
@@ -44,6 +44,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | OutlookFunctions.cs | Outlook | List calendars, list contact folders |
 | ServiceBusFunctions.cs | Azure Service Bus | List queues, list topics, list entities |
 | WordOnlineBusinessFunctions.cs | Word Online (Business) | Get sources, get drives |
+| DataverseFunctions.cs | Microsoft Dataverse | Discover environments and tables; create, read, update, and delete records |
 
 ### Key Patterns Demonstrated
 

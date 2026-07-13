@@ -163,4 +163,25 @@ public class Office365FunctionsTests
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("error", StringComparison.OrdinalIgnoreCase));
     }
+
+    [TestMethod]
+    public async Task TriggerCallbackAsync_CamelCaseEmailPayload_ReturnsReceivedItemCount()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new Office365Functions(
+            TestHelpers.CreateNullLogger<Office365Functions>(),
+            client);
+        var request = TestHelpers.CreateRequest(
+            body: """{"body":{"value":[{"id":"email-id","receivedDateTime":"2026-07-10T00:00:00Z","hasAttachments":false,"importance":"normal"}]}}""",
+            method: "POST");
+
+        var response = await functions
+            .TriggerCallbackAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var responseBody = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(responseBody, "\"emailCount\":1");
+        StringAssert.Contains(responseBody, "ConnectorTriggerPayload");
+    }
 }

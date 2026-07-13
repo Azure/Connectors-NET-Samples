@@ -8,6 +8,8 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 |----------|-----------|-------------------|
 | `POST /api/email` | Office365 | Void return, JSON input, `CancellationToken` propagation |
 | `GET /api/categories` | Office365 | JSON deserialization of structured response |
+| `POST /api/triggerCallback` | Office365 | Typed `OnNewEmail` trigger callback deserialization with `ConnectorTriggerPayload` |
+| `GET /api/sharepoint/sites` | SharePoint | Discover accessible sites before selecting a site-scoped list or file operation |
 | `GET /api/sharepoint/lists?site=...` | SharePoint | JSON wrapper with collection of `{ name, displayName }` items |
 | `GET /api/sharepoint/files?site=...&folder=...` | SharePoint | Folder browsing, JSON wrapper with `files` array of projected `BlobMetadata` fields |
 | `GET /api/sharepoint/download?site=...&path=...` | SharePoint | **Binary content (`byte[]`) response** via `ReadAsByteArrayAsync` |
@@ -26,6 +28,25 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `GET /api/yammer/networks` | Yammer (Viva Engage) | List networks for the authenticated user |
 | `GET /api/wdatp/alerts` | Microsoft Defender ATP | List alerts (paginated via `await foreach`) |
 | `GET /api/universalprint/shares` | Universal Print | List recent printer shares |
+| `GET /api/dataverse/environments` | Microsoft Dataverse | Discover accessible Dataverse environments |
+| `GET /api/dataverse/tables?environment=...` | Microsoft Dataverse | List tables in an environment |
+| `GET /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | List records with filtering and pagination options |
+| `GET /api/dataverse/nextpage?nextLink=...` | Microsoft Dataverse | Follow a connector next-link value to retrieve the next page |
+| `GET /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Read a record by ID |
+| `POST /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | Create a record from a JSON body |
+| `PATCH /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Update record fields from a JSON body |
+| `POST /api/dataverse/items/{itemIdentifier}/attachments?environment=...&tableName=...&fileName=...` | Microsoft Dataverse | Create a note attachment from binary request content |
+| `DELETE /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Delete a record |
+| `GET /api/loganalytics/subscriptions` | Azure Monitor Logs | Paginated subscription discovery |
+| `GET /api/loganalytics/workspaces?subscription=...&resourceGroup=...` | Azure Monitor Logs | List Log Analytics workspaces in a resource group |
+| `POST /api/loganalytics/query?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Dynamic-schema query results (`Row.AdditionalProperties`) |
+| `POST /api/loganalytics/queryschema?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Query-schema discovery from a plain-text KQL request body |
+| `GET /api/arm/subscriptions` | Azure Resource Manager | Paginated subscription discovery |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups` | Azure Resource Manager | Paginated resource-group discovery |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Read a resource group |
+| `PUT /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Create or update a resource group from a JSON body with `location` |
+| `DELETE /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}` | Azure Resource Manager | Delete a resource group |
+| `GET /api/arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/resources` | Azure Resource Manager | List resources in a resource group |
 
 ### Key Patterns
 
@@ -112,7 +133,8 @@ Add your connection runtime URLs to `local.settings.json`:
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "Connectors:Office365:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365/YOUR-CONNECTION-ID",
     "Connectors:SharePoint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/sharepointonline/YOUR-CONNECTION-ID",
-    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID"
+    "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID",
+    "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID"
   }
 }
 ```
@@ -139,6 +161,9 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/categories"
 
 # List SharePoint libraries
 Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/lists?site=https://contoso.sharepoint.com/sites/mysite"
+
+# Discover accessible SharePoint sites before using a site-scoped operation.
+Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/sites"
 
 # Browse files in root folder
 Invoke-RestMethod -Uri "http://localhost:7071/api/sharepoint/files?site=https://contoso.sharepoint.com/sites/mysite"
@@ -193,6 +218,35 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
 Invoke-RestMethod -Uri "http://localhost:7071/api/onedrive/share" -Method POST `
     -Body '{"fileId":"FILE_ID","linkType":"edit","linkScope":"organization"}' `
     -ContentType "application/json"
+
+# Discover Dataverse environments. Use a returned environment URL in later calls.
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/environments"
+
+# List tables in an environment. The URL is encoded as a query parameter.
+$environment = [uri]::EscapeDataString("https://contoso.crm.dynamics.com")
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/tables?environment=$environment"
+
+# Create a record in a writable table, then use the identifier from its response for CRUD operations.
+$tableName = "accounts"
+$created = Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items?environment=$environment&tableName=$tableName" -Method POST `
+  -Body '{"name":"Connector SDK sample account"}' `
+  -ContentType "application/json"
+$itemIdentifier = $created.accountid
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName"
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName" -Method PATCH `
+  -Body '{"name":"Connector SDK sample account (updated)"}' `
+  -ContentType "application/json"
+
+# Attach a text file to the created record. The request body is passed as binary content.
+$attachmentName = [uri]::EscapeDataString("sample-note.txt")
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier/attachments?environment=$environment&tableName=$tableName&fileName=$attachmentName" -Method POST `
+  -Body "Connector SDK attachment sample" `
+  -ContentType "text/plain"
+
+# When a Dataverse list response supplies a next-link value, encode it and follow it with the generated helper.
+$nextLink = [uri]::EscapeDataString("NEXT_LINK_VALUE")
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/nextpage?nextLink=$nextLink"
+Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName" -Method DELETE
 ```
 
 ## Architecture

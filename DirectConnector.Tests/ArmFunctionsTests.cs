@@ -128,4 +128,104 @@ public class ArmFunctionsTests
         Assert.IsTrue(body.Contains("rg-dev", StringComparison.Ordinal));
         Assert.IsTrue(body.Contains("rg-prod", StringComparison.Ordinal));
     }
+
+    [TestMethod]
+    public async Task ReadResourceGroupAsync_WithValidResponse_ReturnsResourceGroup()
+    {
+        var resourceGroupResponse = new
+        {
+            id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-test",
+            name = "rg-test",
+            location = "eastus",
+        };
+        using var client = ArmFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(resourceGroupResponse)),
+        });
+        var functions = new ArmFunctions(
+            TestHelpers.CreateNullLogger<ArmFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(
+            url: "https://localhost/api/arm/subscriptions/00000000-0000-0000-0000-000000000001/resourcegroups/rg-test");
+
+        var response = await functions.ReadResourceGroupAsync(
+            request,
+            "00000000-0000-0000-0000-000000000001",
+            "rg-test",
+            CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("rg-test", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task CreateOrUpdateResourceGroupAsync_WithValidBody_ReturnsCreated()
+    {
+        var resourceGroupResponse = new
+        {
+            id = "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-test",
+            name = "rg-test",
+            location = "eastus",
+        };
+        using var client = ArmFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.Created,
+            Content = new StringContent(JsonSerializer.Serialize(resourceGroupResponse)),
+        });
+        var functions = new ArmFunctions(
+            TestHelpers.CreateNullLogger<ArmFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(
+            body: "{\"location\":\"eastus\"}",
+            method: "PUT",
+            url: "https://localhost/api/arm/subscriptions/00000000-0000-0000-0000-000000000001/resourcegroups/rg-test");
+
+        var response = await functions.CreateOrUpdateResourceGroupAsync(
+            request,
+            "00000000-0000-0000-0000-000000000001",
+            "rg-test",
+            CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.Created, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("rg-test", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task CreateOrUpdateResourceGroupAsync_WithInvalidJson_Returns400()
+    {
+        using var client = ArmFunctionsTests.CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new ArmFunctions(
+            TestHelpers.CreateNullLogger<ArmFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(body: "{ invalid", method: "PUT");
+
+        var response = await functions.CreateOrUpdateResourceGroupAsync(
+            request,
+            "00000000-0000-0000-0000-000000000001",
+            "rg-test",
+            CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task DeleteResourceGroupAsync_WithSuccessfulResponse_ReturnsNoContent()
+    {
+        using var client = ArmFunctionsTests.CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.NoContent));
+        var functions = new ArmFunctions(
+            TestHelpers.CreateNullLogger<ArmFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(method: "DELETE");
+
+        var response = await functions.DeleteResourceGroupAsync(
+            request,
+            "00000000-0000-0000-0000-000000000001",
+            "rg-test",
+            CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.NoContent, actual: response.StatusCode);
+    }
 }

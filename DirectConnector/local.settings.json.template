@@ -94,6 +94,10 @@
 
     "Connectors:WordOnlineBusiness:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/wordonlinebusiness/YOUR-CONNECTION-ID",
     "__comment_WordOnlineBusiness_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:WordOnlineBusiness:ManagedIdentityClientId": ""
+    "__Connectors:WordOnlineBusiness:ManagedIdentityClientId": "",
+
+    "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID",
+    "__comment_Dataverse_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Dataverse:ManagedIdentityClientId": ""
   }
 }

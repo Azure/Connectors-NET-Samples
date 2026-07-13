@@ -328,73 +328,17 @@ public class Office365Functions
 
         try
         {
-            // NOTE: Check Content-Length header first (works for all streams),
-            // then fall back to Body.Length for seekable streams.
-            long contentLength = -1;
-            if (request.Headers.TryGetValues("Content-Length", out var contentLengthHeaderValues) &&
-                long.TryParse(contentLengthHeaderValues.FirstOrDefault(), out var parsedLength))
-            {
-                contentLength = parsedLength;
-            }
-
-            if (contentLength > Office365Functions.MaxTriggerCallbackBodySize ||
-                (contentLength < 0 && request.Body.CanSeek && request.Body.Length > Office365Functions.MaxTriggerCallbackBodySize))
-            {
-                this._logger.LogWarning("TriggerCallback: Payload too large. Rejecting.");
-
-                var rejectResponse = request.CreateResponse(HttpStatusCode.OK);
-                await rejectResponse
-                    .WriteAsJsonAsync(new
-                    {
-                        success = true,
-                        message = "Trigger callback received (payload too large, discarded).",
-                        receivedAt = DateTime.UtcNow
-                    })
-                    .ConfigureAwait(continueOnCapturedContext: false);
-
-                return rejectResponse;
-            }
-
-            // NOTE: Read at most (limit + 1) chars so oversized non-seekable
-            // payloads without Content-Length can still be detected reliably.
-            using var reader = new StreamReader(request.Body);
-            var buffer = new char[Office365Functions.MaxTriggerCallbackBodySize + 1];
-            var charsRead = await reader
-                .ReadBlockAsync(buffer.AsMemory(0, buffer.Length), cancellationToken)
+            var payload = await ConnectorTriggerPayload
+                .ReadAsync<Office365OnNewEmailTriggerPayload>(
+                    request.Body,
+                    maxBodySizeBytes: Office365Functions.MaxTriggerCallbackBodySize,
+                    cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
-
-            if (charsRead > Office365Functions.MaxTriggerCallbackBodySize)
-            {
-                this._logger.LogWarning("TriggerCallback: Payload too large. Rejecting.");
-
-                var rejectResponse = request.CreateResponse(HttpStatusCode.OK);
-                await rejectResponse
-                    .WriteAsJsonAsync(new
-                    {
-                        success = true,
-                        message = "Trigger callback received (payload too large, discarded).",
-                        receivedAt = DateTime.UtcNow
-                    })
-                    .ConfigureAwait(continueOnCapturedContext: false);
-
-                return rejectResponse;
-            }
-
-            var body = new string(buffer, 0, charsRead);
-
-            // NOTE: Use SDK's per-trigger convenience type for typed deserialization.
-            // Office365OnNewEmailTriggerPayload is a subclass of TriggerCallbackPayload<GraphClientReceiveMessage>
-            // that provides discoverability — the developer no longer needs to know the inner type.
-            // The SDK's TriggerCallbackBodyConverter<T> (fix for issue #149) normalizes both
-            // single-item and batch shapes so payload.Body.Value is always populated.
-            var payload = JsonSerializer.Deserialize<Office365OnNewEmailTriggerPayload>(
-                body,
-                Office365Functions.JsonOptions);
 
             var emails = payload?.Body?.Value;
             var emailCount = emails?.Count ?? 0;
 
-            this._logger.LogInformation("TriggerCallback: Deserialized email trigger payload using Office365OnNewEmailTriggerPayload.");
+            this._logger.LogInformation("TriggerCallback: Deserialized email trigger payload using ConnectorTriggerPayload.");
 
             // NOTE: Cap per-email logging to avoid unbounded log volume on batch triggers.
             // Log only message IDs (not PII like Subject/From) to reduce accidental exposure.
@@ -421,7 +365,7 @@ public class Office365Functions
                 .WriteAsJsonAsync(new
                 {
                     success = true,
-                    message = "Trigger callback received (typed deserialization via SDK).",
+                    message = "Trigger callback received (typed deserialization via ConnectorTriggerPayload).",
                     receivedAt = DateTime.UtcNow,
                     emailCount
                 })
@@ -439,6 +383,22 @@ public class Office365Functions
                 {
                     success = true,
                     message = "Trigger callback received (non-JSON payload).",
+                    receivedAt = DateTime.UtcNow
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (InvalidOperationException ex)
+        {
+            this._logger.LogWarning(ex, "TriggerCallback: Email trigger payload exceeded the configured limit.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.OK);
+            await errorResponse
+                .WriteAsJsonAsync(new
+                {
+                    success = true,
+                    message = "Trigger callback received (payload too large, discarded).",
                     receivedAt = DateTime.UtcNow
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);

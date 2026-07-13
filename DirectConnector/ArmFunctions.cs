@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Arm;
 using Azure.Connectors.Sdk.Arm.Models;
@@ -256,6 +257,175 @@ public class ArmFunctions
             await errorResponse
                 .WriteAsJsonAsync(new { success = false, error = ex.Message })
                 .ConfigureAwait(continueOnCapturedContext: false);
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Reads a resource group in a subscription.
+    /// </summary>
+    [Function("ArmReadResourceGroup")]
+    public async Task<HttpResponseData> ReadResourceGroupAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}")] HttpRequestData request,
+        string subscriptionId,
+        string resourceGroupName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var resourceGroup = await this._armClient
+                .ResourceGroupsGetAsync(
+                    subscription: subscriptionId,
+                    resourceGroup: resourceGroupName,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, resourceGroup }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (ConnectorException ex)
+        {
+            this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.Status);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in ReadResourceGroup.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Creates or updates a resource group in a subscription.
+    /// </summary>
+    [Function("ArmCreateOrUpdateResourceGroup")]
+    public async Task<HttpResponseData> CreateOrUpdateResourceGroupAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}")] HttpRequestData request,
+        string subscriptionId,
+        string resourceGroupName,
+        CancellationToken cancellationToken)
+    {
+        ResourceGroup? input;
+        try
+        {
+            input = await JsonSerializer
+                .DeserializeAsync<ResourceGroup>(request.Body, cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogWarning(ex, "Unable to deserialize the ARM resource group request body.");
+            input = null;
+        }
+
+        if (input is null || string.IsNullOrWhiteSpace(input.Location))
+        {
+            var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequest
+                .WriteAsJsonAsync(new { success = false, error = "Request body must contain a non-empty 'location' value." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return badRequest;
+        }
+
+        try
+        {
+            var resourceGroup = await this._armClient
+                .ResourceGroupsCreateOrUpdateAsync(
+                    subscription: subscriptionId,
+                    resourceGroupName: resourceGroupName,
+                    input: input,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var response = request.CreateResponse(HttpStatusCode.Created);
+            await response
+                .WriteAsJsonAsync(new { success = true, resourceGroup }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (ConnectorException ex)
+        {
+            this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.Status);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in CreateOrUpdateResourceGroup.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+    }
+
+    /// <summary>
+    /// Deletes a resource group in a subscription.
+    /// </summary>
+    [Function("ArmDeleteResourceGroup")]
+    public async Task<HttpResponseData> DeleteResourceGroupAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "arm/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}")] HttpRequestData request,
+        string subscriptionId,
+        string resourceGroupName,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await this._armClient
+                .ResourceGroupsDeleteAsync(
+                    subscription: subscriptionId,
+                    resourceGroup: resourceGroupName,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return request.CreateResponse(HttpStatusCode.NoContent);
+        }
+        catch (ConnectorException ex)
+        {
+            this._logger.LogError(ex, "ARM connector error: '{StatusCode}'.", ex.Status);
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.BadGateway);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return errorResponse;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in DeleteResourceGroup.");
+
+            var errorResponse = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse
+                .WriteAsJsonAsync(new { success = false, error = ex.Message })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
             return errorResponse;
         }
     }

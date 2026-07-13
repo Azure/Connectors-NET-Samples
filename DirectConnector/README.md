@@ -37,6 +37,7 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `PATCH /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Update record fields from a JSON body |
 | `POST /api/dataverse/items/{itemIdentifier}/attachments?environment=...&tableName=...&fileName=...` | Microsoft Dataverse | Create a note attachment from binary request content |
 | `DELETE /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Delete a record |
+| `POST /api/dataverse/trigger/newitems` | Microsoft Dataverse | Typed `OnNewItems` Connector Gateway callback deserialization with `ConnectorTriggerPayload` |
 | `GET /api/loganalytics/subscriptions` | Azure Monitor Logs | Paginated subscription discovery |
 | `GET /api/loganalytics/workspaces?subscription=...&resourceGroup=...` | Azure Monitor Logs | List Log Analytics workspaces in a resource group |
 | `POST /api/loganalytics/query?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Dynamic-schema query results (`Row.AdditionalProperties`) |
@@ -248,6 +249,12 @@ $nextLink = [uri]::EscapeDataString("NEXT_LINK_VALUE")
 Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/nextpage?nextLink=$nextLink"
 Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifier?environment=$environment&tableName=$tableName" -Method DELETE
 ```
+
+### Dataverse Trigger Callback
+
+`POST /api/dataverse/trigger/newitems` accepts the typed payload for the generated `OnNewItems` trigger operation. Configure a Connector Namespace trigger config with `CommondataserviceTriggerOperations.OnNewItems` and use this Function endpoint as its callback URL.
+
+The currently generated Dataverse row triggers are marked **Admin Only (Deprecated)** by the connector. The callback sample is useful for typed payload handling and future trigger support, but it does not create a tenant-wide trigger configuration automatically.
 
 ## Architecture
 

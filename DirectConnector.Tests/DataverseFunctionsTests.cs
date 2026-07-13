@@ -44,6 +44,26 @@ public class DataverseFunctionsTests
     }
 
     [TestMethod]
+    public async Task OnNewItemsAsync_WithCamelCasePayload_ReturnsReceivedItemCount()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(
+            body: """{"body":{"value":[{"accountid":"record-id","name":"Sample account"}]}}""",
+            method: "POST");
+
+        var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(body, "\"itemCount\":1");
+        StringAssert.Contains(body, "ConnectorTriggerPayload");
+    }
+
+    [TestMethod]
     public async Task CreateAttachmentAsync_WithBinaryBody_ReturnsAttachment()
     {
         var attachmentResponse = new

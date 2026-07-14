@@ -252,7 +252,7 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifie
 
 ### Dataverse Trigger Callback
 
-`POST /api/dataverse/trigger/newitems` accepts the typed payload for the generated `OnNewItems` trigger operation. Configure a Connector Namespace trigger config with `CommondataserviceTriggerOperations.OnNewItems` and use this Function endpoint as its callback URL.
+`POST /api/dataverse/trigger/newitems` accepts the typed payload for the generated `OnNewItems` trigger operation. Configure a Connector Namespace trigger config with `CommondataserviceTriggerOperations.OnNewItems` and use this Function endpoint as its callback URL. The route uses function-level authorization, so the callback URL must include a Function key, for example `https://<function-app>.azurewebsites.net/api/dataverse/trigger/newitems?code=<function-key>`.
 
 The currently generated Dataverse row triggers are marked **Admin Only (Deprecated)** by the connector. The callback sample is useful for typed payload handling and future trigger support, but it does not create a tenant-wide trigger configuration automatically.
 

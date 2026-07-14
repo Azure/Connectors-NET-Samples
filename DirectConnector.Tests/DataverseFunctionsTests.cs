@@ -84,6 +84,28 @@ public class DataverseFunctionsTests
     }
 
     [TestMethod]
+    public async Task OnNewItemsAsync_WithOversizedValidJson_AcknowledgesDiscardedPayload()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var oversizedValue = new string('x', (1 * 1024 * 1024) + 1);
+        var request = TestHelpers.CreateRequest(
+            body: JsonSerializer.Serialize(new { body = new { value = new[] { new { name = oversizedValue } } } }),
+            method: "POST");
+
+        var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(body, "\"itemCount\":0");
+        StringAssert.Contains(body, "Dataverse trigger payload discarded.");
+        StringAssert.Contains(body, "ConnectorTriggerPayload");
+    }
+
+    [TestMethod]
     public async Task CreateAttachmentAsync_WithBinaryBody_ReturnsAttachment()
     {
         var attachmentResponse = new

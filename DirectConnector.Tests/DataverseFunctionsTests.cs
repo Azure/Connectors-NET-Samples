@@ -60,6 +60,26 @@ public class DataverseFunctionsTests
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         StringAssert.Contains(body, "\"itemCount\":1");
+        StringAssert.Contains(body, "Dataverse trigger payload deserialized.");
+        StringAssert.Contains(body, "ConnectorTriggerPayload");
+    }
+
+    [TestMethod]
+    public async Task OnNewItemsAsync_WithInvalidJson_AcknowledgesDiscardedPayload()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var request = TestHelpers.CreateRequest(body: "{ invalid JSON", method: "POST");
+
+        var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(body, "\"itemCount\":0");
+        StringAssert.Contains(body, "Dataverse trigger payload discarded.");
         StringAssert.Contains(body, "ConnectorTriggerPayload");
     }
 

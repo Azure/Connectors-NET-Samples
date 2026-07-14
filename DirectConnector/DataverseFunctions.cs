@@ -186,6 +186,7 @@ public class DataverseFunctions
                 .WriteAsJsonAsync(new
                 {
                     success = true,
+                    message = "Dataverse trigger payload deserialized.",
                     receivedAt = DateTime.UtcNow,
                     itemCount,
                     triggerPayloadReader = "ConnectorTriggerPayload",
@@ -196,7 +197,7 @@ public class DataverseFunctions
         }
         catch (JsonException ex)
         {
-            this._logger.LogError(ex, "DataverseOnNewItems: Invalid JSON payload.");
+            this._logger.LogError(ex, "DataverseOnNewItems: Invalid JSON payload: '{Message}'.", ex.Message);
         }
         catch (InvalidOperationException ex)
         {
@@ -212,6 +213,7 @@ public class DataverseFunctions
             .WriteAsJsonAsync(new
             {
                 success = true,
+                message = "Dataverse trigger payload discarded.",
                 receivedAt = DateTime.UtcNow,
                 itemCount = 0,
                 triggerPayloadReader = "ConnectorTriggerPayload",

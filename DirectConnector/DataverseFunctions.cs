@@ -18,6 +18,8 @@ namespace DirectConnector;
 /// </summary>
 public class DataverseFunctions
 {
+    private const int MaxTriggerCallbackBodySize = 1 * 1024 * 1024;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -152,6 +154,73 @@ public class DataverseFunctions
                 .GetNextPageAsync(nextLinkValue: nextLink, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false),
             cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Receives a typed callback when a Dataverse row is added.
+    /// </summary>
+    [Function("DataverseOnNewItems")]
+    [ConnectorTriggerMetadata(
+        ConnectorName = ConnectorNames.MicrosoftDataverse,
+        OperationName = CommondataserviceTriggerOperations.OnNewItems,
+        Connection = "Connectors:Dataverse")]
+    public async Task<HttpResponseData> OnNewItemsAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dataverse/trigger/newitems")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("DataverseOnNewItems: Received Connector Gateway trigger callback.");
+
+        try
+        {
+            var payload = await ConnectorTriggerPayload
+                .ReadAsync<CommondataserviceOnNewItemsTriggerPayload>(
+                    request.Body,
+                    maxBodySizeBytes: DataverseFunctions.MaxTriggerCallbackBodySize,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var itemCount = payload?.Body?.Value?.Count ?? 0;
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new
+                {
+                    success = true,
+                    message = "Dataverse trigger payload deserialized.",
+                    receivedAt = DateTime.UtcNow,
+                    itemCount,
+                    triggerPayloadReader = "ConnectorTriggerPayload",
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogError(ex, "DataverseOnNewItems: Invalid JSON payload: '{Message}'.", ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            this._logger.LogWarning(ex, "DataverseOnNewItems: Payload exceeded the configured limit.");
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in DataverseOnNewItems.");
+        }
+
+        var acknowledgment = request.CreateResponse(HttpStatusCode.OK);
+        await acknowledgment
+            .WriteAsJsonAsync(new
+            {
+                success = true,
+                message = "Dataverse trigger payload discarded.",
+                receivedAt = DateTime.UtcNow,
+                itemCount = 0,
+                triggerPayloadReader = "ConnectorTriggerPayload",
+            })
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        return acknowledgment;
     }
 
     /// <summary>

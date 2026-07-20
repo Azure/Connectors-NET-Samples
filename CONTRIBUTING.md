@@ -45,7 +45,12 @@ func start
 - Keep PRs focused on a single change
 - Update documentation if behavior changes
 - Follow the existing code style
-- PRs must pass the cross-platform CI build-and-test matrix before they can merge
+
+### Automated PR Validation
+
+PRs targeting `main` must pass the `build (ubuntu-latest)` and `build (windows-latest)` CI checks. This cross-platform validation restores dependencies, builds the samples, runs the tests, and collects code coverage.
+
+This validation does not publish packages, create a release, or change the current package version.
 
 ### Reporting Issues
 

@@ -45,6 +45,7 @@ func start
 - Keep PRs focused on a single change
 - Update documentation if behavior changes
 - Follow the existing code style
+- PRs must pass the cross-platform CI build-and-test matrix before they can merge
 
 ### Reporting Issues
 

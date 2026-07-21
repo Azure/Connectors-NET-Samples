@@ -11,21 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-      with:
-        dotnet-version: 8.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Check C# formatting
-      run: dotnet format --verify-no-changes --verbosity diagnostic
+      - name: Check C# formatting
+        run: dotnet format --verify-no-changes --verbosity diagnostic
 
-    - name: Lint Markdown
-      run: npx markdownlint-cli2 '**/*.md'
+      - name: Lint Markdown
+        run: npx markdownlint-cli2 '**/*.md'
 
   build:
     runs-on: ${{ matrix.os }}
@@ -35,31 +35,31 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
-      with:
-        dotnet-version: 8.0.x
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
 
-    - name: Test
-      run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --verbosity normal
+      - name: Test
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --verbosity normal
 
-    - name: Generate coverage report
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.4.5
-        reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura
+      - name: Generate coverage report
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.4.5
+          reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:coverage-report -reporttypes:Cobertura
 
-    - name: Upload coverage artifact
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      with:
-        name: coverage-report
-        path: coverage-report/
+      - name: Upload coverage artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-report
+          path: coverage-report/

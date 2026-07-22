@@ -46,6 +46,12 @@ func start
 - Update documentation if behavior changes
 - Follow the existing code style
 
+### Automated PR Validation
+
+PRs targeting `main` must pass the `lint`, `build (ubuntu-latest)`, and `build (windows-latest)` CI checks. This validation restores dependencies, builds the samples, and runs the tests. The Ubuntu run also generates and uploads the code coverage report artifact.
+
+This validation does not publish packages, create a release, or change the current package version.
+
 ### Reporting Issues
 
 - Use [GitHub Issues](https://github.com/Azure/Connectors-NET-Samples/issues) to report bugs or request features

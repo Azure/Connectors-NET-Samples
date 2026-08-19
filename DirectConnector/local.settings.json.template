@@ -96,6 +96,54 @@
     "__comment_WordOnlineBusiness_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
     "__Connectors:WordOnlineBusiness:ManagedIdentityClientId": "",
 
+    "Connectors:AzureAutomation:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azureautomation/YOUR-CONNECTION-ID",
+    "__comment_AzureAutomation_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureAutomation:ManagedIdentityClientId": "",
+
+    "Connectors:AzureDigitalTwins:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azuredigitaltwins/YOUR-CONNECTION-ID",
+    "__comment_AzureDigitalTwins_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureDigitalTwins:ManagedIdentityClientId": "",
+
+    "Connectors:AzureVM:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/azurevm/YOUR-CONNECTION-ID",
+    "__comment_AzureVM_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:AzureVM:ManagedIdentityClientId": "",
+
+    "Connectors:KeyVault:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/keyvault/YOUR-CONNECTION-ID",
+    "__comment_KeyVault_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:KeyVault:ManagedIdentityClientId": "",
+
+    "Connectors:MicrosoftBookings:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/microsoftbookings/YOUR-CONNECTION-ID",
+    "__comment_MicrosoftBookings_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:MicrosoftBookings:ManagedIdentityClientId": "",
+
+    "Connectors:Office365Groups:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365groups/YOUR-CONNECTION-ID",
+    "__comment_Office365Groups_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Office365Groups:ManagedIdentityClientId": "",
+
+    "Connectors:Office365GroupsMail:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365groupsmail/YOUR-CONNECTION-ID",
+    "__comment_Office365GroupsMail_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Office365GroupsMail:ManagedIdentityClientId": "",
+
+    "Connectors:Onenote:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onenote/YOUR-CONNECTION-ID",
+    "__comment_Onenote_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Onenote:ManagedIdentityClientId": "",
+
+    "Connectors:Planner:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/planner/YOUR-CONNECTION-ID",
+    "__comment_Planner_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Planner:ManagedIdentityClientId": "",
+
+    "Connectors:PowerBI:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/powerbi/YOUR-CONNECTION-ID",
+    "__comment_PowerBI_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:PowerBI:ManagedIdentityClientId": "",
+
+    "Connectors:Shifts:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/shifts/YOUR-CONNECTION-ID",
+    "__comment_Shifts_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Shifts:ManagedIdentityClientId": "",
+
+    "Connectors:Todo:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/todo/YOUR-CONNECTION-ID",
+    "__comment_Todo_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
+    "__Connectors:Todo:ManagedIdentityClientId": "",
+
     "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID",
     "__comment_Dataverse_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
     "__Connectors:Dataverse:ManagedIdentityClientId": ""

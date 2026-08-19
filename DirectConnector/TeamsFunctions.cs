@@ -114,6 +114,62 @@ public class TeamsFunctions
     }
 
     /// <summary>
+    /// Gets one team by an ID returned from <see cref="GetAllTeamsAsync"/>.
+    /// </summary>
+    [Function("GetTeam")]
+    public async Task<HttpResponseData> GetTeamAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "teams/team")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var teamId = request.Query["teamId"];
+        if (string.IsNullOrWhiteSpace(teamId))
+        {
+            var response = request.CreateResponse(HttpStatusCode.BadRequest);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = "Query parameter 'teamId' is required." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "GetTeam",
+                operation: () => this._teamsClient.GetTeamAsync(teamId, cancellationToken),
+                cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
+
+    /// <summary>
+    /// Lists members of a team returned from <see cref="GetAllTeamsAsync"/>.
+    /// </summary>
+    [Function("ListTeamMembers")]
+    public async Task<HttpResponseData> ListTeamMembersAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "teams/members")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var teamId = request.Query["teamId"];
+        if (string.IsNullOrWhiteSpace(teamId))
+        {
+            var response = request.CreateResponse(HttpStatusCode.BadRequest);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = "Query parameter 'teamId' is required." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "ListTeamMembers",
+                operation: () => this._teamsClient.ListTeamMembersAsync(teamId, cancellationToken: cancellationToken),
+                cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
+
+    /// <summary>
     /// Lists all channels for a specific team using the generated <see cref="TeamsClient"/>.
     /// </summary>
     /// <param name="request">The HTTP request containing the team ID.</param>

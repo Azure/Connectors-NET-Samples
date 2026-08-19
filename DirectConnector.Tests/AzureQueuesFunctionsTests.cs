@@ -140,4 +140,38 @@ public class AzureQueuesFunctionsTests
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
     }
+
+    [TestMethod]
+    public async Task AzureQueuesGetMessagesAsync_WithVersionedResponse_ReturnsNestedMessages()
+    {
+        const string responseJson = """
+            {
+              "QueueMessagesList": {
+                "QueueMessage": [{
+                  "MessageId": "message-1",
+                  "TimeNextVisible": "2026-08-19T03:00:00Z",
+                  "DequeueCount": "1",
+                  "MessageText": "SDK 0.14 validation"
+                }]
+              }
+            }
+            """;
+        using var client = AzureQueuesFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(responseJson),
+        });
+        var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
+        var request = TestHelpers.CreateRequest(
+            url: "https://localhost/api/azurequeues/messages?storageAccount=devstorageaccount&queueName=sdk-validation");
+
+        var response = await functions
+            .AzureQueuesGetMessagesAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("SDK 0.14 validation", StringComparison.Ordinal));
+        Assert.IsTrue(body.Contains("nextVisibleTime", StringComparison.Ordinal));
+    }
 }

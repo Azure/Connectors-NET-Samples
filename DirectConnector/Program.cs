@@ -52,6 +52,18 @@ var host = new HostBuilder()
         services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
         services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
         services.AddWordOnlineBusinessClient(configuration.GetSection("Connectors:WordOnlineBusiness"));
+        services.AddPlannerClient(configuration.GetSection("Connectors:Planner"));
+        services.AddAzureAutomationClient(configuration.GetSection("Connectors:AzureAutomation"));
+        services.AddAzureDigitalTwinsClient(configuration.GetSection("Connectors:AzureDigitalTwins"));
+        services.AddAzureVMClient(configuration.GetSection("Connectors:AzureVM"));
+        services.AddKeyVaultClient(configuration.GetSection("Connectors:KeyVault"));
+        services.AddMicrosoftBookingsClient(configuration.GetSection("Connectors:MicrosoftBookings"));
+        services.AddOffice365GroupsClient(configuration.GetSection("Connectors:Office365Groups"));
+        services.AddOffice365GroupsMailClient(configuration.GetSection("Connectors:Office365GroupsMail"));
+        services.AddOnenoteClient(configuration.GetSection("Connectors:Onenote"));
+        services.AddPowerBIClient(configuration.GetSection("Connectors:PowerBI"));
+        services.AddShiftsClient(configuration.GetSection("Connectors:Shifts"));
+        services.AddTodoClient(configuration.GetSection("Connectors:Todo"));
 
         var dataverseConfiguration = configuration.GetSection("Connectors:Dataverse");
         var dataverseConnectionRuntimeUrl = dataverseConfiguration["ConnectionRuntimeUrl"]?.Trim();

@@ -84,6 +84,44 @@ public class TeamsFunctionsTests
     }
 
     [TestMethod]
+    public async Task GetTeamAsync_WithTeamId_ReturnsTeam()
+    {
+        using var client = TeamsFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{\"id\":\"team-001\",\"displayName\":\"Engineering\"}"),
+        });
+        var functions = new TeamsFunctions(TestHelpers.CreateNullLogger<TeamsFunctions>(), client);
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/teams/team?teamId=team-001");
+
+        var response = await functions
+            .GetTeamAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("Engineering", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task ListTeamMembersAsync_WithTeamId_ReturnsMembers()
+    {
+        using var client = TeamsFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{\"value\":[{\"id\":\"member-001\",\"displayName\":\"Sample User\"}]}"),
+        });
+        var functions = new TeamsFunctions(TestHelpers.CreateNullLogger<TeamsFunctions>(), client);
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/teams/members?teamId=team-001");
+
+        var response = await functions
+            .ListTeamMembersAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("Sample User", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public async Task GetTeamChannelsAsync_WithMissingTeamId_Returns400()
     {
         // Arrange — no teamId query parameter

@@ -133,14 +133,32 @@ public class AdditionalConnectorFunctionsTests
         return AdditionalConnectorFunctionsTests.AssertSuccessAsync(functions.ListTaskListsAsync);
     }
 
+    [TestMethod]
+    public async Task SharedExecutor_WithConnectorError_ReturnsBadGateway()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new KeyVaultClient(uri, credential, options),
+            "{\"error\":{\"code\":\"ServiceUnavailable\",\"message\":\"Try again\"}}",
+            HttpStatusCode.ServiceUnavailable);
+        var functions = new KeyVaultFunctions(TestHelpers.CreateNullLogger<KeyVaultFunctions>(), client);
+
+        var response = await functions
+            .ListSecretsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":false", StringComparison.Ordinal));
+    }
+
     private static TClient CreateClient<TClient>(
         Func<Uri, TokenCredential, ConnectorClientOptions, TClient> clientFactory,
-        string responseBody)
+        string responseBody,
+        HttpStatusCode statusCode = HttpStatusCode.OK)
         where TClient : ConnectorClientBase
     {
         var (credential, options) = TestHelpers.CreateMockedClientSetup(() => new HttpResponseMessage
         {
-            StatusCode = HttpStatusCode.OK,
+            StatusCode = statusCode,
             Content = new StringContent(responseBody),
         });
         return clientFactory(new Uri("https://test.azure.com/connection"), credential, options);

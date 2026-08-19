@@ -46,4 +46,44 @@ public class AzureVMFunctions
             },
             cancellationToken);
     }
+
+    [Function("AzureVMGetVirtualMachine")]
+    public Task<HttpResponseData> GetVirtualMachineAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "azurevm/virtualmachine")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var subscriptionId = request.Query["subscriptionId"];
+        var resourceGroup = request.Query["resourceGroup"];
+        var virtualMachine = request.Query["virtualMachine"];
+        if (string.IsNullOrWhiteSpace(subscriptionId) ||
+            string.IsNullOrWhiteSpace(resourceGroup) ||
+            string.IsNullOrWhiteSpace(virtualMachine))
+        {
+            return AzureVMFunctions.CreateBadRequestAsync(request, cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request,
+            this._logger,
+            operationName: "AzureVMGetVirtualMachine",
+            operation: () => this._client.VirtualMachineGetAsync(
+                subscriptionId: subscriptionId,
+                resourceGroup: resourceGroup,
+                virtualMachine: virtualMachine,
+                cancellationToken: cancellationToken),
+            cancellationToken);
+    }
+
+    private static async Task<HttpResponseData> CreateBadRequestAsync(
+        HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var response = request.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+        await response
+            .WriteAsJsonAsync(
+                new { success = false, error = "Query parameters 'subscriptionId', 'resourceGroup', and 'virtualMachine' are required." },
+                cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
 }

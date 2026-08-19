@@ -35,4 +35,34 @@ public class PowerBIFunctions
             operation: () => this._client.ListGroupsAsync(cancellationToken),
             cancellationToken);
     }
+
+    [Function("PowerBIListScorecards")]
+    public Task<HttpResponseData> ListScorecardsAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "powerbi/scorecards")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var workspace = request.Query["workspace"];
+        if (string.IsNullOrWhiteSpace(workspace))
+        {
+            return PowerBIFunctions.CreateBadRequestAsync(request, cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request,
+            this._logger,
+            operationName: "PowerBIListScorecards",
+            operation: () => this._client.GetScorecardsAsync(workspace, cancellationToken),
+            cancellationToken);
+    }
+
+    private static async Task<HttpResponseData> CreateBadRequestAsync(
+        HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var response = request.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+        await response
+            .WriteAsJsonAsync(new { success = false, error = "Query parameter 'workspace' is required." }, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        return response;
+    }
 }

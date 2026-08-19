@@ -34,6 +34,34 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public Task AzureAutomationGetJobStatusAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new AzureAutomationClient(uri, credential, options),
+            "{\"id\":\"job-1\",\"properties\":{\"status\":\"Completed\"}}");
+        var functions = new AzureAutomationFunctions(TestHelpers.CreateNullLogger<AzureAutomationFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(
+            (request, cancellationToken) => functions.GetJobStatusAsync(
+                TestHelpers.CreateRequest(url: "https://localhost/api/azureautomation/jobs/status?subscriptionId=sub&resourceGroup=rg&automationAccount=account&jobId=job-1"),
+                cancellationToken));
+    }
+
+    [TestMethod]
+    public Task AzureAutomationCreateJobAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new AzureAutomationClient(uri, credential, options),
+            "{\"id\":\"job-1\",\"properties\":{\"status\":\"New\"}}");
+        var functions = new AzureAutomationFunctions(TestHelpers.CreateNullLogger<AzureAutomationFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(
+            (request, cancellationToken) => functions.CreateJobAsync(
+                TestHelpers.CreateRequest(
+                    method: "POST",
+                    url: "https://localhost/api/azureautomation/jobs?subscriptionId=sub&resourceGroup=rg&automationAccount=account&runbookName=runbook"),
+                cancellationToken));
+    }
+
+    [TestMethod]
     public Task AzureDigitalTwinsListModelsAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
@@ -51,6 +79,19 @@ public class AdditionalConnectorFunctionsTests
             "{\"value\":[]}");
         var functions = new AzureVMFunctions(TestHelpers.CreateNullLogger<AzureVMFunctions>(), client);
         return AdditionalConnectorFunctionsTests.AssertSuccessAsync(functions.ListSubscriptionsAsync);
+    }
+
+    [TestMethod]
+    public Task AzureVMGetVirtualMachineAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new AzureVMClient(uri, credential, options),
+            "{\"id\":\"/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-1\",\"name\":\"vm-1\"}");
+        var functions = new AzureVMFunctions(TestHelpers.CreateNullLogger<AzureVMFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(
+            (request, cancellationToken) => functions.GetVirtualMachineAsync(
+                TestHelpers.CreateRequest(url: "https://localhost/api/azurevm/virtualmachine?subscriptionId=sub&resourceGroup=rg&virtualMachine=vm-1"),
+                cancellationToken));
     }
 
     [TestMethod]
@@ -94,6 +135,19 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public Task Office365GroupsMailListConversationsAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new Office365GroupsMailClient(uri, credential, options),
+            "{\"value\":[]}");
+        var functions = new Office365GroupsMailFunctions(TestHelpers.CreateNullLogger<Office365GroupsMailFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(
+            (request, cancellationToken) => functions.ListConversationsAsync(
+                TestHelpers.CreateRequest(url: "https://localhost/api/office365groupsmail/conversations?groupId=group-1"),
+                cancellationToken));
+    }
+
+    [TestMethod]
     public Task OnenoteListNotebooksAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
@@ -114,6 +168,19 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public Task PowerBIListScorecardsAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new PowerBIClient(uri, credential, options),
+            "{\"value\":[]}");
+        var functions = new PowerBIFunctions(TestHelpers.CreateNullLogger<PowerBIFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(
+            (request, cancellationToken) => functions.ListScorecardsAsync(
+                TestHelpers.CreateRequest(url: "https://localhost/api/powerbi/scorecards?workspace=workspace-1"),
+                cancellationToken));
+    }
+
+    [TestMethod]
     public Task ShiftsListTeamsAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
@@ -121,6 +188,16 @@ public class AdditionalConnectorFunctionsTests
             "{\"value\":[]}");
         var functions = new ShiftsFunctions(TestHelpers.CreateNullLogger<ShiftsFunctions>(), client);
         return AdditionalConnectorFunctionsTests.AssertSuccessAsync(functions.ListTeamsAsync);
+    }
+
+    [TestMethod]
+    public Task ShiftsListCrossTeamShiftsAsync_WithValidResponse_ReturnsOk()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new ShiftsClient(uri, credential, options),
+            "{\"value\":[]}");
+        var functions = new ShiftsFunctions(TestHelpers.CreateNullLogger<ShiftsFunctions>(), client);
+        return AdditionalConnectorFunctionsTests.AssertSuccessAsync(functions.ListCrossTeamShiftsAsync);
     }
 
     [TestMethod]

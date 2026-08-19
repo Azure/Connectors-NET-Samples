@@ -35,4 +35,22 @@ public class ShiftsFunctions
             operation: () => this._client.GetAllTeamsAsync(cancellationToken),
             cancellationToken);
     }
+
+    [Function("ShiftsListCrossTeamShifts")]
+    public Task<HttpResponseData> ListCrossTeamShiftsAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "shifts/crossteam")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request,
+            this._logger,
+            operationName: "ShiftsListCrossTeamShifts",
+            operation: () => this._client.ListShiftsCrossTeamAsync(
+                fromStartTime: request.Query["fromStartTime"],
+                toEndTime: request.Query["toEndTime"],
+                userDisplayName: request.Query["userDisplayName"],
+                pageSize: 20,
+                cancellationToken: cancellationToken),
+            cancellationToken);
+    }
 }

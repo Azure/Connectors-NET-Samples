@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.AzureAutomation;
 using Azure.Connectors.Sdk.AzureDigitalTwins;
@@ -47,6 +48,28 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public async Task AzureAutomationGetJobStatusAsync_WithMissingJobId_ReturnsBadRequest()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new AzureAutomationClient(uri, credential, options),
+            "{}");
+        var functions = new AzureAutomationFunctions(TestHelpers.CreateNullLogger<AzureAutomationFunctions>(), client);
+        var request = TestHelpers.CreateRequest(
+            url: "https://localhost/api/azureautomation/jobs/status?subscriptionId=sub&resourceGroup=rg&automationAccount=account");
+
+        var response = await functions
+            .GetJobStatusAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        using var document = JsonDocument.Parse(body);
+        Assert.AreEqual(
+            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required.",
+            document.RootElement.GetProperty("error").GetString());
+    }
+
+    [TestMethod]
     public Task AzureAutomationCreateJobAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
@@ -59,6 +82,29 @@ public class AdditionalConnectorFunctionsTests
                     method: "POST",
                     url: "https://localhost/api/azureautomation/jobs?subscriptionId=sub&resourceGroup=rg&automationAccount=account&runbookName=runbook"),
                 cancellationToken));
+    }
+
+    [TestMethod]
+    public async Task AzureAutomationCreateJobAsync_WithMissingRunbookName_ReturnsBadRequest()
+    {
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new AzureAutomationClient(uri, credential, options),
+            "{}");
+        var functions = new AzureAutomationFunctions(TestHelpers.CreateNullLogger<AzureAutomationFunctions>(), client);
+        var request = TestHelpers.CreateRequest(
+            method: "POST",
+            url: "https://localhost/api/azureautomation/jobs?subscriptionId=sub&resourceGroup=rg&automationAccount=account");
+
+        var response = await functions
+            .CreateJobAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        using var document = JsonDocument.Parse(body);
+        Assert.AreEqual(
+            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'runbookName' are required.",
+            document.RootElement.GetProperty("error").GetString());
     }
 
     [TestMethod]

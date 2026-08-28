@@ -172,6 +172,13 @@ public class AzureQueuesFunctionsTests
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("SDK 0.14 validation", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("nextVisibleTime", StringComparison.Ordinal));
+        using var document = JsonDocument.Parse(body);
+        var nextVisibleTime = document.RootElement
+            .GetProperty("messages")[0]
+            .GetProperty("nextVisibleTime")
+            .GetDateTimeOffset();
+        Assert.AreEqual(
+            new DateTimeOffset(2026, 8, 19, 3, 0, 0, TimeSpan.Zero),
+            nextVisibleTime);
     }
 }

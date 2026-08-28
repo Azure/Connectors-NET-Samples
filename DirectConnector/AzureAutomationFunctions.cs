@@ -62,7 +62,10 @@ public class AzureAutomationFunctions
             string.IsNullOrWhiteSpace(automationAccount) ||
             string.IsNullOrWhiteSpace(jobId))
         {
-            return AzureAutomationFunctions.CreateBadRequestAsync(request, cancellationToken);
+            return AzureAutomationFunctions.CreateBadRequestAsync(
+                request,
+                requiredParameterName: "jobId",
+                cancellationToken);
         }
 
         return ConnectorFunctionExecutor.ExecuteAsync(
@@ -92,7 +95,10 @@ public class AzureAutomationFunctions
             string.IsNullOrWhiteSpace(automationAccount) ||
             string.IsNullOrWhiteSpace(runbookName))
         {
-            return AzureAutomationFunctions.CreateBadRequestAsync(request, cancellationToken);
+            return AzureAutomationFunctions.CreateBadRequestAsync(
+                request,
+                requiredParameterName: "runbookName",
+                cancellationToken);
         }
 
         var input = new CreateJobInput
@@ -116,12 +122,13 @@ public class AzureAutomationFunctions
 
     private static async Task<HttpResponseData> CreateBadRequestAsync(
         HttpRequestData request,
+        string requiredParameterName,
         CancellationToken cancellationToken)
     {
         var response = request.CreateResponse(System.Net.HttpStatusCode.BadRequest);
         await response
             .WriteAsJsonAsync(
-                new { success = false, error = "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required." },
+                new { success = false, error = $"Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and '{requiredParameterName}' are required." },
                 cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
         return response;

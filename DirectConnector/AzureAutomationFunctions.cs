@@ -12,8 +12,11 @@ using Microsoft.Extensions.Logging;
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions demonstrating read-only Azure Automation discovery.
+/// Azure Functions demonstrating Azure Automation discovery and runbook job operations.
 /// </summary>
+/// <remarks>
+/// NOTE(daviburg): The create-job endpoint starts a runbook job and is not read-only.
+/// </remarks>
 public class AzureAutomationFunctions
 {
     private readonly AzureAutomationClient _client;

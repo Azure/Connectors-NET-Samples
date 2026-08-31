@@ -61,7 +61,6 @@ public class Office365GroupsMailFunctions
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
                     conversations.AddRange(page.Values);
-                    break;
                 }
 
                 return conversations;

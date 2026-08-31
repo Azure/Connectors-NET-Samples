@@ -43,7 +43,6 @@ public class Office365GroupsFunctions
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
                     groups.AddRange(page.Values);
-                    break;
                 }
 
                 return groups;

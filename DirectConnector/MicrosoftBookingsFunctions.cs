@@ -10,8 +10,12 @@ using Microsoft.Extensions.Logging;
 namespace DirectConnector;
 
 /// <summary>
-/// Azure Functions demonstrating read-only Microsoft Bookings discovery.
+/// Azure Functions demonstrating Microsoft Bookings discovery-only operations.
 /// </summary>
+/// <remarks>
+/// NOTE(daviburg): SDK 0.14 exposes booking appointment operations as Connector Namespace triggers,
+/// so this sample lists the booking pages used as their required SMTP address input.
+/// </remarks>
 public class MicrosoftBookingsFunctions
 {
     private readonly MicrosoftBookingsClient _client;

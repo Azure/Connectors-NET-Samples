@@ -49,7 +49,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | AzureDigitalTwinsFunctions.cs | Azure Digital Twins | List models |
 | AzureVMFunctions.cs | Azure Virtual Machines | List subscriptions and get a virtual machine without changing its power state |
 | KeyVaultFunctions.cs | Azure Key Vault | List secret metadata without reading secret values |
-| MicrosoftBookingsFunctions.cs | Microsoft Bookings | List booking businesses available to an administrator |
+| MicrosoftBookingsFunctions.cs | Microsoft Bookings | Discovery only: list booking businesses used as appointment-trigger inputs |
 | Office365GroupsFunctions.cs | Microsoft 365 Groups | List groups |
 | Office365GroupsMailFunctions.cs | Microsoft 365 Groups Mail | List groups and group conversations |
 | OnenoteFunctions.cs | OneNote | List notebooks |

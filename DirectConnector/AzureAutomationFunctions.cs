@@ -40,7 +40,8 @@ public class AzureAutomationFunctions
             operation: async () =>
             {
                 var subscriptions = new List<Subscription>();
-                await foreach (var subscription in this._client.SubscriptionsListAsync(cancellationToken)
+                await foreach (var subscription in this._client
+                    .SubscriptionsListAsync(cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
                     subscriptions.Add(subscription);
@@ -75,12 +76,13 @@ public class AzureAutomationFunctions
             request,
             this._logger,
             operationName: "AzureAutomationGetJobStatus",
-            operation: () => this._client.GetStatusOfJobAsync(
-                subscription: subscriptionId,
-                resourceGroup: resourceGroup,
-                automationAccount: automationAccount,
-                jobId: jobId,
-                cancellationToken: cancellationToken),
+            operation: () => this._client
+                .GetStatusOfJobAsync(
+                    subscription: subscriptionId,
+                    resourceGroup: resourceGroup,
+                    automationAccount: automationAccount,
+                    jobId: jobId,
+                    cancellationToken: cancellationToken),
             cancellationToken);
     }
 
@@ -112,14 +114,15 @@ public class AzureAutomationFunctions
             request,
             this._logger,
             operationName: "AzureAutomationCreateJob",
-            operation: () => this._client.CreateJobAsync(
-                subscription: subscriptionId,
-                resourceGroup: resourceGroup,
-                automationAccount: automationAccount,
-                input: input,
-                runbookName: runbookName,
-                waitForJob: false,
-                cancellationToken: cancellationToken),
+            operation: () => this._client
+                .CreateJobAsync(
+                    subscription: subscriptionId,
+                    resourceGroup: resourceGroup,
+                    automationAccount: automationAccount,
+                    input: input,
+                    runbookName: runbookName,
+                    waitForJob: false,
+                    cancellationToken: cancellationToken),
             cancellationToken);
     }
 

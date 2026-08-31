@@ -32,7 +32,8 @@ public class Office365GroupsMailFunctions
             request,
             this._logger,
             operationName: "Office365GroupsMailListGroups",
-            operation: () => this._client.ListGroupsAsync(cancellationToken),
+            operation: () => this._client
+                .ListGroupsAsync(cancellationToken),
             cancellationToken);
     }
 

@@ -32,7 +32,8 @@ public class PowerBIFunctions
             request,
             this._logger,
             operationName: "PowerBIListWorkspaces",
-            operation: () => this._client.ListGroupsAsync(cancellationToken),
+            operation: () => this._client
+                .ListGroupsAsync(cancellationToken),
             cancellationToken);
     }
 
@@ -51,7 +52,8 @@ public class PowerBIFunctions
             request,
             this._logger,
             operationName: "PowerBIListScorecards",
-            operation: () => this._client.GetScorecardsAsync(workspace, cancellationToken),
+            operation: () => this._client
+                .GetScorecardsAsync(workspace, cancellationToken),
             cancellationToken);
     }
 

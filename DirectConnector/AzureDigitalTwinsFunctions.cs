@@ -36,7 +36,8 @@ public class AzureDigitalTwinsFunctions
             operation: async () =>
             {
                 var models = new List<JsonElement?>();
-                await foreach (var model in this._client.ListModelsAsync(cancellationToken: cancellationToken)
+                await foreach (var model in this._client
+                    .ListModelsAsync(cancellationToken: cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
                     models.Add(model);

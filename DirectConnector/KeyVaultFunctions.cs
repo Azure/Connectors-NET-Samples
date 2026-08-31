@@ -32,7 +32,8 @@ public class KeyVaultFunctions
             request,
             this._logger,
             operationName: "KeyVaultListSecrets",
-            operation: () => this._client.ListSecretsAsync(cancellationToken),
+            operation: () => this._client
+                .ListSecretsAsync(cancellationToken),
             cancellationToken);
     }
 }

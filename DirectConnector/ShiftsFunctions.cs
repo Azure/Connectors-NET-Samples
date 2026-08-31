@@ -32,7 +32,8 @@ public class ShiftsFunctions
             request,
             this._logger,
             operationName: "ShiftsListTeams",
-            operation: () => this._client.GetAllTeamsAsync(cancellationToken),
+            operation: () => this._client
+                .GetAllTeamsAsync(cancellationToken),
             cancellationToken);
     }
 
@@ -45,12 +46,13 @@ public class ShiftsFunctions
             request,
             this._logger,
             operationName: "ShiftsListCrossTeamShifts",
-            operation: () => this._client.ListShiftsCrossTeamAsync(
-                fromStartTime: request.Query["fromStartTime"],
-                toEndTime: request.Query["toEndTime"],
-                userDisplayName: request.Query["userDisplayName"],
-                pageSize: 20,
-                cancellationToken: cancellationToken),
+            operation: () => this._client
+                .ListShiftsCrossTeamAsync(
+                    fromStartTime: request.Query["fromStartTime"],
+                    toEndTime: request.Query["toEndTime"],
+                    userDisplayName: request.Query["userDisplayName"],
+                    pageSize: 20,
+                    cancellationToken: cancellationToken),
             cancellationToken);
     }
 }

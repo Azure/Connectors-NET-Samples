@@ -32,7 +32,8 @@ public class TodoFunctions
             request,
             this._logger,
             operationName: "TodoListTaskLists",
-            operation: () => this._client.GetAllTodoListsAsync(cancellationToken),
+            operation: () => this._client
+                .GetAllTodoListsAsync(cancellationToken),
             cancellationToken);
     }
 }

@@ -140,7 +140,7 @@ public class AzureQueuesFunctions
     /// </summary>
     [Function("AzureQueuesGetMessages")]
     public async Task<HttpResponseData> AzureQueuesGetMessagesAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "azurequeues/messages")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "azurequeues/messages")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         var storageAccount = request.Query["storageAccount"];
@@ -170,6 +170,7 @@ public class AzureQueuesFunctions
                     message.MessageId,
                     message.MessageText,
                     message.DequeueCount,
+                    popReceipt = message.PopReceipt,
                     nextVisibleTime = message.NextVisibleTime,
                 });
 

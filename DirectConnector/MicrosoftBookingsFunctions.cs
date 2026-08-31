@@ -32,7 +32,8 @@ public class MicrosoftBookingsFunctions
             request,
             this._logger,
             operationName: "MicrosoftBookingsListBusinesses",
-            operation: () => this._client.ListBookingsBusinessUserAsAdminAsync(cancellationToken),
+            operation: () => this._client
+                .ListBookingsBusinessUserAsAdminAsync(cancellationToken),
             cancellationToken);
     }
 }

@@ -20,7 +20,8 @@ internal static class ConnectorFunctionExecutor
     {
         try
         {
-            var value = await operation().ConfigureAwait(continueOnCapturedContext: false);
+            var value = await operation()
+                .ConfigureAwait(continueOnCapturedContext: false);
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
                 .WriteAsJsonAsync(new { success = true, value }, cancellationToken)

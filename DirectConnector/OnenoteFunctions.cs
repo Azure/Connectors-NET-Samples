@@ -32,7 +32,8 @@ public class OnenoteFunctions
             request,
             this._logger,
             operationName: "OnenoteListNotebooks",
-            operation: () => this._client.GetNotebooksAsync(cancellationToken),
+            operation: () => this._client
+                .GetNotebooksAsync(cancellationToken),
             cancellationToken);
     }
 }

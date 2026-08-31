@@ -36,7 +36,8 @@ public class AzureVMFunctions
             operation: async () =>
             {
                 var subscriptions = new List<Subscription>();
-                await foreach (var subscription in this._client.SubscriptionsListAsync(cancellationToken)
+                await foreach (var subscription in this._client
+                    .SubscriptionsListAsync(cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
                     subscriptions.Add(subscription);
@@ -66,11 +67,12 @@ public class AzureVMFunctions
             request,
             this._logger,
             operationName: "AzureVMGetVirtualMachine",
-            operation: () => this._client.VirtualMachineGetAsync(
-                subscriptionId: subscriptionId,
-                resourceGroup: resourceGroup,
-                virtualMachine: virtualMachine,
-                cancellationToken: cancellationToken),
+            operation: () => this._client
+                .VirtualMachineGetAsync(
+                    subscriptionId: subscriptionId,
+                    resourceGroup: resourceGroup,
+                    virtualMachine: virtualMachine,
+                    cancellationToken: cancellationToken),
             cancellationToken);
     }
 

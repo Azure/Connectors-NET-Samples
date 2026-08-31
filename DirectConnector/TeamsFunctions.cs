@@ -136,7 +136,8 @@ public class TeamsFunctions
                 request,
                 this._logger,
                 operationName: "GetTeam",
-                operation: () => this._teamsClient.GetTeamAsync(teamId, cancellationToken),
+                operation: () => this._teamsClient
+                    .GetTeamAsync(teamId, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
     }
@@ -164,7 +165,8 @@ public class TeamsFunctions
                 request,
                 this._logger,
                 operationName: "ListTeamMembers",
-                operation: () => this._teamsClient.ListTeamMembersAsync(teamId, cancellationToken: cancellationToken),
+                operation: () => this._teamsClient
+                    .ListTeamMembersAsync(teamId, cancellationToken: cancellationToken),
                 cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
     }

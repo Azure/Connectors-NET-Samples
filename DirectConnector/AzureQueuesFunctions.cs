@@ -190,5 +190,15 @@ public class AzureQueuesFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in AzureQueuesGetMessages.");
+
+            var response = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
     }
 }

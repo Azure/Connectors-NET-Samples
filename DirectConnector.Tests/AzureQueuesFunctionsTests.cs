@@ -3,8 +3,10 @@
 //------------------------------------------------------------
 
 using System.Net;
+using System.Reflection;
 using System.Text.Json;
 using Azure.Connectors.Sdk.Azurequeues;
+using Microsoft.Azure.Functions.Worker;
 
 namespace DirectConnector.Tests;
 
@@ -139,5 +141,69 @@ public class AzureQueuesFunctionsTests
         Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task AzureQueuesGetMessagesAsync_WithVersionedResponse_ReturnsNestedMessages()
+    {
+        const string responseJson = """
+            {
+              "QueueMessagesList": {
+                "QueueMessage": [{
+                  "MessageId": "message-1",
+                  "PopReceipt": "receipt-1",
+                  "TimeNextVisible": "2026-08-19T03:00:00Z",
+                  "DequeueCount": "1",
+                  "MessageText": "SDK 0.14 validation"
+                }]
+              }
+            }
+            """;
+        using var client = AzureQueuesFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(responseJson),
+        });
+        var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
+        var request = TestHelpers.CreateRequest(
+            method: "POST",
+            url: "https://localhost/api/azurequeues/messages?storageAccount=devstorageaccount&queueName=sdk-validation");
+
+        var response = await functions
+            .AzureQueuesGetMessagesAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("SDK 0.14 validation", StringComparison.Ordinal));
+        using var document = JsonDocument.Parse(body);
+        var nextVisibleTime = document.RootElement
+            .GetProperty("messages")[0]
+            .GetProperty("nextVisibleTime")
+            .GetDateTimeOffset();
+        var popReceipt = document.RootElement
+            .GetProperty("messages")[0]
+            .GetProperty("popReceipt")
+            .GetString();
+        Assert.AreEqual(
+            new DateTimeOffset(2026, 8, 19, 3, 0, 0, TimeSpan.Zero),
+            nextVisibleTime);
+        Assert.AreEqual(expected: "receipt-1", actual: popReceipt);
+    }
+
+    [TestMethod]
+    public void AzureQueuesGetMessagesAsync_Trigger_AllowsOnlyPost()
+    {
+        var method = typeof(AzureQueuesFunctions).GetMethod(
+            nameof(AzureQueuesFunctions.AzureQueuesGetMessagesAsync),
+            BindingFlags.Instance | BindingFlags.Public);
+        var trigger = method!
+            .GetParameters()
+            .Single(parameter => parameter.ParameterType == typeof(Microsoft.Azure.Functions.Worker.Http.HttpRequestData))
+            .GetCustomAttribute<HttpTriggerAttribute>();
+
+        Assert.IsNotNull(trigger);
+        Assert.IsNotNull(trigger.Methods);
+        CollectionAssert.AreEqual(expected: new[] { "post" }, actual: trigger.Methods.ToArray());
     }
 }

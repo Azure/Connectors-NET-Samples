@@ -60,6 +60,17 @@ public class PlannerFunctions
 
             return response;
         }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in PlannerListGroups.");
+
+            var response = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
     }
 
     /// <summary>
@@ -94,6 +105,17 @@ public class PlannerFunctions
             var response = request.CreateResponse(HttpStatusCode.BadGateway);
             await response
                 .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in PlannerListMyTasks.");
+
+            var response = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message }, cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             return response;

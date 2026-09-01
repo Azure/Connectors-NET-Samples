@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using System.Net;
+using System.Text.Json;
 using Azure.Connectors.Sdk.Planner;
 
 namespace DirectConnector.Tests;
@@ -70,5 +71,47 @@ public class PlannerFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task PlannerListGroupsAsync_WithMalformedSuccessResponse_ReturnsInternalServerError()
+    {
+        using var client = PlannerFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{"),
+        });
+        var functions = new PlannerFunctions(TestHelpers.CreateNullLogger<PlannerFunctions>(), client);
+
+        var response = await functions
+            .PlannerListGroupsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        PlannerFunctionsTests.AssertStructuredInternalServerError(response);
+    }
+
+    [TestMethod]
+    public async Task PlannerListMyTasksAsync_WithMalformedSuccessResponse_ReturnsInternalServerError()
+    {
+        using var client = PlannerFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{"),
+        });
+        var functions = new PlannerFunctions(TestHelpers.CreateNullLogger<PlannerFunctions>(), client);
+
+        var response = await functions
+            .PlannerListMyTasksAsync(TestHelpers.CreateRequest(), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        PlannerFunctionsTests.AssertStructuredInternalServerError(response);
+    }
+
+    private static void AssertStructuredInternalServerError(Microsoft.Azure.Functions.Worker.Http.HttpResponseData response)
+    {
+        Assert.AreEqual(expected: HttpStatusCode.InternalServerError, actual: response.StatusCode);
+        using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.IsFalse(document.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(string.IsNullOrWhiteSpace(document.RootElement.GetProperty("error").GetString()));
     }
 }

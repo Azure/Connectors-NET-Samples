@@ -206,4 +206,27 @@ public class AzureQueuesFunctionsTests
         Assert.IsNotNull(trigger.Methods);
         CollectionAssert.AreEqual(expected: new[] { "post" }, actual: trigger.Methods.ToArray());
     }
+
+    [TestMethod]
+    public async Task AzureQueuesGetMessagesAsync_WithMalformedSuccessResponse_ReturnsInternalServerError()
+    {
+        using var client = AzureQueuesFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent("{"),
+        });
+        var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
+        var request = TestHelpers.CreateRequest(
+            method: "POST",
+            url: "https://localhost/api/azurequeues/messages?storageAccount=devstorageaccount&queueName=sdk-validation");
+
+        var response = await functions
+            .AzureQueuesGetMessagesAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.InternalServerError, actual: response.StatusCode);
+        using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.IsFalse(document.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(string.IsNullOrWhiteSpace(document.RootElement.GetProperty("error").GetString()));
+    }
 }

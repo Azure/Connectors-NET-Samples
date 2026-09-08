@@ -134,4 +134,71 @@ public class AzureQueuesFunctions
             return errorResponse;
         }
     }
+
+    /// <summary>
+    /// Gets messages from a queue and demonstrates the SDK 0.14 nested message response.
+    /// </summary>
+    [Function("AzureQueuesGetMessages")]
+    public async Task<HttpResponseData> AzureQueuesGetMessagesAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "azurequeues/messages")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
+        {
+            var response = request.CreateResponse(HttpStatusCode.BadRequest);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = "Query parameters 'storageAccount' and 'queueName' are required." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+
+        try
+        {
+            var result = await this._azureQueuesClient
+                .GetMessagesAsync(
+                    storageAccountNameOrQueueEndpoint: storageAccount,
+                    queueName: queueName,
+                    numberOfMessages: request.Query["numberOfMessages"],
+                    visibilityTimeout: request.Query["visibilityTimeout"],
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var messages = (result.QueueMessagesList?.QueueMessage ?? [])
+                .Select(message => new
+                {
+                    message.MessageId,
+                    message.MessageText,
+                    message.DequeueCount,
+                    popReceipt = message.PopReceipt,
+                    nextVisibleTime = message.NextVisibleTime,
+                });
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new { success = true, messages }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+        catch (ConnectorException ex)
+        {
+            this._logger.LogError(ex, "AzureQueuesGetMessages failed with status '{StatusCode}'.", ex.Status);
+
+            var response = request.CreateResponse(HttpStatusCode.BadGateway);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message, statusCode = ex.Status, details = ex.ResponseBody }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in AzureQueuesGetMessages.");
+
+            var response = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+    }
 }

@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   lint:
@@ -24,6 +23,9 @@ jobs:
       - name: Check C# formatting
         run: dotnet format --verify-no-changes --verbosity diagnostic
 
+      - name: Test connector smoke runner contracts
+        shell: pwsh
+        run: ./DirectConnector/Invoke-ConnectorSmoke.Tests.ps1
       - name: Lint Markdown
         run: npx markdownlint-cli2 '**/*.md'
 

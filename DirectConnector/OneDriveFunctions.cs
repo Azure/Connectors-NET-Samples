@@ -608,6 +608,63 @@ public class OneDriveFunctions
         }
     }
 
+    [Function("GetOneDriveFileMetadata")]
+    public async Task<HttpResponseData> GetOneDriveFileMetadataAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "onedrive/metadata")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var file = request.Query["file"];
+        if (string.IsNullOrWhiteSpace(file))
+        {
+            this._logger.LogWarning("OneDrive metadata requires a file identifier.");
+            var response = request.CreateResponse(HttpStatusCode.BadRequest);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'file'." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "GetOneDriveFileMetadata",
+                operation: () => this._oneDriveClient
+                    .GetFileMetadataAsync(file: file, cancellationToken: cancellationToken),
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
+    [Function("DeleteOneDriveFile")]
+    public async Task<HttpResponseData> DeleteOneDriveFileAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "onedrive/files")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var file = request.Query["file"];
+        if (string.IsNullOrWhiteSpace(file))
+        {
+            this._logger.LogWarning("OneDrive delete requires a file identifier.");
+            var response = request.CreateResponse(HttpStatusCode.BadRequest);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = "Missing required query parameter 'file'." }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "DeleteOneDriveFile",
+                operation: async () =>
+                {
+                    await this._oneDriveClient
+                        .DeleteFileAsync(file: file, cancellationToken: cancellationToken)
+                        .ConfigureAwait(continueOnCapturedContext: false);
+                    return new { deleted = true };
+                },
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
     /// <summary>
     /// Receives Connector Gateway trigger callback for OneDrive for Business file events.
     /// </summary>

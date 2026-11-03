@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
+using System.Globalization;
 using System.Net;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Azurequeues;
@@ -86,7 +87,7 @@ public class AzureQueuesFunctions
     {
         var storageAccount = request.Query["storageAccount"];
 
-        if (string.IsNullOrEmpty(storageAccount))
+        if (string.IsNullOrWhiteSpace(storageAccount))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
@@ -136,7 +137,7 @@ public class AzureQueuesFunctions
     }
 
     /// <summary>
-    /// Gets messages from a queue and demonstrates the SDK 0.14 nested message response.
+    /// Gets messages from a queue and demonstrates the nested message response.
     /// </summary>
     [Function("AzureQueuesGetMessages")]
     public async Task<HttpResponseData> AzureQueuesGetMessagesAsync(
@@ -154,14 +155,26 @@ public class AzureQueuesFunctions
             return response;
         }
 
+        var numberOfMessages = request.Query["numberOfMessages"];
+        var visibilityTimeout = request.Query["visibilityTimeout"];
+        if ((numberOfMessages is not null &&
+                (!int.TryParse(numberOfMessages, NumberStyles.None, CultureInfo.InvariantCulture, out var messageCount) || messageCount is < 1 or > 32)) ||
+            (visibilityTimeout is not null &&
+                (!int.TryParse(visibilityTimeout, NumberStyles.None, CultureInfo.InvariantCulture, out var timeoutSeconds) || timeoutSeconds is < 0 or > 604800)))
+        {
+            return await AzureQueuesFunctions
+                .CreateBadRequestAsync(request, "Query parameters 'numberOfMessages' (1-32) and 'visibilityTimeout' (0-604800 seconds) must be valid integers.", cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
         try
         {
             var result = await this._azureQueuesClient
                 .GetMessagesAsync(
                     storageAccountNameOrQueueEndpoint: storageAccount,
                     queueName: queueName,
-                    numberOfMessages: request.Query["numberOfMessages"],
-                    visibilityTimeout: request.Query["visibilityTimeout"],
+                    numberOfMessages: numberOfMessages,
+                    visibilityTimeout: visibilityTimeout,
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
             var messages = (result.QueueMessagesList?.QueueMessage ?? [])
@@ -200,5 +213,133 @@ public class AzureQueuesFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
+    }
+    /// <summary>
+    /// Creates a queue in the selected storage account.
+    /// </summary>
+    [Function("AzureQueuesPutQueue")]
+    public Task<HttpResponseData> AzureQueuesPutQueueAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azurequeues/queues")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
+        {
+            return AzureQueuesFunctions.CreateBadRequestAsync(
+                request, "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request,
+            this._logger,
+            operationName: "AzureQueuesPutQueue",
+            operation: () => this._azureQueuesClient
+                .PutQueueAsync(
+                    storageAccountNameOrQueueEndpoint: storageAccount,
+                    queueName: queueName,
+                    cancellationToken: cancellationToken),
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Adds the nonempty, plain-text request body to a queue as a message.
+    /// The SDK JSON-encodes this string before sending it to the connector.
+    /// </summary>
+    [Function("AzureQueuesPutMessage")]
+    public async Task<HttpResponseData> AzureQueuesPutMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azurequeues/messages")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
+        {
+            return await AzureQueuesFunctions
+                .CreateBadRequestAsync(request, "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        using var reader = new StreamReader(request.Body, leaveOpen: true);
+        var input = await reader
+            .ReadToEndAsync(cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return await AzureQueuesFunctions
+                .CreateBadRequestAsync(request, "A nonempty plain-text message body is required.", cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "AzureQueuesPutMessage",
+                operation: async () =>
+                {
+                    await this._azureQueuesClient
+                        .PutMessageAsync(
+                            storageAccountNameOrQueueEndpoint: storageAccount,
+                            queueName: queueName,
+                            input: input,
+                            cancellationToken: cancellationToken)
+                        .ConfigureAwait(continueOnCapturedContext: false);
+                    return new { storageAccount, queueName };
+                },
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
+
+    /// <summary>
+    /// Deletes a message using the message ID and pop receipt returned by GetMessages.
+    /// </summary>
+    [Function("AzureQueuesDeleteMessage")]
+    public Task<HttpResponseData> AzureQueuesDeleteMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "azurequeues/messages")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        var messageId = request.Query["messageId"];
+        var popReceipt = request.Query["popReceipt"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName) ||
+            string.IsNullOrWhiteSpace(messageId) || string.IsNullOrWhiteSpace(popReceipt))
+        {
+            return AzureQueuesFunctions.CreateBadRequestAsync(
+                request,
+                "Query parameters 'storageAccount', 'queueName', 'messageId', and 'popReceipt' are required.",
+                cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request,
+            this._logger,
+            operationName: "AzureQueuesDeleteMessage",
+            operation: async () =>
+            {
+                await this._azureQueuesClient
+                    .DeleteMessageAsync(
+                        storageAccountNameOrQueueEndpoint: storageAccount,
+                        queueName: queueName,
+                        messageId: messageId,
+                        popReceipt: popReceipt,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false);
+                return new { storageAccount, queueName, messageId };
+            },
+            cancellationToken: cancellationToken);
+    }
+
+    private static async Task<HttpResponseData> CreateBadRequestAsync(
+        HttpRequestData request,
+        string error,
+        CancellationToken cancellationToken)
+    {
+        var response = request.CreateResponse(HttpStatusCode.BadRequest);
+        await response
+            .WriteAsJsonAsync(new { success = false, error }, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        return response;
     }
 }

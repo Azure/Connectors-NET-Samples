@@ -161,6 +161,42 @@ public class DataverseFunctionsTests
     }
 
     [TestMethod]
+    public async Task ListItemsAsync_WithMultiplePages_ReturnsAllItems()
+    {
+        var responseCount = 0;
+        using var client = CreateMockedClient(() =>
+        {
+            responseCount++;
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(responseCount == 1
+                    ? """{"value":[{"name":"first-page-item"}],"@odata.nextLink":"https://example.crm.dynamics.com/api/data/v8.0/accounts?$skiptoken=next"}"""
+                    : """{"value":[{"name":"second-page-item"}]}"""),
+            };
+        });
+        var functions = new DataverseFunctions(
+            TestHelpers.CreateNullLogger<DataverseFunctions>(),
+            client);
+        var environment = Uri.EscapeDataString("https://example.crm.dynamics.com");
+        var request = TestHelpers.CreateRequest(
+            url: $"https://localhost/api/dataverse/items?environment={environment}&tableName=accounts");
+
+        var response = await functions.ListItemsAsync(request, cancellationToken: CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        using var payload = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        var itemNames = payload.RootElement.GetProperty("value")
+            .EnumerateArray()
+            .Select(item => item.GetProperty("name").GetString())
+            .ToArray();
+        CollectionAssert.AreEqual(
+            expected: new[] { "first-page-item", "second-page-item" },
+            actual: itemNames);
+        Assert.AreEqual(expected: 2, actual: responseCount);
+    }
+
+    [TestMethod]
     public async Task ListItemsAsync_WithNonPositiveTopCount_Returns400()
     {
         using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));

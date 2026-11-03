@@ -164,7 +164,7 @@ public class DataverseFunctionsTests
     public async Task ListItemsAsync_WithMultiplePages_ReturnsAllItems()
     {
         var responseCount = 0;
-        using var client = CreateMockedClient(() =>
+        using var client = DataverseFunctionsTests.CreateMockedClient(() =>
         {
             responseCount++;
             return new HttpResponseMessage(HttpStatusCode.OK)
@@ -181,7 +181,8 @@ public class DataverseFunctionsTests
         var request = TestHelpers.CreateRequest(
             url: $"https://localhost/api/dataverse/items?environment={environment}&tableName=accounts");
 
-        var response = await functions.ListItemsAsync(request, cancellationToken: CancellationToken.None)
+        var response = await functions
+            .ListItemsAsync(request, cancellationToken: CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);

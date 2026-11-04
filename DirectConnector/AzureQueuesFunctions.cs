@@ -248,7 +248,7 @@ public class AzureQueuesFunctions
     /// </summary>
     [Function("AzureQueuesPutMessage")]
     public async Task<HttpResponseData> AzureQueuesPutMessageAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azurequeues/messages")] HttpRequestData request,
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "azurequeues/messages/send")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         var storageAccount = request.Query["storageAccount"];

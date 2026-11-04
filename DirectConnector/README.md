@@ -101,12 +101,13 @@ temporary name and verify deletion afterward.
 | `GET /api/azurequeues/storageaccounts` | `GetStorageAccountsAsync` | Storage-account discovery |
 | `GET /api/azurequeues/queues` | `ListQueuesAsync` | Required `storageAccount` query |
 | `PUT /api/azurequeues/queues` | `PutQueueAsync` | Required `storageAccount`, `queueName` queries |
-| `PUT /api/azurequeues/messages` | `PutMessageAsync` | Same selectors and a non-empty text body |
+| `POST /api/azurequeues/messages/send` | `PutMessageAsync` | Same selectors and a non-empty text body; each call appends a message |
 | `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` (1-32) and `visibilityTimeout` (0-604800 seconds) |
 | `DELETE /api/azurequeues/messages` | `DeleteMessageAsync` | Same selectors plus returned `messageId` and `popReceipt` |
 
-Message retrieval changes visibility, so the sample uses POST rather than
-presenting it as a read-only HTTP operation. Use only newly owned queues for
+Sending appends a message and retrieval changes visibility, so both use POST
+on distinct routes. Do not automatically retry a send after an uncertain
+response; first check whether the original message was accepted. Use only newly owned queues for
 lifecycle tests. SDK 0.15 JSON-serializes string request bodies: a live message
 round-trip returned the JSON-encoded string, including its quotes. Do not infer
 an unchanged plain-text payload from an HTTP 200 response alone.
@@ -179,14 +180,31 @@ The output distinguishes `Succeeded`, `ExpectedPermissionFailure`, and `Failed`.
 Only the known Defender `ViewData` permission rejection is accepted as SDK
 failure-path validation; it is not a successful alert data read. Other permission
 errors, missing response fields, malformed JSON, and timeouts remain failures.
+Every discovery operation checks its exact collection path, including nested
+`value` arrays and Bookings' `mailboxes` array. Empty arrays are valid;
+missing, null, object-shaped, or string-shaped collections are not.
 The runner exits by throwing when any required check fails, and saves structured
 results when an output path is supplied. It never saves response payloads or
 runtime connection URLs.
 
 Run `Invoke-ConnectorSmoke.Tests.ps1` for deterministic runner regression checks.
-These checks also run in pull-request CI, including intentionally stacked PRs.
+These checks also run in pull-request CI targeting `main` or the explicit
+`feature/sdk-0.15-samples` prerequisite branch.
 Live calls remain manual and credential-dependent; CI does not use real
 connection URLs. Stop the local host after validation.
+
+### Review regression coverage
+
+The original expansion was reviewed at commit `5861eb3`. Its tests covered
+queue dispatch, successful flat collections, and connector HTTP rejections,
+but missed the following contracts. The regression checks now exercise the
+shipped function bindings and runner rather than reimplementing their decisions.
+
+| Review finding | Previous gap | Regression and controls |
+|---|---|---|
+| [Send semantics](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327098) | The append operation was exposed as PUT. | The binding test requires POST on the distinct send route; queue creation and message deletion remain unchanged. |
+| [Discovery collections](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327213) | Flat-array self-tests did not exercise nested response contracts. | Runner scenarios reject missing, null, error-shaped, object, string, and array envelopes across all 19 nested routes; empty and nonempty collections pass. |
+| [Word binary failures](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327304) | HTTP rejection tests did not exercise transport or token-acquisition failure. | Both population and PDF routes return structured HTTP 500 for each failure; successful bytes and connector HTTP 502 tests remain. |
 
 ## Setup
 

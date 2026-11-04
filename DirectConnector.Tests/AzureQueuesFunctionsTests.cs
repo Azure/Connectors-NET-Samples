@@ -255,8 +255,9 @@ public class AzureQueuesFunctionsTests
     }
 
     [TestMethod]
+    [Owner("daviburg")]
     [DataRow("AzureQueuesPutQueueAsync", "AzureQueuesPutQueue", "put", "azurequeues/queues")]
-    [DataRow("AzureQueuesPutMessageAsync", "AzureQueuesPutMessage", "put", "azurequeues/messages")]
+    [DataRow("AzureQueuesPutMessageAsync", "AzureQueuesPutMessage", "post", "azurequeues/messages/send")]
     [DataRow("AzureQueuesDeleteMessageAsync", "AzureQueuesDeleteMessage", "delete", "azurequeues/messages")]
     public void AzureQueuesMutation_Trigger_UsesExpectedFunctionRouteAndMethod(
         string methodName,
@@ -312,6 +313,7 @@ public class AzureQueuesFunctionsTests
     }
 
     [TestMethod]
+    [Owner("daviburg")]
     public async Task AzureQueuesPutMessageAsync_WithPlainTextBody_SendsJsonEncodedString()
     {
         const string message = "Order \"demo\" \u0026 notification";
@@ -333,8 +335,8 @@ public class AzureQueuesFunctionsTests
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
             body: message,
-            method: "PUT",
-            url: "https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue");
+            method: "POST",
+            url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue");
 
         var response = await functions
             .AzureQueuesPutMessageAsync(request, CancellationToken.None)
@@ -437,6 +439,7 @@ public class AzureQueuesFunctionsTests
     }
 
     [TestMethod]
+    [Owner("daviburg")]
     public async Task AzureQueuesPutMessageAsync_WithEmptyBody_Returns400WithoutDispatch()
     {
         var calls = 0;
@@ -447,8 +450,8 @@ public class AzureQueuesFunctionsTests
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
-            body: "  ", method: "PUT",
-            url: "https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue");
+            body: "  ", method: "POST",
+            url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue");
 
         var response = await functions
             .AzureQueuesPutMessageAsync(request, CancellationToken.None)
@@ -512,6 +515,7 @@ public class AzureQueuesFunctionsTests
     }
 
     [TestMethod]
+    [Owner("daviburg")]
     [DataRow("putQueue")]
     [DataRow("putMessage")]
     [DataRow("deleteMessage")]
@@ -527,7 +531,7 @@ public class AzureQueuesFunctionsTests
         var request = operation switch
         {
             "putQueue" => TestHelpers.CreateRequest(method: "PUT", url: "https://localhost/api/azurequeues/queues?storageAccount=account-demo&queueName=temporary-queue"),
-            "putMessage" => TestHelpers.CreateRequest(body: "hello", method: "PUT", url: "https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue"),
+            "putMessage" => TestHelpers.CreateRequest(body: "hello", method: "POST", url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue"),
             _ => TestHelpers.CreateRequest(method: "DELETE", url: "https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue&messageId=message-1&popReceipt=receipt-1"),
         };
 

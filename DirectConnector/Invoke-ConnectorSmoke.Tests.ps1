@@ -39,6 +39,41 @@ function Invoke-WebRequest {
             'Malformed' { return @{ StatusCode = 200; Content = '{' } }
         }
     }
+    $envelopeFields = @{
+        '/api/eventgrid/topictypes' = 'topicTypes'
+        '/api/eventgrid/subscriptions' = 'subscriptions'
+        '/api/azurequeues/storageaccounts' = 'storageAccounts'
+        '/api/azuretables/storageaccounts' = 'storageAccounts'
+        '/api/cosmosdb/accounts' = 'accounts'
+        '/api/excel/sources' = 'sources'
+        '/api/microsoftbookings/businesses' = 'value'
+        '/api/graph/users' = 'users'
+        '/api/graph/groups' = 'groups'
+        '/api/office365groupsmail/groups' = 'value'
+        '/api/outlook/calendars' = 'calendars'
+        '/api/outlook/contactfolders' = 'contactFolders'
+        '/api/planner/groups' = 'groups'
+        '/api/powerbi/workspaces' = 'value'
+        '/api/shifts/teams' = 'value'
+        '/api/teams/teams' = 'teams'
+        '/api/universalprint/shares' = 'shares'
+        '/api/wordonline/sources' = 'sources'
+        '/api/wordonline/drives' = 'drives'
+    }
+    if ($envelopeFields.ContainsKey($Uri.AbsolutePath)) {
+        $field = $envelopeFields[$Uri.AbsolutePath]
+        $collection = if ($Uri.AbsolutePath -ceq '/api/microsoftbookings/businesses') { 'mailboxes' } else { 'value' }
+        $payload[$field] = switch ($state.Mode) {
+            'MissingCollection' { @{} }
+            'NullCollection' { @{ $collection = $null } }
+            'ErrorCollection' { @{ error = 'denied' } }
+            'ObjectCollection' { @{ $collection = @{} } }
+            'StringCollection' { @{ $collection = 'invalid' } }
+            'ArrayEnvelope' { ,@() }
+            'NonemptyCollections' { @{ $collection = @(@{ name = 'synthetic-item' }) } }
+            default { @{ $collection = @() } }
+        }
+    }
     return @{ StatusCode = 200; Content = ($payload | ConvertTo-Json -Depth 3 -Compress) }
 }
 
@@ -46,7 +81,8 @@ try {
     $functions = @(& $runner -ListFunctions)
     if ($functions.Count -ne 38 -or @($functions | Select-Object -Unique).Count -ne 38) { throw 'Smoke discovery inventory is incomplete or ambiguous.' }
     if ($state.Requests -ne 0) { throw 'Inventory listing must not issue requests.' }
-    foreach ($mode in @('Succeeded', 'ExpectedDefender', 'FalseSuccess', 'MissingPayload', 'StringSuccess', 'Malformed', 'WrongDefender')) {
+    foreach ($mode in @('Succeeded', 'ExpectedDefender', 'NonemptyCollections', 'FalseSuccess', 'MissingPayload', 'StringSuccess', 'Malformed', 'WrongDefender',
+            'MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
         $state.Mode = $mode
         $state.Requests = 0
         $failed = $false
@@ -56,13 +92,22 @@ try {
         }
         $results = Get-Content -LiteralPath $output -Raw | ConvertFrom-Json -ErrorAction Stop
         if (@($results).Count -ne 38 -or $state.Requests -ne 38) { throw "Scenario '$mode' did not cover all requests." }
-        $expectedFailure = $mode -notin @('Succeeded', 'ExpectedDefender')
+        $expectedFailure = $mode -notin @('Succeeded', 'ExpectedDefender', 'NonemptyCollections')
         if ($failed -ne $expectedFailure) { throw "Scenario '$mode' returned the wrong terminal result." }
         $expectedCount = if ($mode -eq 'ExpectedDefender') { 1 } else { 0 }
         if (@($results | Where-Object Outcome -EQ 'ExpectedPermissionFailure').Count -ne $expectedCount) { throw "Scenario '$mode' misclassified permission failures." }
         if ($mode -eq 'ExpectedDefender') {
             $defender = $results | Where-Object Function -EQ 'WdatpGetAlerts'
             if (-not $defender.SdkValidationPassed -or $defender.DataReadSucceeded) { throw 'Permission-error validation must not claim a successful data read.' }
+        }
+        if ($mode -in @('MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
+            $wordResults = @($results | Where-Object Function -In @('WordOnlineGetSources', 'WordOnlineGetDrives'))
+            if ($wordResults.Count -ne 2 -or @($wordResults | Where-Object { $_.Outcome -cne 'Failed' -or $_.SdkValidationPassed -or $_.DataReadSucceeded }).Count -ne 0) {
+                throw "Scenario '$mode' did not reject both invalid Word collection contracts."
+            }
+            if (@($results | Where-Object { $_.Outcome -ceq 'Failed' -and -not $_.SdkValidationPassed -and -not $_.DataReadSucceeded }).Count -ne 19) {
+                throw "Scenario '$mode' did not reject every nested collection contract."
+            }
         }
     }
     $state.Requests = 0
@@ -73,7 +118,7 @@ try {
         if (-not $rejected -or $state.Requests -ne 0) { throw 'Unsupported target guard failed.' }
     }
     if (-not $rejected -or $state.Requests -ne 0) { throw 'Remote-target guard failed.' }
-    'Passed 12 smoke-runner regression scenarios; all request inventories were non-empty.'
+    'Passed 19 smoke-runner regression scenarios; all request inventories were non-empty.'
 }
 finally {
     if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -ErrorAction Stop }

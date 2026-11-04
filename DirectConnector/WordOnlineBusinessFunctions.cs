@@ -374,6 +374,15 @@ public class WordOnlineBusinessFunctions
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
         }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Operation '{OperationName}' failed.", operationName);
+            var response = request.CreateResponse(HttpStatusCode.InternalServerError);
+            await response
+                .WriteAsJsonAsync(new { success = false, error = ex.Message }, cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            return response;
+        }
     }
 
     private async Task<HttpResponseData> ConnectorErrorAsync(HttpRequestData request, string operationName, ConnectorException ex, CancellationToken cancellationToken)

@@ -6,7 +6,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Azure.Connectors.Sdk.WordOnlineBusiness;
+using Azure.Core;
 using Azure.Core.Pipeline;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker.Http;
 using Moq;
 using Moq.Protected;
@@ -219,6 +221,59 @@ public class WordOnlineBusinessFunctionsTests
         }
 
         Assert.AreEqual(0, requestsSent);
+    }
+
+    [TestMethod]
+    [Owner("daviburg")]
+    [DataRow("populate", false)]
+    [DataRow("pdf", false)]
+    [DataRow("populate", true)]
+    [DataRow("pdf", true)]
+    public async Task WordOnlineBinaryOperations_WhenTransportOrCredentialFails_ReturnStructuredInternalServerError(
+        string operation,
+        bool credentialFailure)
+    {
+        var requestsSent = 0;
+        var (credential, options) = TestHelpers.CreateMockedClientSetup(() =>
+        {
+            requestsSent++;
+            throw new HttpRequestException(message: "Synthetic transport failure.");
+        });
+        options.Retry.MaxRetries = 0;
+        if (credentialFailure)
+        {
+            Mock.Get(credential)
+                .Setup(value => value.GetTokenAsync(
+                    It.IsAny<TokenRequestContext>(),
+                    It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new AuthenticationFailedException(message: "Synthetic credential failure."));
+        }
+
+        using var client = new WordOnlineBusinessClient(
+            connectionRuntimeUrl: new Uri("https://test.azure.com/connection"),
+            credential: credential,
+            options: options);
+        var functions = WordOnlineBusinessFunctionsTests.CreateFunctions(client);
+        var request = TestHelpers.CreateRequest(
+            body: "{\"Customer\":\"Ada\"}",
+            method: string.Equals(operation, "populate", StringComparison.Ordinal) ? "POST" : "GET",
+            url: "https://localhost/api/test?" + WordOnlineBusinessFunctionsTests.Selectors);
+
+        var response = string.Equals(operation, "populate", StringComparison.Ordinal)
+            ? await functions
+                .WordOnlinePopulateTemplateAsync(request, CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false)
+            : await functions
+                .WordOnlineGetFilePDFAsync(request, CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.InternalServerError, actual: response.StatusCode);
+        using var json = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.IsFalse(json.RootElement.GetProperty("success").GetBoolean());
+        StringAssert.Contains(
+            value: json.RootElement.GetProperty("error").GetString()!,
+            substring: credentialFailure ? "Synthetic credential failure." : "Synthetic transport failure.");
+        Assert.AreEqual(expected: credentialFailure ? 0 : 1, actual: requestsSent);
     }
 
     [TestMethod]

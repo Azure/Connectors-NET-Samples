@@ -46,7 +46,7 @@ public class AzureTablesFunctionsTests
             url: "https://localhost/api/azuretables" + query);
 
         var response = await AzureTablesFunctionsTests
-            .InvokeAsync(functions, operation, request)
+            .InvokeAsync(functions: functions, operation: operation, request: request)
             .ConfigureAwait(continueOnCapturedContext: false);
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
@@ -142,9 +142,9 @@ public class AzureTablesFunctionsTests
 
     private static AzureTablesClient CreateClient(RecordingHandler handler)
     {
-        var setup = TestHelpers.CreateMockedClientSetup(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage(statusCode: HttpStatusCode.OK));
         setup.Options.Transport = new HttpClientTransport(new HttpClient(handler));
-        return new AzureTablesClient(new Uri("https://test.azure.com/connection"), setup.Credential, setup.Options);
+        return new AzureTablesClient(connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"), credential: setup.Credential, options: setup.Options);
     }
 
     private static Task<HttpResponseData> InvokeAsync(AzureTablesFunctions functions, string operation, HttpRequestData request)
@@ -162,7 +162,7 @@ public class AzureTablesFunctionsTests
             "ReplaceEntity" => functions.ReplaceEntityAsync(request, CancellationToken.None),
             "InsertMergeEntity" => functions.InsertMergeEntityAsync(request, CancellationToken.None),
             "InsertReplaceEntity" => functions.InsertReplaceEntityAsync(request, CancellationToken.None),
-            _ => throw new ArgumentException("Unknown test operation.", nameof(operation)),
+            _ => throw new ArgumentException(message: "Unknown test operation.", paramName: nameof(operation)),
         };
     }
 
@@ -184,9 +184,9 @@ public class AzureTablesFunctionsTests
             this.Body = request.Content is null
                 ? null
                 : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            return new HttpResponseMessage(this.Status)
+            return new HttpResponseMessage(statusCode: this.Status)
             {
-                Content = new StringContent("{\"TableName\":\"SdkTable\",\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"value\":[]}"),
+                Content = new StringContent(content: "{\"TableName\":\"SdkTable\",\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"value\":[]}"),
             };
         }
     }

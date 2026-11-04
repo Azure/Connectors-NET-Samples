@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
-using System.Globalization;
 using System.Net;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.Azurequeues;
@@ -157,16 +156,6 @@ public class AzureQueuesFunctions
 
         var numberOfMessages = request.Query["numberOfMessages"];
         var visibilityTimeout = request.Query["visibilityTimeout"];
-        if ((numberOfMessages is not null &&
-                (!int.TryParse(numberOfMessages, NumberStyles.None, CultureInfo.InvariantCulture, out var messageCount) || messageCount is < 1 or > 32)) ||
-            (visibilityTimeout is not null &&
-                (!int.TryParse(visibilityTimeout, NumberStyles.None, CultureInfo.InvariantCulture, out var timeoutSeconds) || timeoutSeconds is < 0 or > 604800)))
-        {
-            return await AzureQueuesFunctions
-                .CreateBadRequestAsync(request, "Query parameters 'numberOfMessages' (1-32) and 'visibilityTimeout' (0-604800 seconds) must be valid integers.", cancellationToken)
-                .ConfigureAwait(continueOnCapturedContext: false);
-        }
-
         try
         {
             var result = await this._azureQueuesClient
@@ -214,6 +203,7 @@ public class AzureQueuesFunctions
             return response;
         }
     }
+
     /// <summary>
     /// Creates a queue in the selected storage account.
     /// </summary>
@@ -227,12 +217,12 @@ public class AzureQueuesFunctions
         if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
         {
             return AzureQueuesFunctions.CreateBadRequestAsync(
-                request, "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken);
+                request: request, error: "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken: cancellationToken);
         }
 
         return ConnectorFunctionExecutor.ExecuteAsync(
-            request,
-            this._logger,
+            request: request,
+            logger: this._logger,
             operationName: "AzureQueuesPutQueue",
             operation: () => this._azureQueuesClient
                 .PutQueueAsync(
@@ -264,8 +254,8 @@ public class AzureQueuesFunctions
         }
 
         return ConnectorFunctionExecutor.ExecuteAsync(
-            request,
-            this._logger,
+            request: request,
+            logger: this._logger,
             operationName: "AzureQueuesDeleteMessage",
             operation: async () =>
             {

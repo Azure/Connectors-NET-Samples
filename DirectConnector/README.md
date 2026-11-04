@@ -83,8 +83,13 @@ pre-existing sample operation is E2E validated.
 | `GET /api/azurequeues/storageaccounts` | `GetStorageAccountsAsync` | Storage-account discovery |
 | `GET /api/azurequeues/queues` | `ListQueuesAsync` | Required `storageAccount` query |
 | `PUT /api/azurequeues/queues` | `PutQueueAsync` | Required `storageAccount`, `queueName` queries |
-| `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` (1-32) and `visibilityTimeout` (0-604800 seconds) |
+| `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` and `visibilityTimeout` strings |
 | `DELETE /api/azurequeues/messages` | `DeleteMessageAsync` | Same selectors plus returned `messageId` and `popReceipt` |
+
+The managed connector publishes both optional message options as strings, with
+no numeric range or format constraints. The sample forwards supplied values
+unchanged and preserves downstream validation errors; it does not infer extra
+client-side limits from the underlying Storage REST API.
 
 Receiving changes message visibility, so it remains POST rather than a
 read-only GET. Use only owned queues/messages for lifecycle tests. Sending is
@@ -162,8 +167,9 @@ Graph users and Teams membership use the Function's projected flat arrays.
 The runner never saves service payloads, runtime URLs, or credentials.
 
 Run `Invoke-ConnectorSmoke.Tests.ps1` for the 24 deterministic regression
-scenarios, which also run in CI. CI is restricted to `main` and the explicitly
-stacked prerequisite/sample branches. Live checks require private credentials.
+scenarios, which run in ordinary PR CI targeting `main`. Stacked PRs run these
+checks locally until their prerequisite merges and they are retargeted to `main`;
+do not add branch-specific CI exceptions. Live checks require private credentials.
 Stop the local host after validation.
 
 ### Deferred operations

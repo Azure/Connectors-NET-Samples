@@ -626,14 +626,15 @@ public class OneDriveFunctions
 
         return await ConnectorFunctionExecutor
             .ExecuteAsync(
-                request,
-                this._logger,
+                request: request,
+                logger: this._logger,
                 operationName: "GetOneDriveFileMetadata",
                 operation: () => this._oneDriveClient
                     .GetFileMetadataAsync(file: file, cancellationToken: cancellationToken),
                 cancellationToken: cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
     }
+
     [Function("DeleteOneDriveFile")]
     public async Task<HttpResponseData> DeleteOneDriveFileAsync(
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "onedrive/files")] HttpRequestData request,
@@ -652,8 +653,8 @@ public class OneDriveFunctions
 
         return await ConnectorFunctionExecutor
             .ExecuteAsync(
-                request,
-                this._logger,
+                request: request,
+                logger: this._logger,
                 operationName: "DeleteOneDriveFile",
                 operation: async () =>
                 {
@@ -665,6 +666,7 @@ public class OneDriveFunctions
                 cancellationToken: cancellationToken)
             .ConfigureAwait(continueOnCapturedContext: false);
     }
+
     /// <summary>
     /// Receives Connector Gateway trigger callback for OneDrive for Business file events.
     /// </summary>

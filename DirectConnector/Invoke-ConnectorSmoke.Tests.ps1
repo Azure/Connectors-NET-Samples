@@ -77,7 +77,7 @@ function Invoke-WebRequest {
 
 try {
     $functions = @(& $runner -ListFunctions)
-    if ($functions.Count -ne 34 -or @($functions | Select-Object -Unique).Count -ne 34) { throw 'Smoke discovery inventory is incomplete or ambiguous.' }
+    if ($functions.Count -ne 38 -or @($functions | Select-Object -Unique).Count -ne 38) { throw 'Smoke discovery inventory is incomplete or ambiguous.' }
     if ($state.Requests -ne 0) { throw 'Inventory listing must not issue requests.' }
     foreach ($mode in @('Succeeded', 'ExpectedDefender', 'NonemptyCollections', 'FalseSuccess', 'MissingPayload', 'StringSuccess', 'Malformed', 'WrongDefender',
             'MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
@@ -89,7 +89,7 @@ try {
             $failed = $true
         }
         $results = Get-Content -LiteralPath $output -Raw | ConvertFrom-Json -ErrorAction Stop
-        if (@($results).Count -ne 34 -or $state.Requests -ne 34) { throw "Scenario '$mode' did not cover all requests." }
+        if (@($results).Count -ne 38 -or $state.Requests -ne 38) { throw "Scenario '$mode' did not cover all requests." }
         $expectedFailure = $mode -notin @('Succeeded', 'ExpectedDefender', 'NonemptyCollections')
         if ($failed -ne $expectedFailure) { throw "Scenario '$mode' returned the wrong terminal result." }
         $expectedCount = if ($mode -eq 'ExpectedDefender') { 1 } else { 0 }

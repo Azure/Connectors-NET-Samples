@@ -243,6 +243,55 @@ public class AzureQueuesFunctions
     }
 
     /// <summary>
+    /// Adds the nonempty, plain-text request body to a queue as a message.
+    /// The SDK JSON-encodes this string before sending it to the connector.
+    /// </summary>
+    [Function("AzureQueuesPutMessage")]
+    public async Task<HttpResponseData> AzureQueuesPutMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "azurequeues/messages/send")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
+        {
+            return await AzureQueuesFunctions
+                .CreateBadRequestAsync(request, "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        using var reader = new StreamReader(request.Body, leaveOpen: true);
+        var input = await reader
+            .ReadToEndAsync(cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return await AzureQueuesFunctions
+                .CreateBadRequestAsync(request, "A nonempty plain-text message body is required.", cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+
+        return await ConnectorFunctionExecutor
+            .ExecuteAsync(
+                request,
+                this._logger,
+                operationName: "AzureQueuesPutMessage",
+                operation: async () =>
+                {
+                    await this._azureQueuesClient
+                        .PutMessageAsync(
+                            storageAccountNameOrQueueEndpoint: storageAccount,
+                            queueName: queueName,
+                            input: input,
+                            cancellationToken: cancellationToken)
+                        .ConfigureAwait(continueOnCapturedContext: false);
+                    return new { storageAccount, queueName };
+                },
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+    }
+
+    /// <summary>
     /// Deletes a message using the message ID and pop receipt returned by GetMessages.
     /// </summary>
     [Function("AzureQueuesDeleteMessage")]

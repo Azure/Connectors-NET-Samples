@@ -183,6 +183,8 @@ errors, missing response fields, malformed JSON, and timeouts remain failures.
 Every discovery operation checks its exact collection path, including nested
 `value` arrays and Bookings' `mailboxes` array. Empty arrays are valid;
 missing, null, object-shaped, or string-shaped collections are not.
+Paths follow the Function's JSON response, not just the SDK return type:
+Graph users and Teams membership project SDK envelopes into flat arrays.
 The runner exits by throwing when any required check fails, and saves structured
 results when an output path is supplied. It never saves response payloads or
 runtime connection URLs.
@@ -203,7 +205,7 @@ shipped function bindings and runner rather than reimplementing their decisions.
 | Review finding | Previous gap | Regression and controls |
 |---|---|---|
 | [Send semantics](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327098) | The append operation was exposed as PUT. | The binding test requires POST on the distinct send route; queue creation and message deletion remain unchanged. |
-| [Discovery collections](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327213) | Flat-array self-tests did not exercise nested response contracts. | Runner scenarios reject missing, null, error-shaped, object, string, and array envelopes across all 19 nested routes; empty and nonempty collections pass. |
+| [Discovery collections](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327213) | Flat-array self-tests did not exercise nested response contracts; SDK types alone do not prove Function response shape. | Runner scenarios reject missing, null, error-shaped, object, string, and array envelopes across all 17 nested routes; empty and nonempty collections and projected flat Graph/Teams arrays pass. Live response-shape checks exposed and corrected the two projection mismatches. |
 | [Word binary failures](https://github.com/Azure/Connectors-NET-Samples/pull/89#discussion_r4459327304) | HTTP rejection tests did not exercise transport or token-acquisition failure. | Both population and PDF routes return structured HTTP 500 for each failure; successful bytes and connector HTTP 502 tests remain. |
 
 ## Setup

@@ -47,7 +47,6 @@ function Invoke-WebRequest {
         '/api/cosmosdb/accounts' = 'accounts'
         '/api/excel/sources' = 'sources'
         '/api/microsoftbookings/businesses' = 'value'
-        '/api/graph/users' = 'users'
         '/api/graph/groups' = 'groups'
         '/api/office365groupsmail/groups' = 'value'
         '/api/outlook/calendars' = 'calendars'
@@ -55,7 +54,6 @@ function Invoke-WebRequest {
         '/api/planner/groups' = 'groups'
         '/api/powerbi/workspaces' = 'value'
         '/api/shifts/teams' = 'value'
-        '/api/teams/teams' = 'teams'
         '/api/universalprint/shares' = 'shares'
         '/api/wordonline/sources' = 'sources'
         '/api/wordonline/drives' = 'drives'
@@ -105,7 +103,7 @@ try {
             if ($wordResults.Count -ne 2 -or @($wordResults | Where-Object { $_.Outcome -cne 'Failed' -or $_.SdkValidationPassed -or $_.DataReadSucceeded }).Count -ne 0) {
                 throw "Scenario '$mode' did not reject both invalid Word collection contracts."
             }
-            if (@($results | Where-Object { $_.Outcome -ceq 'Failed' -and -not $_.SdkValidationPassed -and -not $_.DataReadSucceeded }).Count -ne 19) {
+            if (@($results | Where-Object { $_.Outcome -ceq 'Failed' -and -not $_.SdkValidationPassed -and -not $_.DataReadSucceeded }).Count -ne 17) {
                 throw "Scenario '$mode' did not reject every nested collection contract."
             }
         }

@@ -30,7 +30,7 @@ $checks = @(
     @{ Function = 'EventHubsListContentTypes'; Route = 'eventhubs/contenttypes'; Connector = 'eventhubs'; Method = 'GetContentTypesAsync'; Field = 'contentTypes' }
     @{ Function = 'ExcelGetSources'; Route = 'excel/sources'; Connector = 'excelonlinebusiness'; Method = 'GetSourcesAsync'; Field = 'sources.value' }
     @{ Function = 'MicrosoftBookingsListBusinesses'; Route = 'microsoftbookings/businesses'; Connector = 'microsoftbookings'; Method = 'ListBookingsBusinessUserAsAdminAsync'; Field = 'value.mailboxes' }
-    @{ Function = 'ListGraphUsers'; Route = 'graph/users'; Connector = 'msgraphgroupsanduser'; Method = 'ListUsersAsync'; Field = 'users.value' }
+    @{ Function = 'ListGraphUsers'; Route = 'graph/users'; Connector = 'msgraphgroupsanduser'; Method = 'ListUsersAsync'; Field = 'users' }
     @{ Function = 'ListGraphGroups'; Route = 'graph/groups'; Connector = 'msgraphgroupsanduser'; Method = 'ListGroupsByDisplayNameSearchAsync'; Field = 'groups.value' }
     @{ Function = 'GetCategories'; Route = 'categories'; Connector = 'office365'; Method = 'GetOutlookCategoryNamesAsync'; Field = 'categories' }
     @{ Function = 'Office365GroupsListGroups'; Route = 'office365groups/groups'; Connector = 'office365groups'; Method = 'ListGroupsAsync'; Field = 'value' }
@@ -47,7 +47,7 @@ $checks = @(
     @{ Function = 'ServiceBusListTopics'; Route = 'servicebus/topics'; Connector = 'servicebus'; Method = 'GetTopicsAsync'; Field = 'topics' }
     @{ Function = 'ListSharePointSites'; Route = 'sharepoint/sites'; Connector = 'sharepointonline'; Method = 'GetDataSetsAsync'; Field = 'sites' }
     @{ Function = 'ShiftsListTeams'; Route = 'shifts/teams'; Connector = 'shifts'; Method = 'GetAllTeamsAsync'; Field = 'value.value' }
-    @{ Function = 'GetAllTeams'; Route = 'teams/teams'; Connector = 'teams'; Method = 'GetAllTeamsAsync'; Field = 'teams.value' }
+    @{ Function = 'GetAllTeams'; Route = 'teams/teams'; Connector = 'teams'; Method = 'GetAllTeamsAsync'; Field = 'teams' }
     @{ Function = 'TodoListTaskLists'; Route = 'todo/lists'; Connector = 'todo'; Method = 'GetAllTodoListsAsync'; Field = 'value' }
     @{ Function = 'UniversalPrintListShares'; Route = 'universalprint/shares'; Connector = 'universalprint'; Method = 'ListRecentSharesAsync'; Field = 'shares.value' }
     @{ Function = 'YammerGetNetworks'; Route = 'yammer/networks'; Connector = 'yammer'; Method = 'GetNetworksAsync'; Field = 'networks' }

@@ -68,7 +68,10 @@ $results = foreach ($check in $checks) {
     try {
         $response = Invoke-WebRequest -Uri ($BaseUri.AbsoluteUri.TrimEnd('/') + '/api/' + $check.Route) -TimeoutSec $TimeoutSeconds -SkipHttpErrorCheck
         $httpStatus = [int] $response.StatusCode
-        $body = $response.Content | ConvertFrom-Json -ErrorAction Stop
+        $body = $response.Content | ConvertFrom-Json -NoEnumerate -ErrorAction Stop
+        if ($null -eq $body -or $body.GetType() -ne [System.Management.Automation.PSCustomObject]) {
+            throw [FormatException]::new('The Function response must be a JSON object.')
+        }
         $successProperty = $body.PSObject.Properties['success']
         $payload = $body
         foreach ($segment in $check.Field.Split('.')) {
@@ -98,7 +101,10 @@ $results = foreach ($check in $checks) {
         else {
             $downstreamStatus = $body.statusCode
             if ($body.details) {
-                $detail = $body.details | ConvertFrom-Json -ErrorAction Stop
+                $detail = $body.details | ConvertFrom-Json -NoEnumerate -ErrorAction Stop
+                if ($null -eq $detail -or $detail.GetType() -ne [System.Management.Automation.PSCustomObject]) {
+                    throw [FormatException]::new('The connector error details must be a JSON object.')
+                }
                 $errorCode = $detail.error.code
                 if (-not $errorCode) { $errorCode = $detail.'odata.error'.code }
                 if (-not $errorCode) { $errorCode = $detail.code }

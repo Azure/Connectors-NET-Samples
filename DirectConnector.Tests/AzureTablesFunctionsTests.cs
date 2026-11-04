@@ -14,6 +14,7 @@ namespace DirectConnector.Tests;
 public class AzureTablesFunctionsTests
 {
     [TestMethod]
+    [Owner("daviburg")]
     [DataRow("GetStorageAccounts", "GET", "/v2/GetStorageAccounts")]
     [DataRow("ListTables", "GET", "/v2/storageAccounts/account/tables")]
     [DataRow("GetTable", "GET", "/v2/storageAccounts/account/tables/SdkTable")]
@@ -30,10 +31,19 @@ public class AzureTablesFunctionsTests
         using var handler = new RecordingHandler();
         using var client = AzureTablesFunctionsTests.CreateClient(handler);
         var functions = new AzureTablesFunctions(TestHelpers.CreateNullLogger<AzureTablesFunctions>(), client);
+        var query = operation switch
+        {
+            "GetStorageAccounts" => string.Empty,
+            "ListTables" => "?storageAccount=account",
+            "GetTable" or "DeleteTable" or "GetEntities" or "CreateEntity" => "?storageAccount=account&table=SdkTable",
+            _ => "?storageAccount=account&table=SdkTable&partitionKey=partition&rowKey=row",
+        };
         var request = TestHelpers.CreateRequest(
-            body: "{\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"Message\":\"synthetic\"}",
+            body: string.Equals(operation, "CreateEntity", StringComparison.Ordinal)
+                ? "{\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"Message\":\"synthetic\"}"
+                : "{\"Message\":\"synthetic\"}",
             method: method,
-            url: "https://localhost/api/azuretables?storageAccount=account&table=SdkTable&partitionKey=partition&rowKey=row");
+            url: "https://localhost/api/azuretables" + query);
 
         var response = await AzureTablesFunctionsTests
             .InvokeAsync(functions, operation, request)
@@ -49,9 +59,10 @@ public class AzureTablesFunctionsTests
         {
             using var body = JsonDocument.Parse(handler.Body!);
             Assert.AreEqual(expected: "synthetic", actual: body.RootElement.GetProperty("Message").GetString());
-            Assert.AreEqual(expected: "partition", actual: body.RootElement.GetProperty("PartitionKey").GetString());
             if (string.Equals(operation, "CreateEntity", StringComparison.Ordinal))
             {
+                Assert.AreEqual(expected: "partition", actual: body.RootElement.GetProperty("PartitionKey").GetString());
+                Assert.AreEqual(expected: "row", actual: body.RootElement.GetProperty("RowKey").GetString());
                 Assert.AreEqual(expected: "partition", actual: result.RootElement.GetProperty("value").GetProperty("PartitionKey").GetString());
             }
         }

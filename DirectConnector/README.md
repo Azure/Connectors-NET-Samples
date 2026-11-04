@@ -95,24 +95,26 @@ independent cleanup for an owned test queue.
 
 ### Azure Tables
 
-Use required `storageAccount` and `table` query parameters for table/entity
-operations. Single-entity reads and writes also require `partitionKey` and
-`rowKey`. Merge/replacement bodies contain entity columns; upsert bodies must
-include nonempty `PartitionKey` and `RowKey` strings.
+Discovery, entity creation, and single-entity operations take different selectors.
+Creation reads `PartitionKey` and `RowKey` from the JSON body, not the query.
+Single-entity reads, merge/replacement, and upserts require `partitionKey` and
+`rowKey` queries; their update bodies do not require duplicate key fields.
+The [minimal-input dispatch tests](../DirectConnector.Tests/AzureTablesFunctionsTests.cs)
+exercise these distinctions through the actual handlers and generated client.
 
-| Route | Generated SDK method | Input / output |
-|---|---|---|
-| `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | Account discovery |
-| `GET /api/azuretables/tables` | `GetTablesAsync` | Table discovery |
-| `GET /api/azuretables/table` | `GetTableAsync` | Table metadata |
-| `DELETE /api/azuretables/table` | `DeleteTableAsync` | Explicit deletion result |
-| `GET /api/azuretables/entities` | `GetEntitiesAsync` | Optional `$filter`, `$select` queries |
-| `GET /api/azuretables/entity` | `GetEntityAsync` | Optional `$select` query |
-| `POST /api/azuretables/entities` | `CreateEntityAsync` | JSON object containing non-empty `PartitionKey` and `RowKey` strings plus entity columns |
-| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | JSON entity columns |
-| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | JSON replacement entity |
-| `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | JSON merge entity |
-| `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | JSON replacement entity |
+| Route | Generated SDK method | Required queries | Body / options |
+|---|---|---|---|
+| `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | None | Account discovery |
+| `GET /api/azuretables/tables` | `GetTablesAsync` | `storageAccount` | Table discovery |
+| `GET /api/azuretables/table` | `GetTableAsync` | `storageAccount`, `table` | Table metadata |
+| `DELETE /api/azuretables/table` | `DeleteTableAsync` | `storageAccount`, `table` | Explicit deletion result |
+| `GET /api/azuretables/entities` | `GetEntitiesAsync` | `storageAccount`, `table` | Optional `$filter`, `$select` queries |
+| `GET /api/azuretables/entity` | `GetEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Optional `$select` query |
+| `POST /api/azuretables/entities` | `CreateEntityAsync` | `storageAccount`, `table` | JSON object with nonempty `PartitionKey`, `RowKey` strings and entity columns |
+| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON entity columns |
+| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement entity |
+| `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON merge columns; body keys not required |
+| `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement columns; body keys not required |
 
 Provision a disposable table independently before testing these operations.
 ARM/portal provisioning is setup, not proof of SDK table creation. SDK table
@@ -153,11 +155,13 @@ From another PowerShell 7 terminal:
 The output distinguishes `Succeeded`, `ExpectedPermissionFailure`, and
 `Failed`. The exact Defender rejection confirms SDK dispatch/error handling,
 not successful alert-data access. Every other failure makes the runner throw.
+Function responses and connector error details must have JSON object roots;
+empty, singleton, and multiple-item root arrays are rejected without unwrapping.
 All 17 nested collection paths require arrays, allowing empty/nonempty arrays;
 Graph users and Teams membership use the Function's projected flat arrays.
 The runner never saves service payloads, runtime URLs, or credentials.
 
-Run `Invoke-ConnectorSmoke.Tests.ps1` for the 19 deterministic regression
+Run `Invoke-ConnectorSmoke.Tests.ps1` for the 24 deterministic regression
 scenarios, which also run in CI. CI is restricted to `main` and the explicitly
 stacked prerequisite/sample branches. Live checks require private credentials.
 Stop the local host after validation.

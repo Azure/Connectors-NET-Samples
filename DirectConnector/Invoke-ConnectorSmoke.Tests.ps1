@@ -23,12 +23,14 @@ function Invoke-WebRequest {
     if ($Uri.AbsolutePath.EndsWith('/dataverse/environments', [StringComparison]::Ordinal)) {
         return @{ StatusCode = 200; Content = '{"value":[]}' }
     }
-    if ($Uri.AbsolutePath.EndsWith('/wdatp/alerts', [StringComparison]::Ordinal) -and $state.Mode -in @('ExpectedDefender', 'WrongDefender')) {
-        $message = if ($state.Mode -eq 'ExpectedDefender') {
+    if ($Uri.AbsolutePath.EndsWith('/wdatp/alerts', [StringComparison]::Ordinal) -and $state.Mode -in @('ExpectedDefender', 'WrongDefender', 'ArrayDefenderDetails', 'ArrayDefenderResponse')) {
+        $message = if ($state.Mode -in @('ExpectedDefender', 'ArrayDefenderDetails', 'ArrayDefenderResponse')) {
             'Missing user permissions. API required permissions: ViewData, user permissions: None.'
         } else { 'Different authorization failure.' }
         $detail = @{ error = @{ code = 'Forbidden'; message = $message } } | ConvertTo-Json -Compress
+        if ($state.Mode -ceq 'ArrayDefenderDetails') { $detail = '[' + $detail + ']' }
         $body = @{ success = $false; statusCode = 403; details = $detail } | ConvertTo-Json -Compress
+        if ($state.Mode -ceq 'ArrayDefenderResponse') { $body = '[' + $body + ']' }
         return @{ StatusCode = 502; Content = $body }
     }
     if ($Uri.AbsolutePath.EndsWith('/arm/subscriptions', [StringComparison]::Ordinal)) {
@@ -36,6 +38,9 @@ function Invoke-WebRequest {
             'FalseSuccess' { return @{ StatusCode = 200; Content = '{"success":false,"subscriptions":[]}' } }
             'MissingPayload' { return @{ StatusCode = 200; Content = '{"success":true}' } }
             'StringSuccess' { return @{ StatusCode = 200; Content = '{"success":"true","subscriptions":[]}' } }
+            'SingletonRootArray' { return @{ StatusCode = 200; Content = '[{"success":true,"subscriptions":[]}]' } }
+            'EmptyRootArray' { return @{ StatusCode = 200; Content = '[]' } }
+            'MultipleRootArray' { return @{ StatusCode = 200; Content = '[{"success":true,"subscriptions":[]},{"success":true,"subscriptions":[]}]' } }
             'Malformed' { return @{ StatusCode = 200; Content = '{' } }
         }
     }
@@ -80,6 +85,7 @@ try {
     if ($functions.Count -ne 34 -or @($functions | Select-Object -Unique).Count -ne 34) { throw 'Smoke discovery inventory is incomplete or ambiguous.' }
     if ($state.Requests -ne 0) { throw 'Inventory listing must not issue requests.' }
     foreach ($mode in @('Succeeded', 'ExpectedDefender', 'NonemptyCollections', 'FalseSuccess', 'MissingPayload', 'StringSuccess', 'Malformed', 'WrongDefender',
+            'SingletonRootArray', 'EmptyRootArray', 'MultipleRootArray', 'ArrayDefenderDetails', 'ArrayDefenderResponse',
             'MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
         $state.Mode = $mode
         $state.Requests = 0
@@ -97,6 +103,18 @@ try {
         if ($mode -eq 'ExpectedDefender') {
             $defender = $results | Where-Object Function -EQ 'WdatpGetAlerts'
             if (-not $defender.SdkValidationPassed -or $defender.DataReadSucceeded) { throw 'Permission-error validation must not claim a successful data read.' }
+        }
+        if ($mode -in @('SingletonRootArray', 'EmptyRootArray', 'MultipleRootArray')) {
+            $arm = $results | Where-Object Function -CEQ 'ArmListSubscriptions'
+            if ($arm.HttpStatus -ne 200 -or $arm.Outcome -cne 'Failed' -or $arm.SdkValidationPassed -or $arm.DataReadSucceeded) {
+                throw "Scenario '$mode' accepted an invalid Function root array."
+            }
+        }
+        if ($mode -in @('ArrayDefenderDetails', 'ArrayDefenderResponse')) {
+            $defender = $results | Where-Object Function -CEQ 'WdatpGetAlerts'
+            if ($defender.Outcome -cne 'Failed' -or $defender.SdkValidationPassed -or $defender.DataReadSucceeded) {
+                throw 'Array-shaped connector errors must not satisfy the accepted Defender object contract.'
+            }
         }
         if ($mode -in @('MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
             $wordResults = @($results | Where-Object Function -In @('WordOnlineGetSources', 'WordOnlineGetDrives'))
@@ -116,7 +134,7 @@ try {
         if (-not $rejected -or $state.Requests -ne 0) { throw 'Unsupported target guard failed.' }
     }
     if (-not $rejected -or $state.Requests -ne 0) { throw 'Remote-target guard failed.' }
-    'Passed 19 smoke-runner regression scenarios; all request inventories were non-empty.'
+    'Passed 24 smoke-runner regression scenarios; all request inventories were non-empty.'
 }
 finally {
     if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -ErrorAction Stop }

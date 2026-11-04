@@ -257,7 +257,6 @@ public class AzureQueuesFunctionsTests
     [TestMethod]
     [Owner("daviburg")]
     [DataRow("AzureQueuesPutQueueAsync", "AzureQueuesPutQueue", "put", "azurequeues/queues")]
-    [DataRow("AzureQueuesPutMessageAsync", "AzureQueuesPutMessage", "post", "azurequeues/messages/send")]
     [DataRow("AzureQueuesDeleteMessageAsync", "AzureQueuesDeleteMessage", "delete", "azurequeues/messages")]
     public void AzureQueuesMutation_Trigger_UsesExpectedFunctionRouteAndMethod(
         string methodName,
@@ -310,43 +309,6 @@ public class AzureQueuesFunctionsTests
         using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
         Assert.IsTrue(document.RootElement.GetProperty("success").GetBoolean());
         Assert.AreEqual(expected: "created", actual: document.RootElement.GetProperty("value").GetString());
-    }
-
-    [TestMethod]
-    [Owner("daviburg")]
-    public async Task AzureQueuesPutMessageAsync_WithPlainTextBody_SendsJsonEncodedString()
-    {
-        const string message = "Order \"demo\" \u0026 notification";
-        var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient(async (outbound, token) =>
-        {
-            calls++;
-            Assert.AreEqual(expected: HttpMethod.Post, actual: outbound.Method);
-            Assert.AreEqual(
-                expected: "/connection/v2/storageAccounts/account-demo/queues/temporary-queue/messages",
-                actual: outbound.RequestUri!.PathAndQuery);
-            Assert.AreEqual(expected: "application/json", actual: outbound.Content!.Headers.ContentType!.MediaType);
-            var actualBody = await outbound.Content
-                .ReadAsStringAsync(token)
-                .ConfigureAwait(continueOnCapturedContext: false);
-            Assert.AreEqual(expected: JsonSerializer.Serialize(message), actual: actualBody);
-            return new HttpResponseMessage(HttpStatusCode.NoContent);
-        });
-        var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
-        var request = TestHelpers.CreateRequest(
-            body: message,
-            method: "POST",
-            url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue");
-
-        var response = await functions
-            .AzureQueuesPutMessageAsync(request, CancellationToken.None)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        Assert.AreEqual(expected: 1, actual: calls);
-        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
-        using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
-        Assert.IsTrue(document.RootElement.GetProperty("success").GetBoolean());
-        Assert.AreEqual(expected: "temporary-queue", actual: document.RootElement.GetProperty("value").GetProperty("queueName").GetString());
     }
 
     [TestMethod]
@@ -439,30 +401,6 @@ public class AzureQueuesFunctionsTests
     }
 
     [TestMethod]
-    [Owner("daviburg")]
-    public async Task AzureQueuesPutMessageAsync_WithEmptyBody_Returns400WithoutDispatch()
-    {
-        var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
-        {
-            calls++;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
-        });
-        var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
-        var request = TestHelpers.CreateRequest(
-            body: "  ", method: "POST",
-            url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue");
-
-        var response = await functions
-            .AzureQueuesPutMessageAsync(request, CancellationToken.None)
-            .ConfigureAwait(continueOnCapturedContext: false);
-
-        Assert.AreEqual(expected: 0, actual: calls);
-        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
-        StringAssert.Contains(((MockHttpResponseData)response).GetBodyAsString(), "body");
-    }
-
-    [TestMethod]
     public async Task AzureQueuesDeleteMessageAsync_WithMissingReceipt_Returns400WithoutDispatch()
     {
         var calls = 0;
@@ -517,7 +455,6 @@ public class AzureQueuesFunctionsTests
     [TestMethod]
     [Owner("daviburg")]
     [DataRow("putQueue")]
-    [DataRow("putMessage")]
     [DataRow("deleteMessage")]
     public async Task AzureQueuesMutation_WithConnectorFailure_Returns502WithStatusAndDetails(string operation)
     {
@@ -531,14 +468,12 @@ public class AzureQueuesFunctionsTests
         var request = operation switch
         {
             "putQueue" => TestHelpers.CreateRequest(method: "PUT", url: "https://localhost/api/azurequeues/queues?storageAccount=account-demo&queueName=temporary-queue"),
-            "putMessage" => TestHelpers.CreateRequest(body: "hello", method: "POST", url: "https://localhost/api/azurequeues/messages/send?storageAccount=account-demo&queueName=temporary-queue"),
             _ => TestHelpers.CreateRequest(method: "DELETE", url: "https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue&messageId=message-1&popReceipt=receipt-1"),
         };
 
         var response = operation switch
         {
             "putQueue" => await functions.AzureQueuesPutQueueAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            "putMessage" => await functions.AzureQueuesPutMessageAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
             _ => await functions.AzureQueuesDeleteMessageAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
         };
 

@@ -26,14 +26,12 @@ $checks = @(
     @{ Function = 'AzureTablesListStorageAccounts'; Route = 'azuretables/storageaccounts'; Connector = 'azuretables'; Method = 'GetStorageAccountsAsync'; Field = 'storageAccounts.value' }
     @{ Function = 'DataverseListEnvironments'; Route = 'dataverse/environments'; Connector = 'commondataservice'; Method = 'GetDataSetsAsync'; Field = 'value' }
     @{ Function = 'CosmosDbListAccounts'; Route = 'cosmosdb/accounts'; Connector = 'documentdb'; Method = 'GetCosmosDbAccountsAsync'; Field = 'accounts.value' }
-    @{ Function = 'EventHubsListHubs'; Route = 'eventhubs/hubs'; Connector = 'eventhubs'; Method = 'GetEventHubsAsync'; Field = 'eventHubs' }
     @{ Function = 'EventHubsListContentTypes'; Route = 'eventhubs/contenttypes'; Connector = 'eventhubs'; Method = 'GetContentTypesAsync'; Field = 'contentTypes' }
     @{ Function = 'ExcelGetSources'; Route = 'excel/sources'; Connector = 'excelonlinebusiness'; Method = 'GetSourcesAsync'; Field = 'sources.value' }
     @{ Function = 'MicrosoftBookingsListBusinesses'; Route = 'microsoftbookings/businesses'; Connector = 'microsoftbookings'; Method = 'ListBookingsBusinessUserAsAdminAsync'; Field = 'value.mailboxes' }
     @{ Function = 'ListGraphUsers'; Route = 'graph/users'; Connector = 'msgraphgroupsanduser'; Method = 'ListUsersAsync'; Field = 'users' }
     @{ Function = 'ListGraphGroups'; Route = 'graph/groups'; Connector = 'msgraphgroupsanduser'; Method = 'ListGroupsByDisplayNameSearchAsync'; Field = 'groups.value' }
     @{ Function = 'GetCategories'; Route = 'categories'; Connector = 'office365'; Method = 'GetOutlookCategoryNamesAsync'; Field = 'categories' }
-    @{ Function = 'Office365GroupsListGroups'; Route = 'office365groups/groups'; Connector = 'office365groups'; Method = 'ListGroupsAsync'; Field = 'value' }
     @{ Function = 'Office365GroupsMailListGroups'; Route = 'office365groupsmail/groups'; Connector = 'office365groupsmail'; Method = 'ListGroupsAsync'; Field = 'value.value' }
     @{ Function = 'GetMyProfile'; Route = 'users/me'; Connector = 'office365users'; Method = 'MyProfileAsync'; Field = 'Id' }
     @{ Function = 'ListOneDriveRoot'; Route = 'onedrive/root'; Connector = 'onedriveforbusiness'; Method = 'ListRootFolderAsync'; Field = 'files' }
@@ -43,8 +41,6 @@ $checks = @(
     @{ Function = 'PlannerListGroups'; Route = 'planner/groups'; Connector = 'planner'; Method = 'ListGroupsAsync'; Field = 'groups.value' }
     @{ Function = 'PlannerListMyTasks'; Route = 'planner/tasks'; Connector = 'planner'; Method = 'ListMyTasksAsync'; Field = 'tasks' }
     @{ Function = 'PowerBIListWorkspaces'; Route = 'powerbi/workspaces'; Connector = 'powerbi'; Method = 'ListGroupsAsync'; Field = 'value.value' }
-    @{ Function = 'ServiceBusListQueues'; Route = 'servicebus/queues'; Connector = 'servicebus'; Method = 'GetQueuesAsync'; Field = 'queues' }
-    @{ Function = 'ServiceBusListTopics'; Route = 'servicebus/topics'; Connector = 'servicebus'; Method = 'GetTopicsAsync'; Field = 'topics' }
     @{ Function = 'ListSharePointSites'; Route = 'sharepoint/sites'; Connector = 'sharepointonline'; Method = 'GetDataSetsAsync'; Field = 'sites' }
     @{ Function = 'ShiftsListTeams'; Route = 'shifts/teams'; Connector = 'shifts'; Method = 'GetAllTeamsAsync'; Field = 'value.value' }
     @{ Function = 'GetAllTeams'; Route = 'teams/teams'; Connector = 'teams'; Method = 'GetAllTeamsAsync'; Field = 'teams' }

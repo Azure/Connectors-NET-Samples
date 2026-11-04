@@ -137,23 +137,6 @@ public class AzureTablesFunctions
         }
     }
 
-    [Function("AzureTablesCreateTable")]
-    public Task<HttpResponseData> CreateTableAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "azuretables/tables")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        return this.ExecuteAsync(
-            request,
-            operationName: "AzureTablesCreateTable",
-            operation: () => this._azureTablesClient
-                .CreateTableAsync(
-                storageAccountNameOrTableEndpoint: request.Query["storageAccount"]!,
-                input: request.Query["table"]!,
-                cancellationToken: cancellationToken),
-            requiredParameters: ["storageAccount", "table"],
-            cancellationToken: cancellationToken);
-    }
-
     [Function("AzureTablesGetTable")]
     public Task<HttpResponseData> GetTableAsync(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "azuretables/table")] HttpRequestData request,
@@ -255,29 +238,6 @@ public class AzureTablesFunctions
             cancellationToken: cancellationToken);
     }
 
-    [Function("AzureTablesDeleteEntity")]
-    public Task<HttpResponseData> DeleteEntityAsync(
-        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "azuretables/entity")] HttpRequestData request,
-        CancellationToken cancellationToken)
-    {
-        return this.ExecuteAsync(
-            request,
-            operationName: "AzureTablesDeleteEntity",
-            operation: async () =>
-            {
-                await this._azureTablesClient
-                    .DeleteEntityAsync(
-                        storageAccountNameOrTableEndpoint: request.Query["storageAccount"]!,
-                        table: request.Query["table"]!,
-                        partitionKey: request.Query["partitionKey"]!,
-                        rowKey: request.Query["rowKey"]!,
-                        cancellationToken: cancellationToken)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-                return new { deleted = true };
-            },
-            requiredParameters: ["storageAccount", "table", "partitionKey", "rowKey"],
-            cancellationToken: cancellationToken);
-    }
     [Function("AzureTablesMergeEntity")]
     public Task<HttpResponseData> MergeEntityAsync(
         [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "azuretables/entity")] HttpRequestData request,

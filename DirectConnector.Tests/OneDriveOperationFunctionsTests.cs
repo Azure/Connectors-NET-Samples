@@ -85,11 +85,12 @@ public class OneDriveOperationFunctionsTests
         Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         Assert.AreEqual(expected: 0, actual: handler.Requests);
     }
+
     private static OneDriveForBusinessClient CreateClient(DeleteHandler handler)
     {
-        var setup = TestHelpers.CreateMockedClientSetup(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage(statusCode: HttpStatusCode.OK));
         setup.Options.Transport = new HttpClientTransport(new HttpClient(handler));
-        return new OneDriveForBusinessClient(new Uri("https://test.azure.com/connection"), setup.Credential, setup.Options);
+        return new OneDriveForBusinessClient(connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"), credential: setup.Credential, options: setup.Options);
     }
 
     private sealed class DeleteHandler : HttpMessageHandler
@@ -104,9 +105,9 @@ public class OneDriveOperationFunctionsTests
             this.Requests++;
             this.Method = request.Method.Method;
             this.Path = request.RequestUri!.AbsolutePath;
-            return Task.FromResult(new HttpResponseMessage(this.Status)
+            return Task.FromResult(new HttpResponseMessage(statusCode: this.Status)
             {
-                Content = new StringContent("{\"Id\":\"owned-file\",\"FileLocator\":\"synthetic-locator\"}"),
+                Content = new StringContent(content: "{\"Id\":\"owned-file\",\"FileLocator\":\"synthetic-locator\"}"),
             });
         }
     }

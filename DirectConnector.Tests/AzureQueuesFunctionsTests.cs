@@ -19,9 +19,9 @@ public class AzureQueuesFunctionsTests
 {
     private static AzureQueuesClient CreateMockedClient(Func<HttpResponseMessage> responseFactory)
     {
-        var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory);
+        var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory: responseFactory);
         return new AzureQueuesClient(
-            connectionRuntimeUrl: new Uri("https://test.azure.com/connection"),
+            connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"),
             credential: credential,
             options: options);
     }
@@ -29,19 +29,22 @@ public class AzureQueuesFunctionsTests
     private static AzureQueuesClient CreateTransportClient(
         Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> onRequest)
     {
-        var (credential, options) = TestHelpers.CreateMockedClientSetup(
-            () => throw new InvalidOperationException("Unexpected fallback transport request."));
+        var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory:
+            () => throw new InvalidOperationException(message: "Unexpected fallback transport request."));
         var handler = new Mock<HttpMessageHandler>();
         handler.Protected()
             .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
+                methodOrPropertyName: "SendAsync",
+                args: new object[]
+                {
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>(),
+                })
             .Returns((HttpRequestMessage request, CancellationToken token) => onRequest(request, token));
         options.Transport = new HttpClientTransport(new HttpClient(handler.Object));
 
         return new AzureQueuesClient(
-            connectionRuntimeUrl: new Uri("https://test.azure.com/connection"),
+            connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"),
             credential: credential,
             options: options);
     }
@@ -62,7 +65,7 @@ public class AzureQueuesFunctionsTests
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(JsonSerializer.Serialize(accountsResponse)),
+            Content = new StringContent(content: JsonSerializer.Serialize(accountsResponse)),
         });
 
         var functions = new AzureQueuesFunctions(
@@ -89,7 +92,7 @@ public class AzureQueuesFunctionsTests
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent("[]"),
+            Content = new StringContent(content: "[]"),
         });
 
         var functions = new AzureQueuesFunctions(
@@ -121,7 +124,7 @@ public class AzureQueuesFunctionsTests
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(JsonSerializer.Serialize(queuesResponse)),
+            Content = new StringContent(content: JsonSerializer.Serialize(queuesResponse)),
         });
 
         var functions = new AzureQueuesFunctions(
@@ -148,7 +151,7 @@ public class AzureQueuesFunctionsTests
         using var client = CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.ServiceUnavailable,
-            Content = new StringContent("{\"error\":{\"code\":\"ServiceUnavailable\",\"message\":\"Connector temporarily unavailable\"}}"),
+            Content = new StringContent(content: "{\"error\":{\"code\":\"ServiceUnavailable\",\"message\":\"Connector temporarily unavailable\"}}"),
         });
 
         var functions = new AzureQueuesFunctions(
@@ -186,7 +189,7 @@ public class AzureQueuesFunctionsTests
         using var client = AzureQueuesFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(responseJson),
+            Content = new StringContent(content: responseJson),
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
@@ -237,7 +240,7 @@ public class AzureQueuesFunctionsTests
         using var client = AzureQueuesFunctionsTests.CreateMockedClient(() => new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent("{"),
+            Content = new StringContent(content: "{"),
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
@@ -282,7 +285,7 @@ public class AzureQueuesFunctionsTests
     public async Task AzureQueuesPutQueueAsync_WithValidQuery_DispatchesGeneratedPutAndReturnsValue()
     {
         var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
             Assert.AreEqual(expected: HttpMethod.Put, actual: outbound.Method);
@@ -293,7 +296,7 @@ public class AzureQueuesFunctionsTests
             return Task.FromResult(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("\"created\""),
+                Content = new StringContent(content: "\"created\""),
             });
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
@@ -353,7 +356,7 @@ public class AzureQueuesFunctionsTests
     public async Task AzureQueuesDeleteMessageAsync_WithPopReceipt_EncodesReceiptAndReturnsIdentity()
     {
         var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
             Assert.AreEqual(expected: HttpMethod.Delete, actual: outbound.Method);
@@ -361,7 +364,7 @@ public class AzureQueuesFunctionsTests
                 expected: "/connection/v2/storageAccounts/account-demo/queues/temporary-queue/messages/message-1?popreceipt=receipt%2B1%2F2%3D",
                 actual: outbound.RequestUri!.PathAndQuery);
             Assert.IsNull(outbound.Content);
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            return Task.FromResult(new HttpResponseMessage(statusCode: HttpStatusCode.NoContent));
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
@@ -386,7 +389,7 @@ public class AzureQueuesFunctionsTests
         const string payload = """
             {"QueueMessagesList":{"QueueMessage":[{"MessageId":"message-1","PopReceipt":"receipt-1","MessageText":"hello"}]}}
             """;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
             Assert.AreEqual(expected: HttpMethod.Get, actual: outbound.Method);
@@ -396,7 +399,7 @@ public class AzureQueuesFunctionsTests
             return Task.FromResult(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(payload),
+                Content = new StringContent(content: payload),
             });
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
@@ -422,10 +425,10 @@ public class AzureQueuesFunctionsTests
     public async Task AzureQueuesPutQueueAsync_WithInvalidQuery_Returns400WithoutDispatch(string url, string expectedParameter)
     {
         var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            return Task.FromResult(new HttpResponseMessage(statusCode: HttpStatusCode.OK));
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
 
@@ -435,7 +438,7 @@ public class AzureQueuesFunctionsTests
 
         Assert.AreEqual(expected: 0, actual: calls);
         Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
-        StringAssert.Contains(((MockHttpResponseData)response).GetBodyAsString(), expectedParameter);
+        StringAssert.Contains(value: ((MockHttpResponseData)response).GetBodyAsString(), substring: expectedParameter);
     }
 
     [TestMethod]
@@ -466,10 +469,10 @@ public class AzureQueuesFunctionsTests
     public async Task AzureQueuesDeleteMessageAsync_WithMissingReceipt_Returns400WithoutDispatch()
     {
         var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            return Task.FromResult(new HttpResponseMessage(statusCode: HttpStatusCode.OK));
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
@@ -482,24 +485,32 @@ public class AzureQueuesFunctionsTests
 
         Assert.AreEqual(expected: 0, actual: calls);
         Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
-        StringAssert.Contains(((MockHttpResponseData)response).GetBodyAsString(), "popReceipt");
+        StringAssert.Contains(value: ((MockHttpResponseData)response).GetBodyAsString(), substring: "popReceipt");
     }
 
     [TestMethod]
-    [DataRow("numberOfMessages=0")]
-    [DataRow("numberOfMessages=33")]
-    [DataRow("numberOfMessages=1.5")]
-    [DataRow("numberOfMessages=")]
-    [DataRow("visibilityTimeout=-1")]
-    [DataRow("visibilityTimeout=604801")]
-    [DataRow("visibilityTimeout=abc")]
-    public async Task AzureQueuesGetMessagesAsync_WithInvalidNumericOption_Returns400WithoutDispatch(string option)
+    [Owner("daviburg")]
+    [DataRow("numberOfMessages=0", "?numofmessages=0")]
+    [DataRow("numberOfMessages=33", "?numofmessages=33")]
+    [DataRow("numberOfMessages=1.5", "?numofmessages=1.5")]
+    [DataRow("numberOfMessages=", "?numofmessages=")]
+    [DataRow("visibilityTimeout=0", "?visibilitytimeout=0")]
+    [DataRow("visibilityTimeout=-1", "?visibilitytimeout=-1")]
+    [DataRow("visibilityTimeout=604801", "?visibilitytimeout=604801")]
+    [DataRow("visibilityTimeout=abc", "?visibilitytimeout=abc")]
+    public async Task AzureQueuesGetMessagesAsync_WithUnconstrainedStringOptions_DefersValidationToConnector(
+        string option,
+        string expectedQuery)
     {
         var calls = 0;
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
         {
             calls++;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            Assert.AreEqual(expected: expectedQuery, actual: outbound.RequestUri!.Query);
+            return Task.FromResult(new HttpResponseMessage(statusCode: HttpStatusCode.BadRequest)
+            {
+                Content = new StringContent(content: "{\"error\":\"synthetic connector validation\"}"),
+            });
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = TestHelpers.CreateRequest(
@@ -507,11 +518,17 @@ public class AzureQueuesFunctionsTests
             url: $"https://localhost/api/azurequeues/messages?storageAccount=account-demo&queueName=temporary-queue&{option}");
 
         var response = await functions
-            .AzureQueuesGetMessagesAsync(request, CancellationToken.None)
+            .AzureQueuesGetMessagesAsync(request: request, cancellationToken: CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(expected: 0, actual: calls);
-        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
+        Assert.AreEqual(expected: 1, actual: calls);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
+        using var document = JsonDocument.Parse(json: ((MockHttpResponseData)response).GetBodyAsString());
+        Assert.IsFalse(condition: document.RootElement.GetProperty("success").GetBoolean());
+        Assert.AreEqual(expected: 400, actual: document.RootElement.GetProperty("statusCode").GetInt32());
+        StringAssert.Contains(
+            value: document.RootElement.GetProperty("details").GetString()!,
+            substring: "synthetic connector validation");
     }
 
     [TestMethod]
@@ -521,11 +538,11 @@ public class AzureQueuesFunctionsTests
     [DataRow("deleteMessage")]
     public async Task AzureQueuesMutation_WithConnectorFailure_Returns502WithStatusAndDetails(string operation)
     {
-        using var client = AzureQueuesFunctionsTests.CreateTransportClient((outbound, token) =>
+        using var client = AzureQueuesFunctionsTests.CreateTransportClient(onRequest: (outbound, token) =>
             Task.FromResult(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.BadRequest,
-                Content = new StringContent("{\"error\":\"synthetic failure\"}"),
+                Content = new StringContent(content: "{\"error\":\"synthetic failure\"}"),
             }));
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);
         var request = operation switch
@@ -537,15 +554,21 @@ public class AzureQueuesFunctionsTests
 
         var response = operation switch
         {
-            "putQueue" => await functions.AzureQueuesPutQueueAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            "putMessage" => await functions.AzureQueuesPutMessageAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            _ => await functions.AzureQueuesDeleteMessageAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
+            "putQueue" => await functions
+                .AzureQueuesPutQueueAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            "putMessage" => await functions
+                .AzureQueuesPutMessageAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            _ => await functions
+                .AzureQueuesDeleteMessageAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
         };
 
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
         Assert.IsFalse(document.RootElement.GetProperty("success").GetBoolean());
         Assert.AreEqual(expected: 400, actual: document.RootElement.GetProperty("statusCode").GetInt32());
-        StringAssert.Contains(document.RootElement.GetProperty("details").GetString()!, "synthetic failure");
+        StringAssert.Contains(value: document.RootElement.GetProperty("details").GetString()!, substring: "synthetic failure");
     }
 }

@@ -205,13 +205,27 @@ public class WordOnlineBusinessFunctionsTests
 
         var responses = new[]
         {
-            await functions.WordOnlineGetFileSchemaAsync(missing, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlinePopulateTemplateAsync(noSelectors, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlinePopulateTemplateAsync(malformed, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlinePopulateTemplateAsync(invalidShape, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlineCreateWordFileWithContentAsync(noContent, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlineGetFilePDFAsync(invalidPdf, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            await functions.WordOnlineGetFilePDFAsync(missingPdf, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlineGetFileSchemaAsync(request: missing, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlinePopulateTemplateAsync(request: noSelectors, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlinePopulateTemplateAsync(request: malformed, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlinePopulateTemplateAsync(request: invalidShape, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlineCreateWordFileWithContentAsync(request: noContent, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlineGetFilePDFAsync(request: invalidPdf, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            await functions
+                .WordOnlineGetFilePDFAsync(request: missingPdf, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
         };
 
         foreach (var response in responses)
@@ -295,10 +309,18 @@ public class WordOnlineBusinessFunctionsTests
 
         var response = operation switch
         {
-            "schema" => await functions.WordOnlineGetFileSchemaAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            "populate" => await functions.WordOnlinePopulateTemplateAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            "content" => await functions.WordOnlineCreateWordFileWithContentAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            "pdf" => await functions.WordOnlineGetFilePDFAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
+            "schema" => await functions
+                .WordOnlineGetFileSchemaAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            "populate" => await functions
+                .WordOnlinePopulateTemplateAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            "content" => await functions
+                .WordOnlineCreateWordFileWithContentAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            "pdf" => await functions
+                .WordOnlineGetFilePDFAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
             _ => throw new InvalidOperationException("Unexpected test operation."),
         };
 

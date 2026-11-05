@@ -160,7 +160,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteAsync(
-            request,
+            request: request,
             operationName: "AzureTablesGetTable",
             operation: () => this._azureTablesClient
                 .GetTableAsync(
@@ -177,7 +177,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteAsync(
-            request,
+            request: request,
             operationName: "AzureTablesDeleteTable",
             operation: async () =>
             {
@@ -199,7 +199,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteAsync(
-            request,
+            request: request,
             operationName: "AzureTablesGetEntities",
             operation: () => this._azureTablesClient
                 .GetEntitiesAsync(
@@ -218,7 +218,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteAsync(
-            request,
+            request: request,
             operationName: "AzureTablesGetEntity",
             operation: () => this._azureTablesClient
                 .GetEntityAsync(
@@ -238,7 +238,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteWriteAsync<CreateEntityInput, InsertEntityResponse>(
-            request,
+            request: request,
             operationName: "AzureTablesCreateEntity",
             operation: async input =>
             {
@@ -284,7 +284,7 @@ public class AzureTablesFunctions
         CancellationToken cancellationToken)
     {
         return this.ExecuteWriteAsync<MergeEntityInput, bool>(
-            request,
+            request: request,
             operationName: "AzureTablesMergeEntity",
             operation: async input =>
             {
@@ -303,13 +303,14 @@ public class AzureTablesFunctions
             requiresBodyKeys: false,
             cancellationToken: cancellationToken);
     }
+
     [Function("AzureTablesReplaceEntity")]
     public Task<HttpResponseData> ReplaceEntityAsync(
         [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azuretables/entity")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         return this.ExecuteWriteAsync<ReplaceEntityInput, bool>(
-            request,
+            request: request,
             operationName: "AzureTablesReplaceEntity",
             operation: async input =>
             {
@@ -328,13 +329,14 @@ public class AzureTablesFunctions
             requiresBodyKeys: false,
             cancellationToken: cancellationToken);
     }
+
     [Function("AzureTablesInsertMergeEntity")]
     public Task<HttpResponseData> InsertMergeEntityAsync(
         [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "azuretables/entity/upsert")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         return this.ExecuteWriteAsync<InsertMergeEntityInput, bool>(
-            request,
+            request: request,
             operationName: "AzureTablesInsertMergeEntity",
             operation: async input =>
             {
@@ -353,13 +355,14 @@ public class AzureTablesFunctions
             requiresBodyKeys: false,
             cancellationToken: cancellationToken);
     }
+
     [Function("AzureTablesInsertReplaceEntity")]
     public Task<HttpResponseData> InsertReplaceEntityAsync(
         [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azuretables/entity/upsert")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
         return this.ExecuteWriteAsync<InsertReplaceEntityInput, bool>(
-            request,
+            request: request,
             operationName: "AzureTablesInsertReplaceEntity",
             operation: async input =>
             {
@@ -378,6 +381,7 @@ public class AzureTablesFunctions
             requiresBodyKeys: false,
             cancellationToken: cancellationToken);
     }
+
     private Task<HttpResponseData> ExecuteAsync<TResult>(
         HttpRequestData request,
         string operationName,

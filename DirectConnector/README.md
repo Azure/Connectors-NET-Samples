@@ -104,41 +104,46 @@ temporary name and verify deletion afterward.
 | `GET /api/azurequeues/queues` | `ListQueuesAsync` | Required `storageAccount` query |
 | `PUT /api/azurequeues/queues` | `PutQueueAsync` | Required `storageAccount`, `queueName` queries |
 | `POST /api/azurequeues/messages/send` | `PutMessageAsync` | Same selectors and a non-empty text body; each call appends a message |
-| `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` (1-32) and `visibilityTimeout` (0-604800 seconds) |
+| `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` and `visibilityTimeout` strings |
 | `DELETE /api/azurequeues/messages` | `DeleteMessageAsync` | Same selectors plus returned `messageId` and `popReceipt` |
 
-Sending appends a message and retrieval changes visibility, so both use POST
-on distinct routes. Do not automatically retry a send after an uncertain
-response; first check whether the original message was accepted. Use only newly owned queues for
-lifecycle tests. SDK 0.15 JSON-serializes string request bodies: a live message
-round-trip returned the JSON-encoded string, including its quotes. Do not infer
-an unchanged plain-text payload from an HTTP 200 response alone.
+The managed connector publishes both optional message options as strings, with
+no numeric range or format constraints. The sample forwards supplied values
+unchanged and preserves downstream validation errors; it does not infer extra
+client-side limits from the underlying Storage REST API.
 
-The generated Azure Queues client has no queue-delete operation. Verify an
-independent, authorized cleanup path before creating a queue. Do not delete a
-pre-existing queue or consume unrelated messages just to validate the SDK.
+Sending appends a message and receiving changes its visibility, so both use
+POST on distinct routes. Do not automatically retry a send after an uncertain
+response; first check whether the original message was accepted. Use only owned
+queues/messages for lifecycle tests. SDK 0.15 adds JSON quotes to string bodies;
+correct plain-text sending remains gated on a released fix and live revalidation.
+Queue deletion is not exposed by the SDK; arrange independent cleanup for an
+owned test queue.
 
 ### Azure Tables
 
-All table/entity routes require the discovery-derived `storageAccount` query.
-Except for account/table listing, also supply `table`. Entity-specific routes
-require `partitionKey` and `rowKey`.
+Discovery, entity creation, and single-entity operations take different selectors.
+Creation reads `PartitionKey` and `RowKey` from the JSON body, not the query.
+Single-entity reads, merge/replacement, and upserts require `partitionKey` and
+`rowKey` queries; their update bodies do not require duplicate key fields.
+The [minimal-input dispatch tests](../DirectConnector.Tests/AzureTablesFunctionsTests.cs)
+exercise these distinctions through the actual handlers and generated client.
 
-| Route | Generated SDK method | Input / output |
-|-------|----------------------|----------------|
-| `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | Account discovery |
-| `GET /api/azuretables/tables` | `GetTablesAsync` | Table discovery |
-| `POST /api/azuretables/tables` | `CreateTableAsync` | `storageAccount`, `table` queries |
-| `GET /api/azuretables/table` | `GetTableAsync` | Table metadata |
-| `DELETE /api/azuretables/table` | `DeleteTableAsync` | Explicit deletion result |
-| `GET /api/azuretables/entities` | `GetEntitiesAsync` | Optional `$filter`, `$select` queries |
-| `GET /api/azuretables/entity` | `GetEntityAsync` | Optional `$select` query |
-| `POST /api/azuretables/entities` | `CreateEntityAsync` | JSON object containing non-empty `PartitionKey` and `RowKey` strings plus entity columns |
-| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | JSON entity columns |
-| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | JSON replacement entity |
-| `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | JSON merge entity |
-| `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | JSON replacement entity |
-| `DELETE /api/azuretables/entity` | `DeleteEntityAsync` | Explicit deletion result |
+| Route | Generated SDK method | Required queries | Body / options |
+|---|---|---|---|
+| `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | None | Account discovery |
+| `GET /api/azuretables/tables` | `GetTablesAsync` | `storageAccount` | Table discovery |
+| `POST /api/azuretables/tables` | `CreateTableAsync` | `storageAccount`, `table` | Deferred string-body operation; requires a released SDK fix |
+| `GET /api/azuretables/table` | `GetTableAsync` | `storageAccount`, `table` | Table metadata |
+| `DELETE /api/azuretables/table` | `DeleteTableAsync` | `storageAccount`, `table` | Explicit deletion result |
+| `GET /api/azuretables/entities` | `GetEntitiesAsync` | `storageAccount`, `table` | Optional `$filter`, `$select` queries |
+| `GET /api/azuretables/entity` | `GetEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Optional `$select` query |
+| `POST /api/azuretables/entities` | `CreateEntityAsync` | `storageAccount`, `table` | JSON object with nonempty `PartitionKey`, `RowKey` strings and entity columns |
+| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON entity columns |
+| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement entity |
+| `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON merge columns; body keys not required |
+| `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement columns; body keys not required |
+| `DELETE /api/azuretables/entity` | `DeleteEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Deferred operation; live 404 remains unresolved |
 
 SDK 0.15's string-body table-create call was rejected with
 `InvalidResourceName` for a valid alphanumeric test name. The SDK serializes its
@@ -178,24 +183,20 @@ Run the checks from another PowerShell 7 terminal:
     -OutputPath "$env:TEMP\connector-smoke-results.json"
 ```
 
-The output distinguishes `Succeeded`, `ExpectedPermissionFailure`, and `Failed`.
-Only the known Defender `ViewData` permission rejection is accepted as SDK
-failure-path validation; it is not a successful alert data read. Other permission
-errors, missing response fields, malformed JSON, and timeouts remain failures.
-Every discovery operation checks its exact collection path, including nested
-`value` arrays and Bookings' `mailboxes` array. Empty arrays are valid;
-missing, null, object-shaped, or string-shaped collections are not.
-Paths follow the Function's JSON response, not just the SDK return type:
-Graph users and Teams membership project SDK envelopes into flat arrays.
-The runner exits by throwing when any required check fails, and saves structured
-results when an output path is supplied. It never saves response payloads or
-runtime connection URLs.
+The output distinguishes `Succeeded`, `ExpectedPermissionFailure`, and
+`Failed`. The exact Defender rejection confirms SDK dispatch/error handling,
+not successful alert-data access. Every other failure makes the runner throw.
+Function responses and connector error details must have JSON object roots;
+empty, singleton, and multiple-item root arrays are rejected without unwrapping.
+All 17 nested collection paths require arrays, allowing empty/nonempty arrays;
+Graph users and Teams membership use the Function's projected flat arrays.
+The runner never saves service payloads, runtime URLs, or credentials.
 
-Run `Invoke-ConnectorSmoke.Tests.ps1` for deterministic runner regression checks.
-These checks also run in pull-request CI targeting `main` or the explicit
-`feature/sdk-0.15-samples` and `feature/expanded-sdk-operation-samples` prerequisite branches.
-Live calls remain manual and credential-dependent; CI does not use real
-connection URLs. Stop the local host after validation.
+Run `Invoke-ConnectorSmoke.Tests.ps1` for the 24 deterministic regression
+scenarios, which run in ordinary PR CI targeting `main`. Stacked PRs run these
+checks locally until their prerequisite merges and they are retargeted to `main`;
+do not add branch-specific CI exceptions. Live checks require private credentials.
+Stop the local host after validation.
 
 ### Review regression coverage
 

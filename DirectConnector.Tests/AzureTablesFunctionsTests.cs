@@ -14,6 +14,7 @@ namespace DirectConnector.Tests;
 public class AzureTablesFunctionsTests
 {
     [TestMethod]
+    [Owner("daviburg")]
     [DataRow("GetStorageAccounts", "GET", "/v2/GetStorageAccounts")]
     [DataRow("ListTables", "GET", "/v2/storageAccounts/account/tables")]
     [DataRow("CreateTable", "POST", "/v2/storageAccounts/account/tables")]
@@ -32,13 +33,22 @@ public class AzureTablesFunctionsTests
         using var handler = new RecordingHandler();
         using var client = AzureTablesFunctionsTests.CreateClient(handler);
         var functions = new AzureTablesFunctions(TestHelpers.CreateNullLogger<AzureTablesFunctions>(), client);
+        var query = operation switch
+        {
+            "GetStorageAccounts" => string.Empty,
+            "ListTables" => "?storageAccount=account",
+            "GetTable" or "DeleteTable" or "GetEntities" or "CreateEntity" => "?storageAccount=account&table=SdkTable",
+            _ => "?storageAccount=account&table=SdkTable&partitionKey=partition&rowKey=row",
+        };
         var request = TestHelpers.CreateRequest(
-            body: "{\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"Message\":\"synthetic\"}",
+            body: string.Equals(operation, "CreateEntity", StringComparison.Ordinal)
+                ? "{\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"Message\":\"synthetic\"}"
+                : "{\"Message\":\"synthetic\"}",
             method: method,
-            url: "https://localhost/api/azuretables?storageAccount=account&table=SdkTable&partitionKey=partition&rowKey=row");
+            url: "https://localhost/api/azuretables" + query);
 
         var response = await AzureTablesFunctionsTests
-            .InvokeAsync(functions, operation, request)
+            .InvokeAsync(functions: functions, operation: operation, request: request)
             .ConfigureAwait(continueOnCapturedContext: false);
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
@@ -55,9 +65,10 @@ public class AzureTablesFunctionsTests
         {
             using var body = JsonDocument.Parse(handler.Body!);
             Assert.AreEqual(expected: "synthetic", actual: body.RootElement.GetProperty("Message").GetString());
-            Assert.AreEqual(expected: "partition", actual: body.RootElement.GetProperty("PartitionKey").GetString());
             if (string.Equals(operation, "CreateEntity", StringComparison.Ordinal))
             {
+                Assert.AreEqual(expected: "partition", actual: body.RootElement.GetProperty("PartitionKey").GetString());
+                Assert.AreEqual(expected: "row", actual: body.RootElement.GetProperty("RowKey").GetString());
                 Assert.AreEqual(expected: "partition", actual: result.RootElement.GetProperty("value").GetProperty("PartitionKey").GetString());
             }
         }
@@ -139,9 +150,9 @@ public class AzureTablesFunctionsTests
 
     private static AzureTablesClient CreateClient(RecordingHandler handler)
     {
-        var setup = TestHelpers.CreateMockedClientSetup(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage(statusCode: HttpStatusCode.OK));
         setup.Options.Transport = new HttpClientTransport(new HttpClient(handler));
-        return new AzureTablesClient(new Uri("https://test.azure.com/connection"), setup.Credential, setup.Options);
+        return new AzureTablesClient(connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"), credential: setup.Credential, options: setup.Options);
     }
 
     private static Task<HttpResponseData> InvokeAsync(AzureTablesFunctions functions, string operation, HttpRequestData request)
@@ -161,7 +172,7 @@ public class AzureTablesFunctionsTests
             "ReplaceEntity" => functions.ReplaceEntityAsync(request, CancellationToken.None),
             "InsertMergeEntity" => functions.InsertMergeEntityAsync(request, CancellationToken.None),
             "InsertReplaceEntity" => functions.InsertReplaceEntityAsync(request, CancellationToken.None),
-            _ => throw new ArgumentException("Unknown test operation.", nameof(operation)),
+            _ => throw new ArgumentException(message: "Unknown test operation.", paramName: nameof(operation)),
         };
     }
 
@@ -182,10 +193,12 @@ public class AzureTablesFunctionsTests
             this.Query = request.RequestUri.Query;
             this.Body = request.Content is null
                 ? null
-                : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-            return new HttpResponseMessage(this.Status)
+                : await request.Content
+                    .ReadAsStringAsync(cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false);
+            return new HttpResponseMessage(statusCode: this.Status)
             {
-                Content = new StringContent("{\"TableName\":\"SdkTable\",\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"value\":[]}"),
+                Content = new StringContent(content: "{\"TableName\":\"SdkTable\",\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"value\":[]}"),
             };
         }
     }

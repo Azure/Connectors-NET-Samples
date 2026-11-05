@@ -490,8 +490,12 @@ public class AzureQueuesFunctionsTests
 
         var response = operation switch
         {
-            "putQueue" => await functions.AzureQueuesPutQueueAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
-            _ => await functions.AzureQueuesDeleteMessageAsync(request, CancellationToken.None).ConfigureAwait(continueOnCapturedContext: false),
+            "putQueue" => await functions
+                .AzureQueuesPutQueueAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
+            _ => await functions
+                .AzureQueuesDeleteMessageAsync(request: request, cancellationToken: CancellationToken.None)
+                .ConfigureAwait(continueOnCapturedContext: false),
         };
 
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);

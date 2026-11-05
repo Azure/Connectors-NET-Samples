@@ -183,7 +183,9 @@ public class AzureTablesFunctionsTests
             this.Query = request.RequestUri.Query;
             this.Body = request.Content is null
                 ? null
-                : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                : await request.Content
+                    .ReadAsStringAsync(cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false);
             return new HttpResponseMessage(statusCode: this.Status)
             {
                 Content = new StringContent(content: "{\"TableName\":\"SdkTable\",\"PartitionKey\":\"partition\",\"RowKey\":\"row\",\"value\":[]}"),

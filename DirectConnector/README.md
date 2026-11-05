@@ -30,7 +30,7 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `GET /api/universalprint/shares` | Universal Print | List recent printer shares |
 | `GET /api/dataverse/environments` | Microsoft Dataverse | Discover accessible Dataverse environments |
 | `GET /api/dataverse/tables?environment=...` | Microsoft Dataverse | List tables in an environment |
-| `GET /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | List records with filtering and pagination options |
+| `GET /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | List records across all connector pages; supports `$filter`, `$orderby`, and `$top` |
 | `GET /api/dataverse/nextpage?nextLink=...` | Microsoft Dataverse | Follow a connector next-link value to retrieve the next page |
 | `GET /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Read a record by ID |
 | `POST /api/dataverse/items?environment=...&tableName=...` | Microsoft Dataverse | Create a record from a JSON body |

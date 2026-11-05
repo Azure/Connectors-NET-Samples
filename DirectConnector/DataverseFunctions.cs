@@ -118,15 +118,24 @@ public class DataverseFunctions
         return this.ExecuteAsync(
             request,
             operationName: "DataverseListItems",
-            operation: async () => await this._dataverseClient
-                .GetItemsAsync(
-                    environment: environment,
-                    tableName: tableName,
-                    filterQuery: request.Query["$filter"],
-                    orderBy: request.Query["$orderby"],
-                    topCount: topCount,
-                    cancellationToken: cancellationToken)
-                .ConfigureAwait(continueOnCapturedContext: false),
+            operation: async () =>
+            {
+                var items = new List<Item>();
+                await foreach (var item in this._dataverseClient
+                    .GetItemsAsync(
+                        environment: environment,
+                        tableName: tableName,
+                        filterQuery: request.Query["$filter"],
+                        orderBy: request.Query["$orderby"],
+                        topCount: topCount,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false))
+                {
+                    items.Add(item);
+                }
+
+                return new ItemsList { Value = items };
+            },
             cancellationToken: cancellationToken);
     }
 

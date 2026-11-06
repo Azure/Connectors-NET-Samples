@@ -1,0 +1,141 @@
+#requires -Version 7.0
+#------------------------------------------------------------
+# Copyright (c) Microsoft Corporation. All rights reserved.
+#------------------------------------------------------------
+$ErrorActionPreference = 'Stop'
+$runner = Join-Path $PSScriptRoot 'Invoke-ConnectorSmoke.ps1'
+$output = Join-Path ([IO.Path]::GetTempPath()) ('connector-smoke-test-' + [guid]::NewGuid().ToString('N') + '.json')
+$state = [pscustomobject]@{ Mode = 'Succeeded'; Requests = 0 }
+
+function Invoke-WebRequest {
+    param([uri] $Uri, [int] $TimeoutSec, [switch] $SkipHttpErrorCheck)
+    $state.Requests++
+    if (-not $SkipHttpErrorCheck -or $TimeoutSec -lt 1) { throw 'Request contract is missing bounded timeout or error-response handling.' }
+    $payload = @{
+        success = $true; value = @(); subscriptions = @(); topicTypes = @(); storageAccounts = @();
+        accounts = @(); eventHubs = @(); contentTypes = @(); sources = @(); users = @(); groups = @();
+        categories = @(); files = @(); calendars = @(); contactFolders = @(); tasks = @(); queues = @();
+        topics = @(); sites = @(); teams = @(); shares = @(); networks = @(); drives = @(); alerts = @()
+    }
+    if ($Uri.AbsolutePath.EndsWith('/users/me', [StringComparison]::Ordinal)) {
+        return @{ StatusCode = 200; Content = '{"Id":"synthetic-user"}' }
+    }
+    if ($Uri.AbsolutePath.EndsWith('/dataverse/environments', [StringComparison]::Ordinal)) {
+        return @{ StatusCode = 200; Content = '{"value":[]}' }
+    }
+    if ($Uri.AbsolutePath.EndsWith('/wdatp/alerts', [StringComparison]::Ordinal) -and $state.Mode -in @('ExpectedDefender', 'WrongDefender', 'ArrayDefenderDetails', 'ArrayDefenderResponse')) {
+        $message = if ($state.Mode -in @('ExpectedDefender', 'ArrayDefenderDetails', 'ArrayDefenderResponse')) {
+            'Missing user permissions. API required permissions: ViewData, user permissions: None.'
+        } else { 'Different authorization failure.' }
+        $detail = @{ error = @{ code = 'Forbidden'; message = $message } } | ConvertTo-Json -Compress
+        if ($state.Mode -ceq 'ArrayDefenderDetails') { $detail = '[' + $detail + ']' }
+        $body = @{ success = $false; statusCode = 403; details = $detail } | ConvertTo-Json -Compress
+        if ($state.Mode -ceq 'ArrayDefenderResponse') { $body = '[' + $body + ']' }
+        return @{ StatusCode = 502; Content = $body }
+    }
+    if ($Uri.AbsolutePath.EndsWith('/arm/subscriptions', [StringComparison]::Ordinal)) {
+        switch ($state.Mode) {
+            'FalseSuccess' { return @{ StatusCode = 200; Content = '{"success":false,"subscriptions":[]}' } }
+            'MissingPayload' { return @{ StatusCode = 200; Content = '{"success":true}' } }
+            'StringSuccess' { return @{ StatusCode = 200; Content = '{"success":"true","subscriptions":[]}' } }
+            'SingletonRootArray' { return @{ StatusCode = 200; Content = '[{"success":true,"subscriptions":[]}]' } }
+            'EmptyRootArray' { return @{ StatusCode = 200; Content = '[]' } }
+            'MultipleRootArray' { return @{ StatusCode = 200; Content = '[{"success":true,"subscriptions":[]},{"success":true,"subscriptions":[]}]' } }
+            'Malformed' { return @{ StatusCode = 200; Content = '{' } }
+        }
+    }
+    $envelopeFields = @{
+        '/api/eventgrid/topictypes' = 'topicTypes'
+        '/api/eventgrid/subscriptions' = 'subscriptions'
+        '/api/azurequeues/storageaccounts' = 'storageAccounts'
+        '/api/azuretables/storageaccounts' = 'storageAccounts'
+        '/api/cosmosdb/accounts' = 'accounts'
+        '/api/excel/sources' = 'sources'
+        '/api/microsoftbookings/businesses' = 'value'
+        '/api/graph/groups' = 'groups'
+        '/api/office365groupsmail/groups' = 'value'
+        '/api/outlook/calendars' = 'calendars'
+        '/api/outlook/contactfolders' = 'contactFolders'
+        '/api/planner/groups' = 'groups'
+        '/api/powerbi/workspaces' = 'value'
+        '/api/shifts/teams' = 'value'
+        '/api/universalprint/shares' = 'shares'
+        '/api/wordonline/sources' = 'sources'
+        '/api/wordonline/drives' = 'drives'
+    }
+    if ($envelopeFields.ContainsKey($Uri.AbsolutePath)) {
+        $field = $envelopeFields[$Uri.AbsolutePath]
+        $collection = if ($Uri.AbsolutePath -ceq '/api/microsoftbookings/businesses') { 'mailboxes' } else { 'value' }
+        $payload[$field] = switch ($state.Mode) {
+            'MissingCollection' { @{} }
+            'NullCollection' { @{ $collection = $null } }
+            'ErrorCollection' { @{ error = 'denied' } }
+            'ObjectCollection' { @{ $collection = @{} } }
+            'StringCollection' { @{ $collection = 'invalid' } }
+            'ArrayEnvelope' { ,@() }
+            'NonemptyCollections' { @{ $collection = @(@{ name = 'synthetic-item' }) } }
+            default { @{ $collection = @() } }
+        }
+    }
+    return @{ StatusCode = 200; Content = ($payload | ConvertTo-Json -Depth 3 -Compress) }
+}
+
+try {
+    $functions = @(& $runner -ListFunctions)
+    if ($functions.Count -ne 34 -or @($functions | Select-Object -Unique).Count -ne 34) { throw 'Smoke discovery inventory is incomplete or ambiguous.' }
+    if ($state.Requests -ne 0) { throw 'Inventory listing must not issue requests.' }
+    foreach ($mode in @('Succeeded', 'ExpectedDefender', 'NonemptyCollections', 'FalseSuccess', 'MissingPayload', 'StringSuccess', 'Malformed', 'WrongDefender',
+            'SingletonRootArray', 'EmptyRootArray', 'MultipleRootArray', 'ArrayDefenderDetails', 'ArrayDefenderResponse',
+            'MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
+        $state.Mode = $mode
+        $state.Requests = 0
+        $failed = $false
+        try { $null = & $runner -OutputPath $output } catch {
+            if ($_.Exception.Message -notlike 'Some smoke operations did not validate.*') { throw }
+            $failed = $true
+        }
+        $results = Get-Content -LiteralPath $output -Raw | ConvertFrom-Json -ErrorAction Stop
+        if (@($results).Count -ne 34 -or $state.Requests -ne 34) { throw "Scenario '$mode' did not cover all requests." }
+        $expectedFailure = $mode -notin @('Succeeded', 'ExpectedDefender', 'NonemptyCollections')
+        if ($failed -ne $expectedFailure) { throw "Scenario '$mode' returned the wrong terminal result." }
+        $expectedCount = if ($mode -eq 'ExpectedDefender') { 1 } else { 0 }
+        if (@($results | Where-Object Outcome -EQ 'ExpectedPermissionFailure').Count -ne $expectedCount) { throw "Scenario '$mode' misclassified permission failures." }
+        if ($mode -eq 'ExpectedDefender') {
+            $defender = $results | Where-Object Function -EQ 'WdatpGetAlerts'
+            if (-not $defender.SdkValidationPassed -or $defender.DataReadSucceeded) { throw 'Permission-error validation must not claim a successful data read.' }
+        }
+        if ($mode -in @('SingletonRootArray', 'EmptyRootArray', 'MultipleRootArray')) {
+            $arm = $results | Where-Object Function -CEQ 'ArmListSubscriptions'
+            if ($arm.HttpStatus -ne 200 -or $arm.Outcome -cne 'Failed' -or $arm.SdkValidationPassed -or $arm.DataReadSucceeded) {
+                throw "Scenario '$mode' accepted an invalid Function root array."
+            }
+        }
+        if ($mode -in @('ArrayDefenderDetails', 'ArrayDefenderResponse')) {
+            $defender = $results | Where-Object Function -CEQ 'WdatpGetAlerts'
+            if ($defender.Outcome -cne 'Failed' -or $defender.SdkValidationPassed -or $defender.DataReadSucceeded) {
+                throw 'Array-shaped connector errors must not satisfy the accepted Defender object contract.'
+            }
+        }
+        if ($mode -in @('MissingCollection', 'NullCollection', 'ErrorCollection', 'ObjectCollection', 'StringCollection', 'ArrayEnvelope')) {
+            $wordResults = @($results | Where-Object Function -In @('WordOnlineGetSources', 'WordOnlineGetDrives'))
+            if ($wordResults.Count -ne 2 -or @($wordResults | Where-Object { $_.Outcome -cne 'Failed' -or $_.SdkValidationPassed -or $_.DataReadSucceeded }).Count -ne 0) {
+                throw "Scenario '$mode' did not reject both invalid Word collection contracts."
+            }
+            if (@($results | Where-Object { $_.Outcome -ceq 'Failed' -and -not $_.SdkValidationPassed -and -not $_.DataReadSucceeded }).Count -ne 17) {
+                throw "Scenario '$mode' did not reject every nested collection contract."
+            }
+        }
+    }
+    $state.Requests = 0
+    $rejected = $false
+    foreach ($baseUri in @('https://example.invalid', 'http://user@127.0.0.1:7071', 'http://127.0.0.1:7071?x=1', 'http://127.0.0.1:7071#fragment')) {
+        $rejected = $false
+        try { $null = & $runner -BaseUri $baseUri -ListFunctions } catch { $rejected = $true }
+        if (-not $rejected -or $state.Requests -ne 0) { throw 'Unsupported target guard failed.' }
+    }
+    if (-not $rejected -or $state.Requests -ne 0) { throw 'Remote-target guard failed.' }
+    'Passed 24 smoke-runner regression scenarios; all request inventories were non-empty.'
+}
+finally {
+    if (Test-Path -LiteralPath $output) { Remove-Item -LiteralPath $output -ErrorAction Stop }
+}

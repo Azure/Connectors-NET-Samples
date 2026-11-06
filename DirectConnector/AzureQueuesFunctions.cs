@@ -86,7 +86,7 @@ public class AzureQueuesFunctions
     {
         var storageAccount = request.Query["storageAccount"];
 
-        if (string.IsNullOrEmpty(storageAccount))
+        if (string.IsNullOrWhiteSpace(storageAccount))
         {
             var badRequest = request.CreateResponse(HttpStatusCode.BadRequest);
             await badRequest
@@ -136,7 +136,7 @@ public class AzureQueuesFunctions
     }
 
     /// <summary>
-    /// Gets messages from a queue and demonstrates the SDK 0.14 nested message response.
+    /// Gets messages from a queue and demonstrates the nested message response.
     /// </summary>
     [Function("AzureQueuesGetMessages")]
     public async Task<HttpResponseData> AzureQueuesGetMessagesAsync(
@@ -154,14 +154,16 @@ public class AzureQueuesFunctions
             return response;
         }
 
+        var numberOfMessages = request.Query["numberOfMessages"];
+        var visibilityTimeout = request.Query["visibilityTimeout"];
         try
         {
             var result = await this._azureQueuesClient
                 .GetMessagesAsync(
                     storageAccountNameOrQueueEndpoint: storageAccount,
                     queueName: queueName,
-                    numberOfMessages: request.Query["numberOfMessages"],
-                    visibilityTimeout: request.Query["visibilityTimeout"],
+                    numberOfMessages: numberOfMessages,
+                    visibilityTimeout: visibilityTimeout,
                     cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
             var messages = (result.QueueMessagesList?.QueueMessage ?? [])
@@ -200,5 +202,85 @@ public class AzureQueuesFunctions
                 .ConfigureAwait(continueOnCapturedContext: false);
             return response;
         }
+    }
+
+    /// <summary>
+    /// Creates a queue in the selected storage account.
+    /// </summary>
+    [Function("AzureQueuesPutQueue")]
+    public Task<HttpResponseData> AzureQueuesPutQueueAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "put", Route = "azurequeues/queues")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName))
+        {
+            return AzureQueuesFunctions.CreateBadRequestAsync(
+                request: request, error: "Query parameters 'storageAccount' and 'queueName' are required.", cancellationToken: cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request: request,
+            logger: this._logger,
+            operationName: "AzureQueuesPutQueue",
+            operation: () => this._azureQueuesClient
+                .PutQueueAsync(
+                    storageAccountNameOrQueueEndpoint: storageAccount,
+                    queueName: queueName,
+                    cancellationToken: cancellationToken),
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Deletes a message using the message ID and pop receipt returned by GetMessages.
+    /// </summary>
+    [Function("AzureQueuesDeleteMessage")]
+    public Task<HttpResponseData> AzureQueuesDeleteMessageAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "azurequeues/messages")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        var storageAccount = request.Query["storageAccount"];
+        var queueName = request.Query["queueName"];
+        var messageId = request.Query["messageId"];
+        var popReceipt = request.Query["popReceipt"];
+        if (string.IsNullOrWhiteSpace(storageAccount) || string.IsNullOrWhiteSpace(queueName) ||
+            string.IsNullOrWhiteSpace(messageId) || string.IsNullOrWhiteSpace(popReceipt))
+        {
+            return AzureQueuesFunctions.CreateBadRequestAsync(
+                request,
+                "Query parameters 'storageAccount', 'queueName', 'messageId', and 'popReceipt' are required.",
+                cancellationToken);
+        }
+
+        return ConnectorFunctionExecutor.ExecuteAsync(
+            request: request,
+            logger: this._logger,
+            operationName: "AzureQueuesDeleteMessage",
+            operation: async () =>
+            {
+                await this._azureQueuesClient
+                    .DeleteMessageAsync(
+                        storageAccountNameOrQueueEndpoint: storageAccount,
+                        queueName: queueName,
+                        messageId: messageId,
+                        popReceipt: popReceipt,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false);
+                return new { storageAccount, queueName, messageId };
+            },
+            cancellationToken: cancellationToken);
+    }
+
+    private static async Task<HttpResponseData> CreateBadRequestAsync(
+        HttpRequestData request,
+        string error,
+        CancellationToken cancellationToken)
+    {
+        var response = request.CreateResponse(HttpStatusCode.BadRequest);
+        await response
+            .WriteAsJsonAsync(new { success = false, error }, cancellationToken)
+            .ConfigureAwait(continueOnCapturedContext: false);
+        return response;
     }
 }

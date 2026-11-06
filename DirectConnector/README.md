@@ -64,6 +64,122 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 3. **Direct API Call** - Calls the connector's REST API endpoint directly
 4. **API Connection** - Uses an existing API Connection you've created in Azure
 
+## E2E-validated operation expansion
+
+The samples use SDK `0.15.0-preview.1`. This change includes only additions
+already exercised successfully end to end: queue creation and receipt-based
+message deletion, table/entity reads and writes listed below, and OneDrive
+metadata/deletion. Existing Word source and drive discovery remains unchanged.
+
+The selected clients expose five Azure Queues methods and eleven Azure Tables
+methods. Across the 36 configured client types, sample code calls 115 of 680
+named SDK methods. These are code coverage counts, not a claim that every
+pre-existing sample operation is E2E validated.
+
+### Azure Queues
+
+| Route | Generated SDK method | Input / output |
+|---|---|---|
+| `GET /api/azurequeues/storageaccounts` | `GetStorageAccountsAsync` | Storage-account discovery |
+| `GET /api/azurequeues/queues` | `ListQueuesAsync` | Required `storageAccount` query |
+| `PUT /api/azurequeues/queues` | `PutQueueAsync` | Required `storageAccount`, `queueName` queries |
+| `POST /api/azurequeues/messages` | `GetMessagesAsync` | Same selectors; optional `numberOfMessages` and `visibilityTimeout` strings |
+| `DELETE /api/azurequeues/messages` | `DeleteMessageAsync` | Same selectors plus returned `messageId` and `popReceipt` |
+
+The managed connector publishes both optional message options as strings, with
+no numeric range or format constraints. The sample forwards supplied values
+unchanged and preserves downstream validation errors; it does not infer extra
+client-side limits from the underlying Storage REST API.
+
+Receiving changes message visibility, so it remains POST rather than a
+read-only GET. Use only owned queues/messages for lifecycle tests. Sending is
+excluded from this change because SDK 0.15 adds JSON quotes to its string body;
+that operation belongs with the pending serialization fix, not the validated
+plain-text send examples. Queue deletion is not exposed by the SDK; arrange
+independent cleanup for an owned test queue.
+
+### Azure Tables
+
+Discovery, entity creation, and single-entity operations take different selectors.
+Creation reads `PartitionKey` and `RowKey` from the JSON body, not the query.
+Single-entity reads, merge/replacement, and upserts require `partitionKey` and
+`rowKey` queries; their update bodies do not require duplicate key fields.
+The [minimal-input dispatch tests](../DirectConnector.Tests/AzureTablesFunctionsTests.cs)
+exercise these distinctions through the actual handlers and generated client.
+
+| Route | Generated SDK method | Required queries | Body / options |
+|---|---|---|---|
+| `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | None | Account discovery |
+| `GET /api/azuretables/tables` | `GetTablesAsync` | `storageAccount` | Table discovery |
+| `GET /api/azuretables/table` | `GetTableAsync` | `storageAccount`, `table` | Table metadata |
+| `DELETE /api/azuretables/table` | `DeleteTableAsync` | `storageAccount`, `table` | Explicit deletion result |
+| `GET /api/azuretables/entities` | `GetEntitiesAsync` | `storageAccount`, `table` | Optional `$filter`, `$select` queries |
+| `GET /api/azuretables/entity` | `GetEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Optional `$select` query |
+| `POST /api/azuretables/entities` | `CreateEntityAsync` | `storageAccount`, `table` | JSON object with nonempty `PartitionKey`, `RowKey` strings and entity columns |
+| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON entity columns |
+| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement entity |
+| `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON merge columns; body keys not required |
+| `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement columns; body keys not required |
+
+Provision a disposable table independently before testing these operations.
+ARM/portal provisioning is setup, not proof of SDK table creation. SDK table
+creation and entity deletion are excluded until their observed failures are
+resolved. Delete only an owned table; parent-table deletion cleans up its test
+entities without relying on the excluded entity-delete route.
+
+### OneDrive for Business
+
+| Route | Generated SDK method | Input / output |
+|---|---|---|
+| `GET /api/onedrive/metadata?file=...` | `GetFileMetadataAsync` | Full typed file metadata |
+| `DELETE /api/onedrive/files?file=...` | `DeleteFileAsync` | Explicit deletion result |
+
+Use identifiers returned by this connection and uniquely owned temporary files.
+The metadata/deletion paths were validated with synthetic DOCX upload and
+verified cleanup. No Word-template selector mapping is assumed.
+
+### Reproducible validated discovery smoke tests
+
+Configure connection URLs privately as described below. The runner performs 34
+non-mutating discovery/read checks: 33 previously successful data reads plus
+the explicitly accepted Defender `ViewData` permission rejection. It excludes
+Event Hubs hub listing, Service Bus queue/topic listing, and Office 365 Groups
+listing because those calls still fail authorization or time out.
+
+```powershell
+$functions = .\Invoke-ConnectorSmoke.ps1 -ListFunctions
+func start --port 7071 --functions $functions
+```
+
+From another PowerShell 7 terminal:
+
+```powershell
+.\Invoke-ConnectorSmoke.ps1 -BaseUri http://127.0.0.1:7071 -OutputPath "$env:TEMP\connector-smoke-results.json"
+```
+
+The output distinguishes `Succeeded`, `ExpectedPermissionFailure`, and
+`Failed`. The exact Defender rejection confirms SDK dispatch/error handling,
+not successful alert-data access. Every other failure makes the runner throw.
+Function responses and connector error details must have JSON object roots;
+empty, singleton, and multiple-item root arrays are rejected without unwrapping.
+All 17 nested collection paths require arrays, allowing empty/nonempty arrays;
+Graph users and Teams membership use the Function's projected flat arrays.
+The runner never saves service payloads, runtime URLs, or credentials.
+
+Run `Invoke-ConnectorSmoke.Tests.ps1` for the 24 deterministic regression
+scenarios, which run in ordinary PR CI targeting `main`. Stacked PRs run these
+checks locally until their prerequisite merges and they are retargeted to `main`;
+do not add branch-specific CI exceptions. Live checks require private credentials.
+Stop the local host after validation.
+
+### Deferred operations
+
+A separate draft preserves Word template schema/population, content-based Word
+creation and PDF conversion; Azure Tables creation/entity deletion; queue
+sending; and the four failing discovery calls. These are not shipped here as
+working E2E examples. The draft records the individual failures or missing
+validation and the generator/SDK fix dependency.
+
 ## Setup
 
 ### 1. Create an API Connection in Azure

@@ -38,9 +38,10 @@ Each connector's sample functions **must** be in a dedicated file named `{Connec
 
 | Connector | File |
 |-----------|------|
-| Office365, SharePoint, Teams | `ConnectorFunctions.cs` (legacy combined file — to be refactored) |
+| Office 365 Outlook | `Office365Functions.cs` |
 | OneDrive for Business | `OneDriveFunctions.cs` |
 | MS Graph Groups & Users | `MSGraphFunctions.cs` |
+| ServiceNow | `ServiceNowFunctions.cs` |
 
 **Rules:**
 

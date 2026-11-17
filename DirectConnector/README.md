@@ -38,6 +38,8 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 | `POST /api/dataverse/items/{itemIdentifier}/attachments?environment=...&tableName=...&fileName=...` | Microsoft Dataverse | Create a note attachment from binary request content |
 | `DELETE /api/dataverse/items/{itemIdentifier}?environment=...&tableName=...` | Microsoft Dataverse | Delete a record |
 | `POST /api/dataverse/trigger/newitems` | Microsoft Dataverse | Typed `OnNewItems` Connector Gateway callback deserialization with `ConnectorTriggerPayload` |
+| `POST /api/teams/trigger/chatmessage` | Microsoft Teams | Typed **webhook** trigger callback (`WebhookChatMessageTrigger`) with `ConnectorTriggerPayload` |
+| `POST /api/servicenow/attachments/roundtrip?fileName=...` | ServiceNow | **Multipart upload** with `MultipartFile`: create an incident, attach the request body, download it, and clean up |
 | `GET /api/loganalytics/subscriptions` | Azure Monitor Logs | Paginated subscription discovery |
 | `GET /api/loganalytics/workspaces?subscription=...&resourceGroup=...` | Azure Monitor Logs | List Log Analytics workspaces in a resource group |
 | `POST /api/loganalytics/query?subscription=...&resourceGroup=...&resourceType=...&resourceName=...` | Azure Monitor Logs | Dynamic-schema query results (`Row.AdditionalProperties`) |
@@ -66,18 +68,15 @@ This sample demonstrates calling Azure managed connectors directly from an Azure
 
 ## Expanded SDK operation coverage
 
-> Draft-only expansion: [PR #89](https://github.com/Azure/Connectors-NET-Samples/pull/89) carries the proven E2E subset. This follow-up preserves blocked or unverified operations; callable-method coverage below is not a claim of successful E2E validation. Keep the draft until the [raw-string SDK fix](https://github.com/Azure/Connectors-NET-SDK/pull/289), entity-deletion failure and Word selector/live-validation gaps are resolved.
+The samples use SDK `1.0.0`. They expose every callable operation in the
+Word Online Business (6), Azure Queues (6), and Azure Tables (13) clients.
+OneDrive also includes file metadata and deletion, so test files can be
+discovered and cleaned up through typed SDK operations.
 
-The samples use SDK `0.15.0-preview.1`. This expansion exposes every callable
-operation in the Word Online Business (6), Azure Queues (6), and Azure Tables
-(13) clients. OneDrive also includes file metadata and deletion, so test files
-can be discovered and cleaned up through typed SDK operations.
-
-These are sample-method coverage counts, not claims that every operation has
-succeeded against a live service. The 36 configured client types expose 680
-named SDK methods; the sample code currently calls 122 of them. Trigger constants
-and overloads are not counted as additional operations. Full coverage of all
-connected clients remains broader than this expansion.
+These are sample-method coverage counts. Live results are listed per connector
+below. The 37 configured client types declare 813 public instance methods,
+counted once per name; the sample code calls 127 of them. Trigger constants are
+not counted as operations.
 
 ### Word Online Business
 
@@ -90,11 +89,16 @@ connected clients remains broader than this expansion.
 | `POST /api/wordonline/files/content` | `CreateWordFileWithContentAsync` | JSON `{"content":"..."}`; optional `fileName`; result JSON |
 | `GET /api/wordonline/files/pdf` | `GetFilePdfAsync` | Required selectors; optional Boolean `extractSensitivityLabel` and `sensitivityLabelMetadata`; PDF bytes |
 
-Use identifiers returned by the authenticated service. OneDrive connection file
-IDs and Word drive-item selectors are not assumed interchangeable. Template
-operations require an accessible Word document with supported content controls.
-Creating a Word file can write to the connected user's root folder; use a unique
-temporary name and verify deletion afterward.
+Use identifiers returned by the authenticated service. A OneDrive file ID has the
+form `{driveId}.{itemId}`; its two parts are the Word `drive` and `file`
+selectors. Template operations require an accessible Word document with
+supported content controls. Creating a Word file writes to the connected user's
+OneDrive root. The connector appends `.docx`, so pass `fileName` without an
+extension; a doubled `.docx.docx` name cannot be converted to PDF. Use a unique
+temporary name and delete the file afterward.
+
+Validated live with SDK 1.0.0: sources, drives, file creation, and PDF
+conversion. The template schema and population routes have not been validated.
 
 ### Azure Queues
 
@@ -115,10 +119,10 @@ client-side limits from the underlying Storage REST API.
 Sending appends a message and receiving changes its visibility, so both use
 POST on distinct routes. Do not automatically retry a send after an uncertain
 response; first check whether the original message was accepted. Use only owned
-queues/messages for lifecycle tests. SDK 0.15 adds JSON quotes to string bodies;
-correct plain-text sending remains gated on a released fix and live revalidation.
-Queue deletion is not exposed by the SDK; arrange independent cleanup for an
-owned test queue.
+queues/messages for lifecycle tests. SDK 1.0.0 sends the plain-text body
+unchanged; all six operations were validated live, and a message containing
+quotation marks round-tripped exactly. Queue deletion is not exposed by the SDK;
+arrange independent cleanup for an owned test queue.
 
 ### Azure Tables
 
@@ -133,26 +137,31 @@ exercise these distinctions through the actual handlers and generated client.
 |---|---|---|---|
 | `GET /api/azuretables/storageaccounts` | `GetStorageAccountsAsync` | None | Account discovery |
 | `GET /api/azuretables/tables` | `GetTablesAsync` | `storageAccount` | Table discovery |
-| `POST /api/azuretables/tables` | `CreateTableAsync` | `storageAccount`, `table` | Deferred string-body operation; requires a released SDK fix |
+| `POST /api/azuretables/tables` | `CreateTableAsync` | `storageAccount`, `table` | Creates the table |
 | `GET /api/azuretables/table` | `GetTableAsync` | `storageAccount`, `table` | Table metadata |
 | `DELETE /api/azuretables/table` | `DeleteTableAsync` | `storageAccount`, `table` | Explicit deletion result |
 | `GET /api/azuretables/entities` | `GetEntitiesAsync` | `storageAccount`, `table` | Optional `$filter`, `$select` queries |
 | `GET /api/azuretables/entity` | `GetEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Optional `$select` query |
 | `POST /api/azuretables/entities` | `CreateEntityAsync` | `storageAccount`, `table` | JSON object with nonempty `PartitionKey`, `RowKey` strings and entity columns |
-| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON entity columns |
-| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement entity |
+| `PATCH /api/azuretables/entity` | `MergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON entity columns; currently upserts (see below) |
+| `PUT /api/azuretables/entity` | `ReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement entity; currently upserts (see below) |
 | `PATCH /api/azuretables/entity/upsert` | `InsertMergeEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON merge columns; body keys not required |
 | `PUT /api/azuretables/entity/upsert` | `InsertReplaceEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | JSON replacement columns; body keys not required |
-| `DELETE /api/azuretables/entity` | `DeleteEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Deferred operation; live 404 remains unresolved |
+| `DELETE /api/azuretables/entity` | `DeleteEntityAsync` | `storageAccount`, `table`, `partitionKey`, `rowKey` | Fails with 404 in SDK 1.0.0 (see below) |
 
-SDK 0.15's string-body table-create call was rejected with
-`InvalidResourceName` for a valid alphanumeric test name. The SDK serializes its
-string argument as JSON. Keep this negative result visible; do not report a
-successful SDK table creation when an ARM-created fixture was used instead.
-A live `DeleteEntityAsync` call also returned 404 immediately after `GetEntityAsync`
-confirmed the same entity keys. Treat that rejection separately from successful
-reads and writes; table cleanup was verified independently. These observations
-are limits of the live validation, not reasons to skip error handling.
+SDK 1.0.0 validated live: table creation, metadata, and deletion; entity creation,
+reads, filtered listing, and both upserts. Three conditional operations have a
+known SDK defect, tracked in
+[Azure/Connectors-NET-SDK#294](https://github.com/Azure/Connectors-NET-SDK/issues/294):
+
+- `DeleteEntityAsync` returns 404 (`OperationNotFound`), so the entity is not deleted.
+- `MergeEntityAsync` and `ReplaceEntityAsync` call the upsert operations, so they
+  create a missing entity instead of failing.
+
+The connector exposes these operations on an `/entities/etag(...)` path that the
+.NET client does not use. The routes stay in the sample and will work unchanged
+once a fixed SDK version is referenced. Until then, delete the owned test table
+to clean up its entities.
 For mutation tests, use a unique table and entity, verify each postcondition,
 and remove the owned table in a `finally` path.
 
@@ -162,6 +171,9 @@ and remove the owned table in a `finally` path.
 |-------|----------------------|----------------|
 | `GET /api/onedrive/metadata?file=...` | `GetFileMetadataAsync` | Full typed file metadata, including any returned file locator |
 | `DELETE /api/onedrive/files?file=...` | `DeleteFileAsync` | Explicit deletion result |
+
+Both routes were validated live with SDK 1.0.0 by reading and deleting a
+temporary file; metadata for the deleted file then returns 404.
 
 ### Reproducible discovery smoke tests
 
@@ -235,6 +247,10 @@ Alternatively, for production scenarios:
 - Create a Managed Identity for your Function App
 - Add that Managed Identity to the connection's access policies
 
+A new access policy can take 30 minutes or more to take effect if the identity
+already made a denied call. Until then, requests fail with
+`Permission denied due to missing connection ACL`.
+
 ### 3. Configure Authentication Mode
 
 The SDK supports three authentication modes, configured per connector via the `ManagedIdentityClientId` setting:
@@ -282,7 +298,8 @@ Add your connection runtime URLs to `local.settings.json`:
     "Connectors:Office365:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/office365/YOUR-CONNECTION-ID",
     "Connectors:SharePoint:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/sharepointonline/YOUR-CONNECTION-ID",
     "Connectors:OneDrive:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onedriveforbusiness/YOUR-CONNECTION-ID",
-    "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID"
+    "Connectors:Dataverse:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/commondataservice/YOUR-CONNECTION-ID",
+    "Connectors:ServiceNow:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/service-now/YOUR-CONNECTION-ID"
   }
 }
 ```
@@ -399,9 +416,27 @@ Invoke-RestMethod -Uri "http://localhost:7071/api/dataverse/items/$itemIdentifie
 
 ### Dataverse Trigger Callback
 
-`POST /api/dataverse/trigger/newitems` accepts the typed payload for the generated `OnNewItems` trigger operation. Configure a Connector Namespace trigger config with `CommondataserviceTriggerOperations.OnNewItems` and use this Function endpoint as its callback URL. The route uses function-level authorization, so the callback URL must include a Function key, for example `https://<function-app>.azurewebsites.net/api/dataverse/trigger/newitems?code=<function-key>`.
+`POST /api/dataverse/trigger/newitems` accepts the typed payload for the generated `OnNewItems` trigger operation. Configure a Connector Namespace trigger config with `CommonDataServiceTriggerOperations.OnNewItems` and use this Function endpoint as its callback URL. The route uses function-level authorization, so the callback URL must include a Function key, for example `https://<function-app>.azurewebsites.net/api/dataverse/trigger/newitems?code=<function-key>`.
 
 The currently generated Dataverse row triggers are marked **Admin Only (Deprecated)** by the connector. The callback sample is useful for typed payload handling and future trigger support, but it does not create a tenant-wide trigger configuration automatically.
+
+### Teams Chat Message Webhook
+
+`POST /api/teams/trigger/chatmessage` receives the typed `TeamsOnWebhookChatMessageTriggerPayload` for the `WebhookChatMessageTrigger` operation (`TeamsTriggerOperations.OnWebhookChatMessageTrigger`). This is a webhook trigger: Connector Namespace subscribes to Microsoft Graph and calls the endpoint once per notification instead of polling.
+
+Create a trigger config for a Teams connection with operation `WebhookChatMessageTrigger`, no parameters, and the callback URL `https://<function-app>.azurewebsites.net/api/teams/trigger/chatmessage?code=<function-key>`. The subscription covers every chat of the connection's user, and messages in the user's own "Notes to self" chat do not raise notifications. The handler logs conversation and message IDs only. Delete the trigger config when you no longer need it.
+
+### ServiceNow Multipart Attachment
+
+`POST /api/servicenow/attachments/roundtrip` demonstrates the SDK's multipart support. It creates a temporary incident, uploads the request body as an attachment with `UploadAttachmentAsync` and `MultipartFile`, downloads it to confirm the bytes match, and then deletes the attachment and the incident. A failed step still deletes the incident.
+
+The connection can use the connector's OAuth 2.0 parameter set. Register an OAuth API endpoint for external clients in the ServiceNow instance with the connection's consent redirect URL, then create the connection with that client ID and secret and complete consent.
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:7071/api/servicenow/attachments/roundtrip?fileName=notes.txt" -Method POST `
+    -Body "Hello from the Azure Connectors SDK." `
+    -ContentType "text/plain"
+```
 
 ## Architecture
 

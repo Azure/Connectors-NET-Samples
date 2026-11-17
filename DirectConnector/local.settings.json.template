@@ -20,13 +20,13 @@
     "__comment_OneDrive_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
     "__Connectors:OneDrive:ManagedIdentityClientId": "",
 
-    "Connectors:MsGraph:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/msgraphgroupsanduser/YOUR-CONNECTION-ID",
+    "Connectors:MSGraph:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/msgraphgroupsanduser/YOUR-CONNECTION-ID",
     "__comment_MsGraph_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:MsGraph:ManagedIdentityClientId": "",
+    "__Connectors:MSGraph:ManagedIdentityClientId": "",
 
-    "Connectors:Mq:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/mq/YOUR-CONNECTION-ID",
+    "Connectors:MQ:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/mq/YOUR-CONNECTION-ID",
     "__comment_Mq_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:Mq:ManagedIdentityClientId": "",
+    "__Connectors:MQ:ManagedIdentityClientId": "",
 
     "Connectors:Smtp:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/smtp/YOUR-CONNECTION-ID",
     "__comment_Smtp_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
@@ -124,9 +124,9 @@
     "__comment_Office365GroupsMail_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
     "__Connectors:Office365GroupsMail:ManagedIdentityClientId": "",
 
-    "Connectors:Onenote:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onenote/YOUR-CONNECTION-ID",
+    "Connectors:OneNote:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/onenote/YOUR-CONNECTION-ID",
     "__comment_Onenote_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",
-    "__Connectors:Onenote:ManagedIdentityClientId": "",
+    "__Connectors:OneNote:ManagedIdentityClientId": "",
 
     "Connectors:Planner:ConnectionRuntimeUrl": "https://YOUR-INSTANCE.azure-apihub.net/apim/planner/YOUR-CONNECTION-ID",
     "__comment_Planner_MSI": "To use managed identity, remove the __ prefix from the key below. Use empty string for system-assigned MSI, or a client ID GUID for user-assigned MSI.",

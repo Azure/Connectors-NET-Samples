@@ -33,10 +33,10 @@ var host = new HostBuilder()
         services.AddSharePointOnlineClient(configuration.GetSection("Connectors:SharePoint"));
         services.AddTeamsClient(configuration.GetSection("Connectors:Teams"));
         services.AddOneDriveForBusinessClient(configuration.GetSection("Connectors:OneDrive"));
-        services.AddMSGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MsGraph"));
+        services.AddMSGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MSGraph"));
         services.AddAzureBlobClient(configuration.GetSection("Connectors:AzureBlob"));
         services.AddSmtpClient(configuration.GetSection("Connectors:Smtp"));
-        services.AddMQClient(configuration.GetSection("Connectors:Mq"));
+        services.AddMQClient(configuration.GetSection("Connectors:MQ"));
         services.AddOffice365UsersClient(configuration.GetSection("Connectors:Office365Users"));
         services.AddAzureMonitorLogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
         services.AddArmClient(configuration.GetSection("Connectors:Arm"));
@@ -60,7 +60,7 @@ var host = new HostBuilder()
         services.AddMicrosoftBookingsClient(configuration.GetSection("Connectors:MicrosoftBookings"));
         services.AddOffice365GroupsClient(configuration.GetSection("Connectors:Office365Groups"));
         services.AddOffice365GroupsMailClient(configuration.GetSection("Connectors:Office365GroupsMail"));
-        services.AddOneNoteClient(configuration.GetSection("Connectors:Onenote"));
+        services.AddOneNoteClient(configuration.GetSection("Connectors:OneNote"));
         services.AddPowerBIClient(configuration.GetSection("Connectors:PowerBI"));
         services.AddShiftsClient(configuration.GetSection("Connectors:Shifts"));
         services.AddTodoClient(configuration.GetSection("Connectors:Todo"));

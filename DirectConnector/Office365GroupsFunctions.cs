@@ -35,17 +35,17 @@ public class Office365GroupsFunctions
             operationName: "Office365GroupsListGroups",
             operation: async () =>
             {
-                var groups = new List<JsonElement?>();
+                // NOTE: Return only the first page; following every next link enumerates all groups in the tenant, which can take hours in a large organization.
                 await foreach (var page in this._client
                     .ListGroupsAsync(pageSize: 20, cancellationToken: cancellationToken)
                     .AsPages(pageSizeHint: 20)
                     .WithCancellation(cancellationToken)
                     .ConfigureAwait(continueOnCapturedContext: false))
                 {
-                    groups.AddRange(page.Values);
+                    return page.Values;
                 }
 
-                return groups;
+                return (IReadOnlyList<JsonElement?>)Array.Empty<JsonElement?>();
             },
             cancellationToken);
     }

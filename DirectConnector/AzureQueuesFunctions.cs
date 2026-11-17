@@ -234,7 +234,7 @@ public class AzureQueuesFunctions
 
     /// <summary>
     /// Adds the nonempty, plain-text request body to a queue as a message.
-    /// The SDK JSON-encodes this string before sending it to the connector.
+    /// The SDK sends the string unchanged, without adding JSON quotes.
     /// </summary>
     [Function("AzureQueuesPutMessage")]
     public async Task<HttpResponseData> AzureQueuesPutMessageAsync(

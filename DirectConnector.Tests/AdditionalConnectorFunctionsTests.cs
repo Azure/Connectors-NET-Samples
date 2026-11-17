@@ -177,7 +177,7 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
-    public async Task Office365GroupsListGroupsAsync_WithPagedResponse_ReturnsAllGroups()
+    public async Task Office365GroupsListGroupsAsync_WithPagedResponse_ReturnsOnlyFirstPage()
     {
         var responseBodies = new Queue<string>(new[]
         {
@@ -200,8 +200,8 @@ public class AdditionalConnectorFunctionsTests
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("group-1", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("group-2", StringComparison.Ordinal));
-        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+        Assert.IsFalse(body.Contains("group-2", StringComparison.Ordinal));
+        Assert.AreEqual(expected: 1, actual: responseBodies.Count);
     }
 
     [TestMethod]

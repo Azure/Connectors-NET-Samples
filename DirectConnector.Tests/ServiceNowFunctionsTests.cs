@@ -87,15 +87,15 @@ public class ServiceNowFunctionsTests
 
             if (request.Method == HttpMethod.Post && path.EndsWith("/api/now/v2/table/incident", StringComparison.Ordinal))
             {
-                StringAssert.Contains(request.RequestUri.Query, "sysparm_fields=sys_id%2Cnumber");
+                StringAssert.Contains(value: request.RequestUri.Query, substring: "sysparm_fields=sys_id%2Cnumber");
                 var record = await request.Content!.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
-                StringAssert.Contains(record, "\"short_description\"");
+                StringAssert.Contains(value: record, substring: "\"short_description\"");
                 return Json($$$"""{"result":{"sys_id":"{{{IncidentSysId}}}","number":"INC0010001"}}""");
             }
 
             if (request.Method == HttpMethod.Post && path.EndsWith("/api/now/v1/attachment/upload", StringComparison.Ordinal))
             {
-                Assert.AreEqual("multipart/form-data", request.Content!.Headers.ContentType?.MediaType);
+                Assert.AreEqual(expected: "multipart/form-data", actual: request.Content!.Headers.ContentType?.MediaType);
                 var boundary = request.Content.Headers.ContentType!.Parameters.Single(parameter => parameter.Name == "boundary").Value!.Trim('"');
                 var wireBody = await request.Content.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
                 foreach (var part in ParseMultipartParts(wireBody, boundary))
@@ -132,11 +132,11 @@ public class ServiceNowFunctionsTests
 
         // Assert
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, body);
-        StringAssert.Contains(body, "\"contentMatches\":true");
-        StringAssert.Contains(body, "\"incidentNumber\":\"INC0010001\"");
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode, message: body);
+        StringAssert.Contains(value: body, substring: "\"contentMatches\":true");
+        StringAssert.Contains(value: body, substring: "\"incidentNumber\":\"INC0010001\"");
         CollectionAssert.AreEqual(
-            new[]
+            expected: new[]
             {
                 "POST /connection/api/now/v2/table/incident",
                 "POST /connection/api/now/v1/attachment/upload",
@@ -144,12 +144,12 @@ public class ServiceNowFunctionsTests
                 $"DELETE /connection/api/now/v1/attachment/{AttachmentSysId}",
                 $"DELETE /connection/api/now/v2/table/incident/{IncidentSysId}",
             },
-            calls);
-        Assert.AreEqual("incident", Encoding.UTF8.GetString(uploadedParts["table_name"].Content));
-        Assert.AreEqual(IncidentSysId, Encoding.UTF8.GetString(uploadedParts["table_sys_id"].Content));
-        Assert.AreEqual("notes.txt", uploadedParts["attachment_content"].FileName);
-        Assert.AreEqual("text/plain", uploadedParts["attachment_content"].ContentType);
-        Assert.AreEqual("Hello from the Connectors SDK.", Encoding.UTF8.GetString(uploadedParts["attachment_content"].Content));
+            actual: calls);
+        Assert.AreEqual(expected: "incident", actual: Encoding.UTF8.GetString(uploadedParts["table_name"].Content));
+        Assert.AreEqual(expected: IncidentSysId, actual: Encoding.UTF8.GetString(uploadedParts["table_sys_id"].Content));
+        Assert.AreEqual(expected: "notes.txt", actual: uploadedParts["attachment_content"].FileName);
+        Assert.AreEqual(expected: "text/plain", actual: uploadedParts["attachment_content"].ContentType);
+        Assert.AreEqual(expected: "Hello from the Connectors SDK.", actual: Encoding.UTF8.GetString(uploadedParts["attachment_content"].Content));
     }
 
     [TestMethod]
@@ -177,15 +177,15 @@ public class ServiceNowFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         CollectionAssert.AreEqual(
-            new[]
+            expected: new[]
             {
                 "POST /connection/api/now/v2/table/incident",
                 "POST /connection/api/now/v1/attachment/upload",
                 $"DELETE /connection/api/now/v2/table/incident/{IncidentSysId}",
             },
-            calls);
+            actual: calls);
     }
 
     [TestMethod]
@@ -224,16 +224,16 @@ public class ServiceNowFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
-        Assert.IsNotNull(sentDescription);
-        StringAssert.Contains(cleanupQuery, $"sysparm_query=short_description={sentDescription}");
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
+        Assert.IsNotNull(value: sentDescription);
+        StringAssert.Contains(value: cleanupQuery, substring: $"sysparm_query=short_description={sentDescription}");
         CollectionAssert.AreEqual(
-            new[]
+            expected: new[]
             {
                 "POST /connection/api/now/v2/table/incident",
                 "GET /connection/api/now/v2/table/incident",
                 $"DELETE /connection/api/now/v2/table/incident/{IncidentSysId}",
             },
-            calls);
+            actual: calls);
     }
 }

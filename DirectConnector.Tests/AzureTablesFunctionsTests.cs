@@ -56,7 +56,7 @@ public class AzureTablesFunctionsTests
         Assert.AreEqual(expected: "/connection" + path, actual: Uri.UnescapeDataString(handler.Path!));
         Assert.AreEqual(expected: 1, actual: handler.RequestCount);
         using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
-        Assert.IsTrue(result.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsTrue(condition: result.RootElement.GetProperty("success").GetBoolean());
         if (string.Equals(operation, "CreateTable", StringComparison.Ordinal))
         {
             Assert.AreEqual(expected: "SdkTable", actual: handler.Body);
@@ -131,7 +131,7 @@ public class AzureTablesFunctionsTests
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
         Assert.AreEqual(expected: 403, actual: result.RootElement.GetProperty("statusCode").GetInt32());
-        Assert.IsFalse(result.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(condition: result.RootElement.GetProperty("success").GetBoolean());
     }
 
     [TestMethod]

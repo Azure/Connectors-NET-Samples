@@ -51,10 +51,10 @@ public class TeamsFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Engineering", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("Design", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Engineering", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Design", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -78,9 +78,9 @@ public class TeamsFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -98,8 +98,8 @@ public class TeamsFunctionsTests
             .GetTeamAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("Engineering", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("Engineering", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -117,8 +117,8 @@ public class TeamsFunctionsTests
             .ListTeamMembersAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("Sample User", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("Sample User", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -142,7 +142,7 @@ public class TeamsFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -188,10 +188,10 @@ public class TeamsFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("General", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("Engineering", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("General", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Engineering", StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -217,10 +217,10 @@ public class TeamsFunctionsTests
             theEmailAddressForTheChannel: "general@contoso.com");
 
         // Assert — init-only properties are set via the factory method.
-        Assert.AreEqual("19:general@thread.tacv2", channel.ChannelId);
-        Assert.AreEqual("General", channel.DisplayName);
-        Assert.AreEqual("The default channel", channel.DescriptionOfChannel);
-        Assert.AreEqual("general@contoso.com", channel.TheEmailAddressForTheChannel);
+        Assert.AreEqual(expected: "19:general@thread.tacv2", actual: channel.ChannelId);
+        Assert.AreEqual(expected: "General", actual: channel.DisplayName);
+        Assert.AreEqual(expected: "The default channel", actual: channel.DescriptionOfChannel);
+        Assert.AreEqual(expected: "general@contoso.com", actual: channel.TheEmailAddressForTheChannel);
     }
 
     /// <summary>
@@ -264,12 +264,12 @@ public class TeamsFunctionsTests
             .ToList();
 
         // Assert
-        Assert.IsNotNull(teams);
-        Assert.AreEqual(2, teams.Count);
-        Assert.AreEqual("team-001", teams[0].Id);
-        Assert.AreEqual("Engineering", teams[0].Name);
-        Assert.AreEqual("team-002", teams[1].Id);
-        Assert.AreEqual("Marketing", teams[1].Name);
+        Assert.IsNotNull(value: teams);
+        Assert.AreEqual(expected: 2, actual: teams.Count);
+        Assert.AreEqual(expected: "team-001", actual: teams[0].Id);
+        Assert.AreEqual(expected: "Engineering", actual: teams[0].Name);
+        Assert.AreEqual(expected: "team-002", actual: teams[1].Id);
+        Assert.AreEqual(expected: "Marketing", actual: teams[1].Name);
     }
 
     [TestMethod]
@@ -285,7 +285,7 @@ public class TeamsFunctionsTests
         var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -301,7 +301,7 @@ public class TeamsFunctionsTests
         var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -318,9 +318,9 @@ public class TeamsFunctionsTests
         var response = await functions.TeamsChannelMessageTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"messageCount\":1", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"messageCount\":1", StringComparison.Ordinal));
     }
 
     [TestMethod]

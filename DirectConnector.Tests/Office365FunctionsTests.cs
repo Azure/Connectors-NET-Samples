@@ -48,11 +48,11 @@ public class Office365FunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Red Category", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("Blue Category", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("Green Category", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Red Category", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Blue Category", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Green Category", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -76,9 +76,9 @@ public class Office365FunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -109,9 +109,9 @@ public class Office365FunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":true", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":true", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ public class Office365FunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -159,9 +159,9 @@ public class Office365FunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("error", StringComparison.OrdinalIgnoreCase));
+        Assert.IsTrue(condition: body.Contains("error", StringComparison.OrdinalIgnoreCase));
     }
 
     [TestMethod]
@@ -181,7 +181,7 @@ public class Office365FunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var responseBody = ((MockHttpResponseData)response).GetBodyAsString();
-        StringAssert.Contains(responseBody, "\"emailCount\":1");
-        StringAssert.Contains(responseBody, "ConnectorTriggerPayload");
+        StringAssert.Contains(value: responseBody, substring: "\"emailCount\":1");
+        StringAssert.Contains(value: responseBody, substring: "ConnectorTriggerPayload");
     }
 }

@@ -65,12 +65,12 @@ public class AdditionalConnectorFunctionsTests
             .GetJobStatusAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         using var document = JsonDocument.Parse(body);
         Assert.AreEqual(
-            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required.",
-            document.RootElement.GetProperty("error").GetString());
+            expected: "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required.",
+            actual: document.RootElement.GetProperty("error").GetString());
     }
 
     [TestMethod]
@@ -105,12 +105,12 @@ public class AdditionalConnectorFunctionsTests
             .CreateJobAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         using var document = JsonDocument.Parse(body);
         Assert.AreEqual(
-            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'runbookName' are required.",
-            document.RootElement.GetProperty("error").GetString());
+            expected: "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'runbookName' are required.",
+            actual: document.RootElement.GetProperty("error").GetString());
     }
 
     [TestMethod]
@@ -199,8 +199,8 @@ public class AdditionalConnectorFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("group-1", StringComparison.Ordinal));
-        Assert.IsFalse(body.Contains("group-2", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("group-1", StringComparison.Ordinal));
+        Assert.IsFalse(condition: body.Contains("group-2", StringComparison.Ordinal));
         Assert.AreEqual(expected: 1, actual: responseBodies.Count);
     }
 
@@ -241,8 +241,8 @@ public class AdditionalConnectorFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("conversation-1", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("conversation-2", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("conversation-1", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("conversation-2", StringComparison.Ordinal));
         Assert.AreEqual(expected: 0, actual: responseBodies.Count);
     }
 
@@ -332,8 +332,8 @@ public class AdditionalConnectorFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("first-page-shift", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("second-page-shift", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("first-page-shift", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("second-page-shift", StringComparison.Ordinal));
         Assert.AreEqual(expected: 0, actual: responseBodies.Count);
     }
 
@@ -362,8 +362,8 @@ public class AdditionalConnectorFunctionsTests
             .ListSecretsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     private static TClient CreateClient<TClient>(
@@ -396,7 +396,7 @@ public class AdditionalConnectorFunctionsTests
         var response = await operation(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":true", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":true", StringComparison.Ordinal));
     }
 }

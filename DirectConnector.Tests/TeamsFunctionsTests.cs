@@ -322,4 +322,54 @@ public class TeamsFunctionsTests
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         Assert.IsTrue(body.Contains("\"messageCount\":1", StringComparison.Ordinal));
     }
+
+    [TestMethod]
+    public async Task TeamsChatMessageWebhookTriggerAsync_WithBatch_ReturnsTypedMessageIdentifiers()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new TeamsFunctions(
+            TestHelpers.CreateNullLogger<TeamsFunctions>(),
+            client);
+
+        var payload = """
+            {"body":{"value":[
+              {"conversationId":"19:chat-1@thread.v2","messageId":"1700000000001","linkToMessage":"https://teams.example.test/l/message/1"},
+              {"conversationId":"19:chat-1@thread.v2","messageId":"1700000000002","linkToMessage":"https://teams.example.test/l/message/2"}
+            ]}}
+            """;
+        var request = TestHelpers.CreateRequest(body: payload, method: "POST");
+
+        var response = await functions
+            .TeamsChatMessageWebhookTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        var root = document.RootElement;
+        Assert.AreEqual(expected: 2, actual: root.GetProperty("messageCount").GetInt32());
+        var second = root.GetProperty("messages")[1];
+        Assert.AreEqual(expected: "19:chat-1@thread.v2", actual: second.GetProperty("conversationId").GetString());
+        Assert.AreEqual(expected: "1700000000002", actual: second.GetProperty("messageId").GetString());
+        Assert.AreEqual(expected: "https://teams.example.test/l/message/2", actual: second.GetProperty("link").GetString());
+    }
+
+    [TestMethod]
+    public async Task TeamsChatMessageWebhookTriggerAsync_WithInvalidJson_AcknowledgesWithoutRetry()
+    {
+        using var client = CreateMockedClient(() => new HttpResponseMessage(HttpStatusCode.OK));
+        var functions = new TeamsFunctions(
+            TestHelpers.CreateNullLogger<TeamsFunctions>(),
+            client);
+
+        var request = TestHelpers.CreateRequest(body: "not valid json {{{", method: "POST");
+
+        var response = await functions
+            .TeamsChatMessageWebhookTriggerAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.AreEqual(expected: 0, actual: document.RootElement.GetProperty("messageCount").GetInt32());
+        StringAssert.Contains(value: document.RootElement.GetProperty("message").GetString(), substring: "discarded");
+    }
 }

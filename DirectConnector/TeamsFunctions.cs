@@ -37,6 +37,11 @@ public class TeamsFunctions
     /// </summary>
     private const string TeamsDefaultLocation = "Channel";
 
+    /// <summary>
+    /// Maximum webhook callback body size accepted by the trigger handlers.
+    /// </summary>
+    private const int MaxTriggerCallbackBodySize = 1 * 1024 * 1024;
+
     private readonly ILogger<TeamsFunctions> _logger;
     private readonly TeamsClient _teamsClient;
 
@@ -560,6 +565,100 @@ public class TeamsFunctions
         return response;
     }
 
+    /// <summary>
+    /// Receives a typed callback when a new message is added to a Teams chat (webhook trigger).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// "When a new chat message is added" is a webhook trigger: Connector Namespace subscribes to
+    /// Teams and calls this endpoint once per notification, instead of polling. SDK 1.0.0 generates
+    /// <see cref="TeamsOnWebhookChatMessageTriggerPayload"/> from the operation's notification
+    /// schema, so the conversation ID, message ID and message link are typed properties.
+    /// </para>
+    /// <para>
+    /// The handler reads the body with <see cref="ConnectorTriggerPayload"/>, which bounds the
+    /// read size, and acknowledges every authenticated callback with 200 so that Connector
+    /// Namespace does not retry a payload this sample cannot use.
+    /// </para>
+    /// </remarks>
+    [Function("TeamsChatMessageWebhookTrigger")]
+    [ConnectorTriggerMetadata(
+        ConnectorName = ConnectorNames.MicrosoftTeams,
+        OperationName = TeamsTriggerOperations.OnWebhookChatMessageTrigger,
+        Connection = "Connectors:Teams")]
+    public async Task<HttpResponseData> TeamsChatMessageWebhookTriggerAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "teams/trigger/chatmessage")] HttpRequestData request,
+        CancellationToken cancellationToken)
+    {
+        this._logger.LogInformation("TeamsChatMessageWebhookTrigger: Callback received.");
+
+        try
+        {
+            var payload = await ConnectorTriggerPayload
+                .ReadAsync<TeamsOnWebhookChatMessageTriggerPayload>(
+                    request.Body,
+                    maxBodySizeBytes: TeamsFunctions.MaxTriggerCallbackBodySize,
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            var messages = payload?.Body?.Value ?? [];
+
+            // NOTE: Log identifiers only, capped, to avoid logging message content or unbounded volume.
+            foreach (var message in messages.Take(5))
+            {
+                this._logger.LogInformation(
+                    "TeamsChatMessageWebhookTrigger: Conversation '{ConversationId}', message '{MessageId}'.",
+                    message.ConversationId,
+                    message.Id);
+            }
+
+            var response = request.CreateResponse(HttpStatusCode.OK);
+            await response
+                .WriteAsJsonAsync(new
+                {
+                    success = true,
+                    message = "Teams chat message webhook payload deserialized.",
+                    receivedAt = DateTime.UtcNow,
+                    messageCount = messages.Count,
+                    messages = messages.Select(message => new
+                    {
+                        conversationId = message.ConversationId,
+                        messageId = message.Id,
+                        link = message.Link,
+                    }),
+                    triggerPayloadReader = "ConnectorTriggerPayload",
+                })
+                .ConfigureAwait(continueOnCapturedContext: false);
+
+            return response;
+        }
+        catch (JsonException ex)
+        {
+            this._logger.LogError(ex, "TeamsChatMessageWebhookTrigger: Invalid JSON payload: '{Message}'.", ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            this._logger.LogWarning(ex, "TeamsChatMessageWebhookTrigger: Payload exceeded the configured limit.");
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogError(ex, "Error in TeamsChatMessageWebhookTrigger.");
+        }
+
+        var acknowledgment = request.CreateResponse(HttpStatusCode.OK);
+        await acknowledgment
+            .WriteAsJsonAsync(new
+            {
+                success = true,
+                message = "Teams chat message webhook payload discarded.",
+                receivedAt = DateTime.UtcNow,
+                messageCount = 0,
+                triggerPayloadReader = "ConnectorTriggerPayload",
+            })
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        return acknowledgment;
+    }
     /// <summary>
     /// Demonstrates <see cref="ConnectorException.ErrorCode"/> parsing added in SDK v0.12.0.
     /// </summary>

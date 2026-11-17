@@ -24,10 +24,10 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | Office365Functions.cs | Office 365 (Mail/Calendar) | Send email, get categories, export email, create calendar event, trigger callbacks |
 | SharePointFunctions.cs | SharePoint Online | Discover sites, list libraries, browse folders, download/upload files |
 | TeamsFunctions.cs | Microsoft Teams | List teams/channels, get messages, post messages |
-| MsGraphFunctions.cs | MS Graph Groups & Users | List users, search groups, get group properties |
+| MSGraphFunctions.cs | MS Graph Groups & Users | List users, search groups, get group properties |
 | OneDriveFunctions.cs | OneDrive for Business | Browse folders, download/upload files, search, share links |
 | Office365UsersFunctions.cs | Office 365 Users | Get my profile, user lookup, manager/reports chain, search users |
-| MqFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
+| MQFunctions.cs | IBM MQ | Send, browse, receive, delete messages |
 | SmtpFunctions.cs | SMTP | Send email via SMTP |
 | AzureBlobFunctions.cs | Azure Blob Storage | Upload, download, get metadata, delete blobs |
 | AzureLogAnalyticsFunctions.cs | Azure Monitor Logs | List subscriptions and resources, run queries, discover query schemas |
@@ -39,7 +39,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | UniversalPrintFunctions.cs | Universal Print | List shares |
 | AzureQueuesFunctions.cs | Azure Storage Queues | List storage accounts, list queues |
 | AzureTablesFunctions.cs | Azure Storage Tables | List storage accounts, list tables |
-| DocumentDbFunctions.cs | Azure Cosmos DB | List accounts, list databases |
+| DocumentDBFunctions.cs | Azure Cosmos DB | List accounts, list databases |
 | EventHubsFunctions.cs | Azure Event Hubs | List hubs, list content types |
 | OutlookFunctions.cs | Outlook | List calendars, list contact folders |
 | ServiceBusFunctions.cs | Azure Service Bus | List queues, list topics, list entities |
@@ -52,7 +52,7 @@ The `DirectConnector/` project is an Azure Functions (isolated worker) app with 
 | MicrosoftBookingsFunctions.cs | Microsoft Bookings | Discovery only: list booking businesses used as appointment-trigger inputs |
 | Office365GroupsFunctions.cs | Microsoft 365 Groups | List groups |
 | Office365GroupsMailFunctions.cs | Microsoft 365 Groups Mail | List groups and group conversations |
-| OnenoteFunctions.cs | OneNote | List notebooks |
+| OneNoteFunctions.cs | OneNote | List notebooks |
 | PlannerFunctions.cs | Microsoft Planner | List groups and auto-page tasks assigned to the user |
 | PowerBIFunctions.cs | Power BI | List workspaces and scorecards |
 | ShiftsFunctions.cs | Microsoft Shifts | List teams and cross-team shifts |

@@ -19,13 +19,13 @@ namespace DirectConnector;
 /// The connector name "documentdb" reflects the original Azure DocumentDB branding;
 /// it connects to Azure Cosmos DB accounts.
 /// </remarks>
-public class DocumentDbFunctions
+public class DocumentDBFunctions
 {
-    private readonly ILogger<DocumentDbFunctions> _logger;
+    private readonly ILogger<DocumentDBFunctions> _logger;
     private readonly DocumentDBClient _documentDbClient;
 
-    public DocumentDbFunctions(
-        ILogger<DocumentDbFunctions> logger,
+    public DocumentDBFunctions(
+        ILogger<DocumentDBFunctions> logger,
         DocumentDBClient documentDbClient)
     {
         this._logger = logger;

@@ -12,12 +12,12 @@ namespace DirectConnector;
 /// <summary>
 /// Azure Functions demonstrating read-only OneNote operations.
 /// </summary>
-public class OnenoteFunctions
+public class OneNoteFunctions
 {
     private readonly OneNoteClient _client;
-    private readonly ILogger<OnenoteFunctions> _logger;
+    private readonly ILogger<OneNoteFunctions> _logger;
 
-    public OnenoteFunctions(ILogger<OnenoteFunctions> logger, OneNoteClient client)
+    public OneNoteFunctions(ILogger<OneNoteFunctions> logger, OneNoteClient client)
     {
         this._logger = logger;
         this._client = client;

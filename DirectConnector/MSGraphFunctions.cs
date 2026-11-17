@@ -19,18 +19,18 @@ namespace DirectConnector;
 /// <remarks>
 /// Exercises user listing, group search, and group property retrieval.
 /// </remarks>
-public class MsGraphFunctions
+public class MSGraphFunctions
 {
-    private readonly ILogger<MsGraphFunctions> _logger;
+    private readonly ILogger<MSGraphFunctions> _logger;
     private readonly MSGraphGroupsAndUsersClient _msGraphClient;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MsGraphFunctions"/> class.
+    /// Initializes a new instance of the <see cref="MSGraphFunctions"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="msGraphClient">The DI-injected MS Graph Groups &amp; Users client (disposed by the host).</param>
-    public MsGraphFunctions(
-        ILogger<MsGraphFunctions> logger,
+    public MSGraphFunctions(
+        ILogger<MSGraphFunctions> logger,
         MSGraphGroupsAndUsersClient msGraphClient)
     {
         this._logger = logger;

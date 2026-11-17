@@ -40,7 +40,7 @@ Each connector's sample functions **must** be in a dedicated file named `{Connec
 |-----------|------|
 | Office365, SharePoint, Teams | `ConnectorFunctions.cs` (legacy combined file — to be refactored) |
 | OneDrive for Business | `OneDriveFunctions.cs` |
-| MS Graph Groups & Users | `MsGraphFunctions.cs` |
+| MS Graph Groups & Users | `MSGraphFunctions.cs` |
 
 **Rules:**
 

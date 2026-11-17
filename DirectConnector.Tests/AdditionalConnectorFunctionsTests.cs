@@ -252,7 +252,7 @@ public class AdditionalConnectorFunctionsTests
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
             (uri, credential, options) => new OneNoteClient(uri, credential, options),
             "[]");
-        var functions = new OnenoteFunctions(TestHelpers.CreateNullLogger<OnenoteFunctions>(), client);
+        var functions = new OneNoteFunctions(TestHelpers.CreateNullLogger<OneNoteFunctions>(), client);
         await AdditionalConnectorFunctionsTests
             .AssertSuccessAsync(functions.ListNotebooksAsync)
             .ConfigureAwait(continueOnCapturedContext: false);

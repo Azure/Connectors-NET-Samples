@@ -21,18 +21,18 @@ namespace DirectConnector;
 /// IBM MQ uses parameter-based auth (server, queue manager, channel, credentials).
 /// The connection must be created with parameterValues — no OAuth consent flow.
 /// </remarks>
-public class MqFunctions
+public class MQFunctions
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly ILogger<MqFunctions> _logger;
+    private readonly ILogger<MQFunctions> _logger;
     private readonly MQClient _mqClient;
 
-    public MqFunctions(
-        ILogger<MqFunctions> logger,
+    public MQFunctions(
+        ILogger<MQFunctions> logger,
         MQClient mqClient)
     {
         this._logger = logger;
@@ -56,7 +56,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqSendRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqSendRequest>(body, MQFunctions.JsonOptions);
 
             if (input == null || string.IsNullOrEmpty(input.Message))
             {
@@ -142,7 +142,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReadAsync(
@@ -213,7 +213,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqBatchRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqBatchRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReadAllAsync(
@@ -288,7 +288,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReceiveAsync(
@@ -359,7 +359,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .DeleteAsync(

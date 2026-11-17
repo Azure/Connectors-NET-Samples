@@ -6,6 +6,7 @@ using System.Diagnostics;
 using Azure.Connectors.Sdk;
 using Azure.Connectors.Sdk.CommonDataService;
 using Azure.Connectors.Sdk.Http;
+using Azure.Connectors.Sdk.ServiceNow;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
@@ -73,18 +74,20 @@ var host = new HostBuilder()
                 message: "Configuration value 'Connectors:Dataverse:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
         }
 
-        var dataverseManagedIdentityClientId = dataverseConfiguration["ManagedIdentityClientId"];
         services.AddSingleton<CommonDataServiceClient>(serviceProvider =>
-        {
-            var credential = dataverseManagedIdentityClientId != null
-                ? string.IsNullOrWhiteSpace(dataverseManagedIdentityClientId)
-                    ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
-                    : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(dataverseManagedIdentityClientId.Trim()))
-                : serviceProvider.GetService<TokenCredential>()
-                    ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+            new CommonDataServiceClient(dataverseConnectionRuntimeUri, ResolveCredential(dataverseConfiguration, serviceProvider)));
 
-            return new CommonDataServiceClient(dataverseConnectionRuntimeUri, credential);
-        });
+        // NOTE: ServiceNow has no generated DI helper in this SDK version, so it is registered like Dataverse.
+        var serviceNowConfiguration = configuration.GetSection("Connectors:ServiceNow");
+        var serviceNowConnectionRuntimeUrl = serviceNowConfiguration["ConnectionRuntimeUrl"]?.Trim();
+        if (!Uri.TryCreate(serviceNowConnectionRuntimeUrl, UriKind.Absolute, out var serviceNowConnectionRuntimeUri))
+        {
+            throw new InvalidOperationException(
+                message: "Configuration value 'Connectors:ServiceNow:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
+        }
+
+        services.AddSingleton<ServiceNowClient>(serviceProvider =>
+            new ServiceNowClient(serviceNowConnectionRuntimeUri, ResolveCredential(serviceNowConfiguration, serviceProvider)));
 
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
@@ -114,3 +117,15 @@ var host = new HostBuilder()
     .Build();
 
 host.Run();
+
+// NOTE: Matches the SDK's DI helpers: an explicit ManagedIdentityClientId wins, then a registered TokenCredential, then system-assigned managed identity.
+static TokenCredential ResolveCredential(IConfiguration connectorConfiguration, IServiceProvider serviceProvider)
+{
+    var managedIdentityClientId = connectorConfiguration["ManagedIdentityClientId"]?.Trim();
+    return managedIdentityClientId != null
+        ? managedIdentityClientId.Length == 0
+            ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
+            : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(managedIdentityClientId))
+        : serviceProvider.GetService<TokenCredential>()
+            ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+}

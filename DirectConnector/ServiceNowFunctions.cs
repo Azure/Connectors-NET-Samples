@@ -22,6 +22,8 @@ public class ServiceNowFunctions
     internal const string DefaultFileName = "connectors-sdk-sample.txt";
     internal const string AttachmentContentType = "text/plain";
 
+    private static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(30);
+
     private readonly ServiceNowClient _client;
     private readonly ILogger<ServiceNowFunctions> _logger;
 
@@ -69,20 +71,34 @@ public class ServiceNowFunctions
 
     private async Task<object> RunAttachmentRoundTripAsync(string fileName, byte[] content, CancellationToken cancellationToken)
     {
-        var incident = await this._client
-            .CreateRecordAsync(
-                recordType: ServiceNowFunctions.IncidentTable,
-                input: new RecordBody
-                {
-                    AdditionalProperties =
+        // NOTE: The unique description lets cleanup find the incident if the create call fails after ServiceNow inserted it.
+        var shortDescription = $"Azure Connectors SDK attachment sample {Guid.NewGuid():N} (deleted automatically)";
+        SingleRecordResponse incident;
+        string incidentSysId;
+        try
+        {
+            incident = await this._client
+                .CreateRecordAsync(
+                    recordType: ServiceNowFunctions.IncidentTable,
+                    input: new RecordBody
                     {
-                        ["short_description"] = JsonSerializer.SerializeToElement("Azure Connectors SDK attachment sample (deleted automatically)"),
+                        AdditionalProperties =
+                        {
+                            ["short_description"] = JsonSerializer.SerializeToElement(shortDescription),
+                        },
                     },
-                },
-                fields: "sys_id,number",
-                cancellationToken: cancellationToken)
-            .ConfigureAwait(continueOnCapturedContext: false);
-        var incidentSysId = ServiceNowFunctions.GetRequiredString(incident.Result, "sys_id", "created incident");
+                    fields: "sys_id,number",
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            incidentSysId = ServiceNowFunctions.GetRequiredString(incident.Result, "sys_id", "created incident");
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            await this
+                .TryDeleteIncidentsByDescriptionAsync(shortDescription)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            throw;
+        }
 
         try
         {
@@ -122,18 +138,55 @@ public class ServiceNowFunctions
         catch (Exception ex) when (!ex.IsFatal())
         {
             // NOTE: Remove the temporary incident when a later step fails; ServiceNow deletes its attachments with it.
-            try
-            {
-                await this._client
-                    .DeleteRecordAsync(ServiceNowFunctions.IncidentTable, incidentSysId, CancellationToken.None)
-                    .ConfigureAwait(continueOnCapturedContext: false);
-            }
-            catch (Exception cleanupException) when (!cleanupException.IsFatal())
-            {
-                this._logger.LogWarning(cleanupException, "Could not delete temporary incident '{IncidentSysId}'.", incidentSysId);
-            }
-
+            await this
+                .TryDeleteIncidentAsync(incidentSysId)
+                .ConfigureAwait(continueOnCapturedContext: false);
             throw;
+        }
+    }
+
+    private async Task TryDeleteIncidentAsync(string incidentSysId)
+    {
+        // NOTE: Cleanup has its own time limit so it still runs after the request is canceled.
+        using var cleanupTimeout = new CancellationTokenSource(ServiceNowFunctions.CleanupTimeout);
+        try
+        {
+            await this._client
+                .DeleteRecordAsync(ServiceNowFunctions.IncidentTable, incidentSysId, cleanupTimeout.Token)
+                .ConfigureAwait(continueOnCapturedContext: false);
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogWarning(ex, "Could not delete temporary incident '{IncidentSysId}'.", incidentSysId);
+        }
+    }
+
+    private async Task TryDeleteIncidentsByDescriptionAsync(string shortDescription)
+    {
+        using var cleanupTimeout = new CancellationTokenSource(ServiceNowFunctions.CleanupTimeout);
+        try
+        {
+            var matches = await this._client
+                .GetRecordsAsync(
+                    recordType: ServiceNowFunctions.IncidentTable,
+                    query: $"short_description={shortDescription}",
+                    fields: "sys_id",
+                    cancellationToken: cleanupTimeout.Token)
+                .ConfigureAwait(continueOnCapturedContext: false);
+            foreach (var match in matches.Result ?? [])
+            {
+                var incidentSysId = ServiceNowFunctions.GetOptionalString(match, "sys_id");
+                if (incidentSysId != null)
+                {
+                    await this._client
+                        .DeleteRecordAsync(ServiceNowFunctions.IncidentTable, incidentSysId, cleanupTimeout.Token)
+                        .ConfigureAwait(continueOnCapturedContext: false);
+                }
+            }
+        }
+        catch (Exception ex) when (!ex.IsFatal())
+        {
+            this._logger.LogWarning(ex, "Could not check for a temporary incident described as '{ShortDescription}'.", shortDescription);
         }
     }
 

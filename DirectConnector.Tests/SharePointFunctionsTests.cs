@@ -148,6 +148,37 @@ public class SharePointFunctionsTests
     }
 
     [TestMethod]
+    public async Task ListFolderAsync_WithTwoPages_ReturnsItemsFromBothPages()
+    {
+        // Arrange — two pages linked by @odata.nextLink
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"value\":[{\"{Name}\":\"first-page.docx\"}],\"@odata.nextLink\":\"https://test.azure.com/connection/next\"}",
+            "{\"value\":[{\"{Name}\":\"second-page.docx\"}]}",
+        });
+        using var client = CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(responseBodies.Dequeue()),
+        });
+        var functions = new SharePointFunctions(TestHelpers.CreateNullLogger<SharePointFunctions>(), client);
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/sharepoint/files?site=https://contoso.sharepoint.com/sites/testsite");
+
+        // Act
+        var response = await functions.ListFolderAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.AreEqual(2, result.RootElement.GetProperty("count").GetInt32());
+        var body = result.RootElement.GetRawText();
+        Assert.IsTrue(body.Contains("first-page.docx", StringComparison.Ordinal));
+        Assert.IsTrue(body.Contains("second-page.docx", StringComparison.Ordinal));
+        Assert.AreEqual(0, responseBodies.Count);
+    }
+
+    [TestMethod]
     public async Task ListFolderAsync_WithMissingSite_Returns400()
     {
         // Arrange — no site query parameter (site is required; library defaults to "Documents")

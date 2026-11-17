@@ -148,6 +148,33 @@ public class AzureTablesFunctionsTests
         StringAssert.Contains(value: Uri.UnescapeDataString(handler.Query!), substring: "$select=RowKey");
     }
 
+    [TestMethod]
+    public async Task GetEntitiesAsync_WithTwoPages_ReturnsEntitiesFromBothPages()
+    {
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"value\":[{\"PartitionKey\":\"p1\",\"RowKey\":\"first-page-row\"}],\"nextLink\":\"https://test.azure.com/connection/next\"}",
+            "{\"value\":[{\"PartitionKey\":\"p1\",\"RowKey\":\"second-page-row\"}]}",
+        });
+        var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(content: responseBodies.Dequeue()),
+        });
+        using var client = new AzureTablesClient(connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"), credential: setup.Credential, options: setup.Options);
+        var functions = new AzureTablesFunctions(TestHelpers.CreateNullLogger<AzureTablesFunctions>(), client);
+
+        var response = await functions
+            .GetEntitiesAsync(TestHelpers.CreateRequest(url: "https://localhost/api/test?storageAccount=account&table=SdkTable"), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(value: body, substring: "first-page-row");
+        StringAssert.Contains(value: body, substring: "second-page-row");
+        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+    }
+
     private static AzureTablesClient CreateClient(RecordingHandler handler)
     {
         var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage(statusCode: HttpStatusCode.OK));

@@ -310,6 +310,34 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public async Task ShiftsListCrossTeamShiftsAsync_WithTwoPages_ReturnsShiftsFromBothPages()
+    {
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"@odata.nextLink\":\"https://test.azure.com/shifts?page=2\",\"value\":[{\"id\":\"first-page-shift\"}]}",
+            "{\"value\":[{\"id\":\"second-page-shift\"}]}",
+        });
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new ShiftsClient(uri, credential, options),
+            () => new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(responseBodies.Dequeue()),
+            });
+        var functions = new ShiftsFunctions(TestHelpers.CreateNullLogger<ShiftsFunctions>(), client);
+
+        var response = await functions
+            .ListCrossTeamShiftsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(body.Contains("first-page-shift", StringComparison.Ordinal));
+        Assert.IsTrue(body.Contains("second-page-shift", StringComparison.Ordinal));
+        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+    }
+
+    [TestMethod]
     public async Task TodoListTaskListsAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(

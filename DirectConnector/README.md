@@ -428,7 +428,7 @@ Create a trigger config for a Teams connection with operation `WebhookChatMessag
 
 ### ServiceNow Multipart Attachment
 
-`POST /api/servicenow/attachments/roundtrip` demonstrates the SDK's multipart support. It creates a temporary incident, uploads the request body as an attachment with `UploadAttachmentAsync` and `MultipartFile`, downloads it to confirm the bytes match, and then deletes the attachment and the incident. A failed step still deletes the incident.
+`POST /api/servicenow/attachments/roundtrip` demonstrates the SDK's multipart support. It creates a temporary incident, uploads the request body as an attachment with `UploadAttachmentAsync` and `MultipartFile`, downloads it to confirm the bytes match, and then deletes the attachment and the incident. Cleanup is best effort: when a step fails, the function still tries to delete the incident, and it finds the incident by a unique marker in its description if the create response was lost.
 
 The connection can use the connector's OAuth 2.0 parameter set. Register an OAuth API endpoint for external clients in the ServiceNow instance with the connection's consent redirect URL, then create the connection with that client ID and secret and complete consent.
 

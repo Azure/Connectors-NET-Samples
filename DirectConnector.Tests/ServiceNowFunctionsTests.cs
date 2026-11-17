@@ -4,6 +4,7 @@
 
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Azure.Connectors.Sdk.ServiceNow;
 using Azure.Core.Pipeline;
@@ -182,6 +183,55 @@ public class ServiceNowFunctionsTests
             {
                 "POST /connection/api/now/v2/table/incident",
                 "POST /connection/api/now/v1/attachment/upload",
+                $"DELETE /connection/api/now/v2/table/incident/{IncidentSysId}",
+            },
+            calls);
+    }
+
+    [TestMethod]
+    public async Task ServiceNowAttachmentRoundTripAsync_WhenCreateResponseFails_DeletesIncidentFoundByDescription()
+    {
+        // Arrange — the create call fails after ServiceNow may already have inserted the incident
+        var calls = new List<string>();
+        string? sentDescription = null;
+        string? cleanupQuery = null;
+        using var client = CreateTransportClient(async request =>
+        {
+            var path = request.RequestUri!.AbsolutePath;
+            calls.Add($"{request.Method} {path}");
+
+            if (request.Method == HttpMethod.Post)
+            {
+                var record = await request.Content!.ReadAsStringAsync().ConfigureAwait(continueOnCapturedContext: false);
+                sentDescription = JsonDocument.Parse(record).RootElement.GetProperty("short_description").GetString();
+                return Json("""{"error":{"message":"Gateway timeout"}}""", HttpStatusCode.GatewayTimeout);
+            }
+
+            if (request.Method == HttpMethod.Get)
+            {
+                cleanupQuery = Uri.UnescapeDataString(request.RequestUri.Query);
+                return Json($$$"""{"result":[{"sys_id":"{{{IncidentSysId}}}"}]}""");
+            }
+
+            return new HttpResponseMessage { StatusCode = HttpStatusCode.NoContent };
+        });
+
+        var functions = new ServiceNowFunctions(TestHelpers.CreateNullLogger<ServiceNowFunctions>(), client);
+        var request = TestHelpers.CreateRequest(method: "POST", url: "https://localhost/api/servicenow/attachments/roundtrip");
+
+        // Act
+        var response = await functions.ServiceNowAttachmentRoundTripAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.IsNotNull(sentDescription);
+        StringAssert.Contains(cleanupQuery, $"sysparm_query=short_description={sentDescription}");
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                "POST /connection/api/now/v2/table/incident",
+                "GET /connection/api/now/v2/table/incident",
                 $"DELETE /connection/api/now/v2/table/incident/{IncidentSysId}",
             },
             calls);

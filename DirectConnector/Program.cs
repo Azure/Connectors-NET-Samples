@@ -77,17 +77,20 @@ var host = new HostBuilder()
         services.AddSingleton<CommonDataServiceClient>(serviceProvider =>
             new CommonDataServiceClient(dataverseConnectionRuntimeUri, ResolveCredential(dataverseConfiguration, serviceProvider)));
 
-        // NOTE: ServiceNow has no generated DI helper in this SDK version, so it is registered like Dataverse.
+        // NOTE: ServiceNow has no generated DI helper in this SDK version. Its URL is validated when a ServiceNow
+        // function first resolves the client, so a deployment without this newer setting still starts the other samples.
         var serviceNowConfiguration = configuration.GetSection("Connectors:ServiceNow");
-        var serviceNowConnectionRuntimeUrl = serviceNowConfiguration["ConnectionRuntimeUrl"]?.Trim();
-        if (!Uri.TryCreate(serviceNowConnectionRuntimeUrl, UriKind.Absolute, out var serviceNowConnectionRuntimeUri))
-        {
-            throw new InvalidOperationException(
-                message: "Configuration value 'Connectors:ServiceNow:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
-        }
-
         services.AddSingleton<ServiceNowClient>(serviceProvider =>
-            new ServiceNowClient(serviceNowConnectionRuntimeUri, ResolveCredential(serviceNowConfiguration, serviceProvider)));
+        {
+            var serviceNowConnectionRuntimeUrl = serviceNowConfiguration["ConnectionRuntimeUrl"]?.Trim();
+            if (!Uri.TryCreate(serviceNowConnectionRuntimeUrl, UriKind.Absolute, out var serviceNowConnectionRuntimeUri))
+            {
+                throw new InvalidOperationException(
+                    message: "Configuration value 'Connectors:ServiceNow:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
+            }
+
+            return new ServiceNowClient(serviceNowConnectionRuntimeUri, ResolveCredential(serviceNowConfiguration, serviceProvider));
+        });
 
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"

@@ -432,6 +432,8 @@ Create a trigger config for a Teams connection with operation `WebhookChatMessag
 
 The connection can use the connector's OAuth 2.0 parameter set. Register an OAuth API endpoint for external clients in the ServiceNow instance with the connection's consent redirect URL, then create the connection with that client ID and secret and complete consent.
 
+`Connectors:ServiceNow:ConnectionRuntimeUrl` is checked only when a ServiceNow function runs, so an existing deployment without this setting still starts. Until the setting is added, the ServiceNow function fails with a configuration error.
+
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:7071/api/servicenow/attachments/roundtrip?fileName=notes.txt" -Method POST `
     -Body "Hello from the Azure Connectors SDK." `

@@ -4,17 +4,17 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk.Commondataservice;
+using Azure.Connectors.Sdk.CommonDataService;
 
 namespace DirectConnector.Tests;
 
 [TestClass]
 public class DataverseFunctionsTests
 {
-    private static CommondataserviceClient CreateMockedClient(Func<HttpResponseMessage> responseFactory)
+    private static CommonDataServiceClient CreateMockedClient(Func<HttpResponseMessage> responseFactory)
     {
         var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory);
-        return new CommondataserviceClient(
+        return new CommonDataServiceClient(
             connectionRuntimeUrl: new Uri("https://test.azure.com/connection"),
             credential: credential,
             options: options);

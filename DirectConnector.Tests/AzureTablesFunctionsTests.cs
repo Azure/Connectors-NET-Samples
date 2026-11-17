@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk.Azuretables;
+using Azure.Connectors.Sdk.AzureTables;
 using Azure.Core.Pipeline;
 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -59,7 +59,7 @@ public class AzureTablesFunctionsTests
         Assert.IsTrue(result.RootElement.GetProperty("success").GetBoolean());
         if (string.Equals(operation, "CreateTable", StringComparison.Ordinal))
         {
-            Assert.AreEqual(expected: "\"SdkTable\"", actual: handler.Body);
+            Assert.AreEqual(expected: "SdkTable", actual: handler.Body);
         }
         else if (operation is "CreateEntity" or "MergeEntity" or "ReplaceEntity" or "InsertMergeEntity" or "InsertReplaceEntity")
         {

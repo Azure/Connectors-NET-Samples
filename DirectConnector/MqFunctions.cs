@@ -5,8 +5,8 @@
 using System.Net;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Mq;
-using Azure.Connectors.Sdk.Mq.Models;
+using Azure.Connectors.Sdk.MQ;
+using Azure.Connectors.Sdk.MQ.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -15,7 +15,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating IBM MQ operations using the generated
-/// <see cref="MqClient"/> from the Azure Connectors SDK.
+/// <see cref="MQClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// IBM MQ uses parameter-based auth (server, queue manager, channel, credentials).
@@ -29,11 +29,11 @@ public class MqFunctions
     };
 
     private readonly ILogger<MqFunctions> _logger;
-    private readonly MqClient _mqClient;
+    private readonly MQClient _mqClient;
 
     public MqFunctions(
         ILogger<MqFunctions> logger,
-        MqClient mqClient)
+        MQClient mqClient)
     {
         this._logger = logger;
         this._mqClient = mqClient;
@@ -47,7 +47,7 @@ public class MqFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/send")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("MqSendMessage: Using generated MqClient from SDK.");
+        this._logger.LogInformation("MqSendMessage: Using generated MQClient from SDK.");
 
         try
         {

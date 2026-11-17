@@ -12,7 +12,7 @@ using Azure.Connectors.Sdk.KeyVault;
 using Azure.Connectors.Sdk.MicrosoftBookings;
 using Azure.Connectors.Sdk.Office365Groups;
 using Azure.Connectors.Sdk.Office365GroupsMail;
-using Azure.Connectors.Sdk.Onenote;
+using Azure.Connectors.Sdk.OneNote;
 using Azure.Connectors.Sdk.PowerBI;
 using Azure.Connectors.Sdk.Shifts;
 using Azure.Connectors.Sdk.Todo;
@@ -250,7 +250,7 @@ public class AdditionalConnectorFunctionsTests
     public async Task OnenoteListNotebooksAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
-            (uri, credential, options) => new OnenoteClient(uri, credential, options),
+            (uri, credential, options) => new OneNoteClient(uri, credential, options),
             "[]");
         var functions = new OnenoteFunctions(TestHelpers.CreateNullLogger<OnenoteFunctions>(), client);
         await AdditionalConnectorFunctionsTests

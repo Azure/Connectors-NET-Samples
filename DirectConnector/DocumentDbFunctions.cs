@@ -4,7 +4,7 @@
 
 using System.Net;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Documentdb;
+using Azure.Connectors.Sdk.DocumentDB;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -13,7 +13,7 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating Azure Cosmos DB operations using the generated
-/// <see cref="DocumentDbClient"/> from the Azure Connectors SDK.
+/// <see cref="DocumentDBClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// The connector name "documentdb" reflects the original Azure DocumentDB branding;
@@ -22,11 +22,11 @@ namespace DirectConnector;
 public class DocumentDbFunctions
 {
     private readonly ILogger<DocumentDbFunctions> _logger;
-    private readonly DocumentDbClient _documentDbClient;
+    private readonly DocumentDBClient _documentDbClient;
 
     public DocumentDbFunctions(
         ILogger<DocumentDbFunctions> logger,
-        DocumentDbClient documentDbClient)
+        DocumentDBClient documentDbClient)
     {
         this._logger = logger;
         this._documentDbClient = documentDbClient;
@@ -40,7 +40,7 @@ public class DocumentDbFunctions
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "cosmosdb/accounts")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("CosmosDbListAccounts: Using generated DocumentDbClient from SDK.");
+        this._logger.LogInformation("CosmosDbListAccounts: Using generated DocumentDBClient from SDK.");
 
         try
         {

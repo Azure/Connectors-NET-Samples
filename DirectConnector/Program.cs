@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Commondataservice;
+using Azure.Connectors.Sdk.CommonDataService;
 using Azure.Connectors.Sdk.Http;
 using Azure.Core;
 using Azure.Identity;
@@ -33,10 +33,10 @@ var host = new HostBuilder()
         services.AddSharePointOnlineClient(configuration.GetSection("Connectors:SharePoint"));
         services.AddTeamsClient(configuration.GetSection("Connectors:Teams"));
         services.AddOneDriveForBusinessClient(configuration.GetSection("Connectors:OneDrive"));
-        services.AddMsGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MsGraph"));
+        services.AddMSGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MsGraph"));
         services.AddAzureBlobClient(configuration.GetSection("Connectors:AzureBlob"));
         services.AddSmtpClient(configuration.GetSection("Connectors:Smtp"));
-        services.AddMqClient(configuration.GetSection("Connectors:Mq"));
+        services.AddMQClient(configuration.GetSection("Connectors:Mq"));
         services.AddOffice365UsersClient(configuration.GetSection("Connectors:Office365Users"));
         services.AddAzureMonitorLogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
         services.AddArmClient(configuration.GetSection("Connectors:Arm"));
@@ -47,7 +47,7 @@ var host = new HostBuilder()
         services.AddUniversalPrintClient(configuration.GetSection("Connectors:UniversalPrint"));
         services.AddAzureQueuesClient(configuration.GetSection("Connectors:AzureQueues"));
         services.AddAzureTablesClient(configuration.GetSection("Connectors:AzureTables"));
-        services.AddDocumentDbClient(configuration.GetSection("Connectors:DocumentDB"));
+        services.AddDocumentDBClient(configuration.GetSection("Connectors:DocumentDB"));
         services.AddEventHubsClient(configuration.GetSection("Connectors:EventHubs"));
         services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
         services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
@@ -60,7 +60,7 @@ var host = new HostBuilder()
         services.AddMicrosoftBookingsClient(configuration.GetSection("Connectors:MicrosoftBookings"));
         services.AddOffice365GroupsClient(configuration.GetSection("Connectors:Office365Groups"));
         services.AddOffice365GroupsMailClient(configuration.GetSection("Connectors:Office365GroupsMail"));
-        services.AddOnenoteClient(configuration.GetSection("Connectors:Onenote"));
+        services.AddOneNoteClient(configuration.GetSection("Connectors:Onenote"));
         services.AddPowerBIClient(configuration.GetSection("Connectors:PowerBI"));
         services.AddShiftsClient(configuration.GetSection("Connectors:Shifts"));
         services.AddTodoClient(configuration.GetSection("Connectors:Todo"));
@@ -74,7 +74,7 @@ var host = new HostBuilder()
         }
 
         var dataverseManagedIdentityClientId = dataverseConfiguration["ManagedIdentityClientId"];
-        services.AddSingleton<CommondataserviceClient>(serviceProvider =>
+        services.AddSingleton<CommonDataServiceClient>(serviceProvider =>
         {
             var credential = dataverseManagedIdentityClientId != null
                 ? string.IsNullOrWhiteSpace(dataverseManagedIdentityClientId)
@@ -83,14 +83,14 @@ var host = new HostBuilder()
                 : serviceProvider.GetService<TokenCredential>()
                     ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 
-            return new CommondataserviceClient(dataverseConnectionRuntimeUri, credential);
+            return new CommonDataServiceClient(dataverseConnectionRuntimeUri, credential);
         });
 
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
         // Each generated client emits activities under "Azure.Connectors.Sdk.<connector>"
-        // (e.g., "Azure.Connectors.Sdk.teams", "Azure.Connectors.Sdk.office365").
+        // (e.g., "Azure.Connectors.Sdk.Teams", "Azure.Connectors.Sdk.Office365").
         // In production, use OpenTelemetry SDK with per-connector AddSource calls
-        // (e.g., AddSource("Azure.Connectors.Sdk.teams")) or enumerate all sources
+        // (e.g., AddSource("Azure.Connectors.Sdk.Teams")) or enumerate all sources
         // matching the "Azure.Connectors.Sdk" prefix for structured export to
         // Application Insights, Jaeger, or other OTLP backends.
         if (hostContext.HostingEnvironment.IsDevelopment())

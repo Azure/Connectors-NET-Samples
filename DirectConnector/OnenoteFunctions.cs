@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 //------------------------------------------------------------
 
-using Azure.Connectors.Sdk.Onenote;
+using Azure.Connectors.Sdk.OneNote;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -14,10 +14,10 @@ namespace DirectConnector;
 /// </summary>
 public class OnenoteFunctions
 {
-    private readonly OnenoteClient _client;
+    private readonly OneNoteClient _client;
     private readonly ILogger<OnenoteFunctions> _logger;
 
-    public OnenoteFunctions(ILogger<OnenoteFunctions> logger, OnenoteClient client)
+    public OnenoteFunctions(ILogger<OnenoteFunctions> logger, OneNoteClient client)
     {
         this._logger = logger;
         this._client = client;

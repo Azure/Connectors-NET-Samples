@@ -88,7 +88,7 @@ connected clients remains broader than this expansion.
 | `GET /api/wordonline/templates/schema` | `GetFileSchemaAsync` | Required `source`, `drive`, `file` queries; schema JSON |
 | `POST /api/wordonline/templates/populate` | `CreateFileItemAsync` | Same selectors and a JSON object of template fields; DOCX bytes |
 | `POST /api/wordonline/files/content` | `CreateWordFileWithContentAsync` | JSON `{"content":"..."}`; optional `fileName`; result JSON |
-| `GET /api/wordonline/files/pdf` | `GetFilePDFAsync` | Required selectors; optional Boolean `extractSensitivityLabel` and `sensitivityLabelMetadata`; PDF bytes |
+| `GET /api/wordonline/files/pdf` | `GetFilePdfAsync` | Required selectors; optional Boolean `extractSensitivityLabel` and `sensitivityLabelMetadata`; PDF bytes |
 
 Use identifiers returned by the authenticated service. OneDrive connection file
 IDs and Word drive-item selectors are not assumed interchangeable. Template

@@ -5,7 +5,7 @@
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
-using Azure.Connectors.Sdk.Azurequeues;
+using Azure.Connectors.Sdk.AzureQueues;
 using Azure.Core.Pipeline;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -317,7 +317,7 @@ public class AzureQueuesFunctionsTests
 
     [TestMethod]
     [Owner("daviburg")]
-    public async Task AzureQueuesPutMessageAsync_WithPlainTextBody_SendsJsonEncodedString()
+    public async Task AzureQueuesPutMessageAsync_WithPlainTextBody_SendsUnquotedText()
     {
         const string message = "Order \"demo\" \u0026 notification";
         var calls = 0;
@@ -332,7 +332,7 @@ public class AzureQueuesFunctionsTests
             var actualBody = await outbound.Content
                 .ReadAsStringAsync(token)
                 .ConfigureAwait(continueOnCapturedContext: false);
-            Assert.AreEqual(expected: JsonSerializer.Serialize(message), actual: actualBody);
+            Assert.AreEqual(expected: message, actual: actualBody);
             return new HttpResponseMessage(HttpStatusCode.NoContent);
         });
         var functions = new AzureQueuesFunctions(TestHelpers.CreateNullLogger<AzureQueuesFunctions>(), client);

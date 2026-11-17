@@ -5,8 +5,8 @@
 using System.Net;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Azuretables;
-using Azure.Connectors.Sdk.Azuretables.Models;
+using Azure.Connectors.Sdk.AzureTables;
+using Azure.Connectors.Sdk.AzureTables.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -201,13 +201,23 @@ public class AzureTablesFunctions
         return this.ExecuteAsync(
             request: request,
             operationName: "AzureTablesGetEntities",
-            operation: () => this._azureTablesClient
-                .GetEntitiesAsync(
-                storageAccountNameOrTableEndpoint: request.Query["storageAccount"]!,
-                table: request.Query["table"]!,
-                filterQuery: request.Query["$filter"],
-                selectQuery: request.Query["$select"],
-                cancellationToken: cancellationToken),
+            operation: async () =>
+            {
+                var entities = new List<EntityItem>();
+                await foreach (var entity in this._azureTablesClient
+                    .GetEntitiesAsync(
+                        storageAccountNameOrTableEndpoint: request.Query["storageAccount"]!,
+                        table: request.Query["table"]!,
+                        filterQuery: request.Query["$filter"],
+                        selectQuery: request.Query["$select"],
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false))
+                {
+                    entities.Add(entity);
+                }
+
+                return new GetEntitiesResponse { Value = entities };
+            },
             requiredParameters: ["storageAccount", "table"],
             cancellationToken: cancellationToken);
     }

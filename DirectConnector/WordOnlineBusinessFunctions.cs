@@ -305,7 +305,7 @@ public class WordOnlineBusinessFunctions
                 operationName: "WordOnlineGetFilePDF",
                 contentType: "application/pdf",
                 operation: () => this._wordOnlineBusinessClient
-                    .GetFilePDFAsync(
+                    .GetFilePdfAsync(
                         location: source!,
                         documentLibrary: drive!,
                         file: file!,

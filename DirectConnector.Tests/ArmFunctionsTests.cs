@@ -60,10 +60,10 @@ public class ArmFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Development Subscription", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("Production Subscription", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Development Subscription", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Production Subscription", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -87,9 +87,9 @@ public class ArmFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -123,10 +123,10 @@ public class ArmFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("rg-dev", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("rg-prod", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("rg-dev", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("rg-prod", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -157,7 +157,7 @@ public class ArmFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("rg-test", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("rg-test", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -190,7 +190,7 @@ public class ArmFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.Created, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("rg-test", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("rg-test", StringComparison.Ordinal));
     }
 
     [TestMethod]

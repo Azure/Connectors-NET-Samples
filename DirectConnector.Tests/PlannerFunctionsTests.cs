@@ -34,8 +34,8 @@ public class PlannerFunctionsTests
             .PlannerListGroupsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("SDK validation", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("SDK validation", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -52,8 +52,8 @@ public class PlannerFunctionsTests
             .PlannerListMyTasksAsync(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("Validate SDK 0.14", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("Validate SDK 0.14", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public class PlannerFunctionsTests
             .PlannerListGroupsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ public class PlannerFunctionsTests
     {
         Assert.AreEqual(expected: HttpStatusCode.InternalServerError, actual: response.StatusCode);
         using var document = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
-        Assert.IsFalse(document.RootElement.GetProperty("success").GetBoolean());
-        Assert.IsFalse(string.IsNullOrWhiteSpace(document.RootElement.GetProperty("error").GetString()));
+        Assert.IsFalse(condition: document.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(condition: string.IsNullOrWhiteSpace(document.RootElement.GetProperty("error").GetString()));
     }
 }

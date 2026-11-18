@@ -43,9 +43,9 @@ public class SharePointFunctionsTests
         var response = await functions.ListSharePointSitesAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Test site", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Test site", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -79,9 +79,9 @@ public class SharePointFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Documents", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Documents", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -106,9 +106,9 @@ public class SharePointFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -142,9 +142,40 @@ public class SharePointFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("Report.docx", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("Report.docx", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
+    public async Task ListFolderAsync_WithTwoPages_ReturnsItemsFromBothPages()
+    {
+        // Arrange — two pages linked by @odata.nextLink
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"value\":[{\"{Name}\":\"first-page.docx\"}],\"@odata.nextLink\":\"https://test.azure.com/connection/next\"}",
+            "{\"value\":[{\"{Name}\":\"second-page.docx\"}]}",
+        });
+        using var client = CreateMockedClient(() => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(responseBodies.Dequeue()),
+        });
+        var functions = new SharePointFunctions(TestHelpers.CreateNullLogger<SharePointFunctions>(), client);
+        var request = TestHelpers.CreateRequest(url: "https://localhost/api/sharepoint/files?site=https://contoso.sharepoint.com/sites/testsite");
+
+        // Act
+        var response = await functions.ListFolderAsync(request, CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        // Assert
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
+        Assert.AreEqual(expected: 2, actual: result.RootElement.GetProperty("count").GetInt32());
+        var body = result.RootElement.GetRawText();
+        Assert.IsTrue(condition: body.Contains("first-page.docx", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("second-page.docx", StringComparison.Ordinal));
+        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
     }
 
     [TestMethod]
@@ -168,7 +199,7 @@ public class SharePointFunctionsTests
             .ConfigureAwait(continueOnCapturedContext: false);
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -184,7 +215,7 @@ public class SharePointFunctionsTests
         var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -200,7 +231,7 @@ public class SharePointFunctionsTests
         var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -217,8 +248,8 @@ public class SharePointFunctionsTests
         var response = await functions.SharePointNewFileTriggerAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"itemCount\":1", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"itemCount\":1", StringComparison.Ordinal));
     }
 }

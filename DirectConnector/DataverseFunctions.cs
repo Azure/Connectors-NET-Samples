@@ -5,8 +5,8 @@
 using System.Net;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Commondataservice;
-using Azure.Connectors.Sdk.Commondataservice.Models;
+using Azure.Connectors.Sdk.CommonDataService;
+using Azure.Connectors.Sdk.CommonDataService.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -25,7 +25,7 @@ public class DataverseFunctions
         PropertyNameCaseInsensitive = true,
     };
 
-    private readonly CommondataserviceClient _dataverseClient;
+    private readonly CommonDataServiceClient _dataverseClient;
     private readonly ILogger<DataverseFunctions> _logger;
 
     /// <summary>
@@ -33,7 +33,7 @@ public class DataverseFunctions
     /// </summary>
     public DataverseFunctions(
         ILogger<DataverseFunctions> logger,
-        CommondataserviceClient dataverseClient)
+        CommonDataServiceClient dataverseClient)
     {
         this._logger = logger;
         this._dataverseClient = dataverseClient;
@@ -171,7 +171,7 @@ public class DataverseFunctions
     [Function("DataverseOnNewItems")]
     [ConnectorTriggerMetadata(
         ConnectorName = ConnectorNames.MicrosoftDataverse,
-        OperationName = CommondataserviceTriggerOperations.OnNewItems,
+        OperationName = CommonDataServiceTriggerOperations.OnNewItems,
         Connection = "Connectors:Dataverse")]
     public async Task<HttpResponseData> OnNewItemsAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dataverse/trigger/newitems")] HttpRequestData request,
@@ -182,7 +182,7 @@ public class DataverseFunctions
         try
         {
             var payload = await ConnectorTriggerPayload
-                .ReadAsync<CommondataserviceOnNewItemsTriggerPayload>(
+                .ReadAsync<CommonDataServiceOnNewItemsTriggerPayload>(
                     request.Body,
                     maxBodySizeBytes: DataverseFunctions.MaxTriggerCallbackBodySize,
                     cancellationToken: cancellationToken)

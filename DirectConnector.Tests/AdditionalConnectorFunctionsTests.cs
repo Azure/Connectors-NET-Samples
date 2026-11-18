@@ -12,7 +12,7 @@ using Azure.Connectors.Sdk.KeyVault;
 using Azure.Connectors.Sdk.MicrosoftBookings;
 using Azure.Connectors.Sdk.Office365Groups;
 using Azure.Connectors.Sdk.Office365GroupsMail;
-using Azure.Connectors.Sdk.Onenote;
+using Azure.Connectors.Sdk.OneNote;
 using Azure.Connectors.Sdk.PowerBI;
 using Azure.Connectors.Sdk.Shifts;
 using Azure.Connectors.Sdk.Todo;
@@ -65,12 +65,12 @@ public class AdditionalConnectorFunctionsTests
             .GetJobStatusAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         using var document = JsonDocument.Parse(body);
         Assert.AreEqual(
-            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required.",
-            document.RootElement.GetProperty("error").GetString());
+            expected: "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'jobId' are required.",
+            actual: document.RootElement.GetProperty("error").GetString());
     }
 
     [TestMethod]
@@ -105,12 +105,12 @@ public class AdditionalConnectorFunctionsTests
             .CreateJobAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
         using var document = JsonDocument.Parse(body);
         Assert.AreEqual(
-            "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'runbookName' are required.",
-            document.RootElement.GetProperty("error").GetString());
+            expected: "Query parameters 'subscriptionId', 'resourceGroup', 'automationAccount', and 'runbookName' are required.",
+            actual: document.RootElement.GetProperty("error").GetString());
     }
 
     [TestMethod]
@@ -177,7 +177,7 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
-    public async Task Office365GroupsListGroupsAsync_WithPagedResponse_ReturnsAllGroups()
+    public async Task Office365GroupsListGroupsAsync_WithPagedResponse_ReturnsOnlyFirstPage()
     {
         var responseBodies = new Queue<string>(new[]
         {
@@ -199,9 +199,9 @@ public class AdditionalConnectorFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("group-1", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("group-2", StringComparison.Ordinal));
-        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+        Assert.IsTrue(condition: body.Contains("group-1", StringComparison.Ordinal));
+        Assert.IsFalse(condition: body.Contains("group-2", StringComparison.Ordinal));
+        Assert.AreEqual(expected: 1, actual: responseBodies.Count);
     }
 
     [TestMethod]
@@ -241,8 +241,8 @@ public class AdditionalConnectorFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("conversation-1", StringComparison.Ordinal));
-        Assert.IsTrue(body.Contains("conversation-2", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("conversation-1", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("conversation-2", StringComparison.Ordinal));
         Assert.AreEqual(expected: 0, actual: responseBodies.Count);
     }
 
@@ -250,9 +250,9 @@ public class AdditionalConnectorFunctionsTests
     public async Task OnenoteListNotebooksAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
-            (uri, credential, options) => new OnenoteClient(uri, credential, options),
+            (uri, credential, options) => new OneNoteClient(uri, credential, options),
             "[]");
-        var functions = new OnenoteFunctions(TestHelpers.CreateNullLogger<OnenoteFunctions>(), client);
+        var functions = new OneNoteFunctions(TestHelpers.CreateNullLogger<OneNoteFunctions>(), client);
         await AdditionalConnectorFunctionsTests
             .AssertSuccessAsync(functions.ListNotebooksAsync)
             .ConfigureAwait(continueOnCapturedContext: false);
@@ -310,6 +310,34 @@ public class AdditionalConnectorFunctionsTests
     }
 
     [TestMethod]
+    public async Task ShiftsListCrossTeamShiftsAsync_WithTwoPages_ReturnsShiftsFromBothPages()
+    {
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"@odata.nextLink\":\"https://test.azure.com/shifts?page=2\",\"value\":[{\"id\":\"first-page-shift\"}]}",
+            "{\"value\":[{\"id\":\"second-page-shift\"}]}",
+        });
+        using var client = AdditionalConnectorFunctionsTests.CreateClient(
+            (uri, credential, options) => new ShiftsClient(uri, credential, options),
+            () => new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(responseBodies.Dequeue()),
+            });
+        var functions = new ShiftsFunctions(TestHelpers.CreateNullLogger<ShiftsFunctions>(), client);
+
+        var response = await functions
+            .ListCrossTeamShiftsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        Assert.IsTrue(condition: body.Contains("first-page-shift", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("second-page-shift", StringComparison.Ordinal));
+        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+    }
+
+    [TestMethod]
     public async Task TodoListTaskListsAsync_WithValidResponse_ReturnsOk()
     {
         using var client = AdditionalConnectorFunctionsTests.CreateClient(
@@ -334,8 +362,8 @@ public class AdditionalConnectorFunctionsTests
             .ListSecretsAsync(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadGateway, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     private static TClient CreateClient<TClient>(
@@ -368,7 +396,7 @@ public class AdditionalConnectorFunctionsTests
         var response = await operation(TestHelpers.CreateRequest(), CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.IsTrue(((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":true", StringComparison.Ordinal));
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        Assert.IsTrue(condition: ((MockHttpResponseData)response).GetBodyAsString().Contains("\"success\":true", StringComparison.Ordinal));
     }
 }

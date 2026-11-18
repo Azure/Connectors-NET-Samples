@@ -38,9 +38,10 @@ Each connector's sample functions **must** be in a dedicated file named `{Connec
 
 | Connector | File |
 |-----------|------|
-| Office365, SharePoint, Teams | `ConnectorFunctions.cs` (legacy combined file — to be refactored) |
+| Office 365 Outlook | `Office365Functions.cs` |
 | OneDrive for Business | `OneDriveFunctions.cs` |
-| MS Graph Groups & Users | `MsGraphFunctions.cs` |
+| MS Graph Groups & Users | `MSGraphFunctions.cs` |
+| ServiceNow | `ServiceNowFunctions.cs` |
 
 **Rules:**
 
@@ -48,6 +49,7 @@ Each connector's sample functions **must** be in a dedicated file named `{Connec
 - DI registration of the connector client stays in `Program.cs`
 - Configuration options class stays in `Configuration/ConnectorOptions.cs`
 - New connectors must follow this pattern; do NOT add functions to `ConnectorFunctions.cs`
+- A connector added after the first release must not make its setting required at host startup. Existing deployments get new app settings only when someone adds them, and the local settings template is not published. Validate the setting when the client is first resolved, and check that the host still starts without it.
 
 ### Naming and Qualification
 

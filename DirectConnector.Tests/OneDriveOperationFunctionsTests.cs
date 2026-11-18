@@ -26,7 +26,7 @@ public class OneDriveOperationFunctionsTests
         Assert.AreEqual(expected: "/connection/datasets/default/files/owned%252Ffile", actual: handler.Path);
         Assert.AreEqual(expected: 1, actual: handler.Requests);
         using var body = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
-        Assert.IsTrue(body.RootElement.GetProperty("value").GetProperty("deleted").GetBoolean());
+        Assert.IsTrue(condition: body.RootElement.GetProperty("value").GetProperty("deleted").GetBoolean());
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public class OneDriveOperationFunctionsTests
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         using var body = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
         Assert.AreEqual(expected: 403, actual: body.RootElement.GetProperty("statusCode").GetInt32());
-        Assert.IsFalse(body.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(condition: body.RootElement.GetProperty("success").GetBoolean());
     }
 
     [TestMethod]

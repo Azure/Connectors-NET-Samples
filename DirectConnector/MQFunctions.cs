@@ -5,8 +5,8 @@
 using System.Net;
 using System.Text.Json;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Mq;
-using Azure.Connectors.Sdk.Mq.Models;
+using Azure.Connectors.Sdk.MQ;
+using Azure.Connectors.Sdk.MQ.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -15,25 +15,25 @@ namespace DirectConnector;
 
 /// <summary>
 /// Azure Functions demonstrating IBM MQ operations using the generated
-/// <see cref="MqClient"/> from the Azure Connectors SDK.
+/// <see cref="MQClient"/> from the Azure Connectors SDK.
 /// </summary>
 /// <remarks>
 /// IBM MQ uses parameter-based auth (server, queue manager, channel, credentials).
 /// The connection must be created with parameterValues — no OAuth consent flow.
 /// </remarks>
-public class MqFunctions
+public class MQFunctions
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly ILogger<MqFunctions> _logger;
-    private readonly MqClient _mqClient;
+    private readonly ILogger<MQFunctions> _logger;
+    private readonly MQClient _mqClient;
 
-    public MqFunctions(
-        ILogger<MqFunctions> logger,
-        MqClient mqClient)
+    public MQFunctions(
+        ILogger<MQFunctions> logger,
+        MQClient mqClient)
     {
         this._logger = logger;
         this._mqClient = mqClient;
@@ -47,7 +47,7 @@ public class MqFunctions
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "mq/send")] HttpRequestData request,
         CancellationToken cancellationToken)
     {
-        this._logger.LogInformation("MqSendMessage: Using generated MqClient from SDK.");
+        this._logger.LogInformation("MqSendMessage: Using generated MQClient from SDK.");
 
         try
         {
@@ -56,7 +56,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqSendRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqSendRequest>(body, MQFunctions.JsonOptions);
 
             if (input == null || string.IsNullOrEmpty(input.Message))
             {
@@ -142,7 +142,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReadAsync(
@@ -213,7 +213,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqBatchRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqBatchRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReadAllAsync(
@@ -288,7 +288,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .ReceiveAsync(
@@ -359,7 +359,7 @@ public class MqFunctions
                 .ReadToEndAsync(cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MqFunctions.JsonOptions);
+            var input = JsonSerializer.Deserialize<MqQueueRequest>(body, MQFunctions.JsonOptions);
 
             var result = await this._mqClient
                 .DeleteAsync(

@@ -4,17 +4,17 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk.Commondataservice;
+using Azure.Connectors.Sdk.CommonDataService;
 
 namespace DirectConnector.Tests;
 
 [TestClass]
 public class DataverseFunctionsTests
 {
-    private static CommondataserviceClient CreateMockedClient(Func<HttpResponseMessage> responseFactory)
+    private static CommonDataServiceClient CreateMockedClient(Func<HttpResponseMessage> responseFactory)
     {
         var (credential, options) = TestHelpers.CreateMockedClientSetup(responseFactory);
-        return new CommondataserviceClient(
+        return new CommonDataServiceClient(
             connectionRuntimeUrl: new Uri("https://test.azure.com/connection"),
             credential: credential,
             options: options);
@@ -38,9 +38,9 @@ public class DataverseFunctionsTests
         var response = await functions.GetNextPageAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("next-page-item", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("next-page-item", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -57,11 +57,11 @@ public class DataverseFunctionsTests
         var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        StringAssert.Contains(body, "\"itemCount\":1");
-        StringAssert.Contains(body, "Dataverse trigger payload deserialized.");
-        StringAssert.Contains(body, "ConnectorTriggerPayload");
+        StringAssert.Contains(value: body, substring: "\"itemCount\":1");
+        StringAssert.Contains(value: body, substring: "Dataverse trigger payload deserialized.");
+        StringAssert.Contains(value: body, substring: "ConnectorTriggerPayload");
     }
 
     [TestMethod]
@@ -76,11 +76,11 @@ public class DataverseFunctionsTests
         var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        StringAssert.Contains(body, "\"itemCount\":0");
-        StringAssert.Contains(body, "Dataverse trigger payload discarded.");
-        StringAssert.Contains(body, "ConnectorTriggerPayload");
+        StringAssert.Contains(value: body, substring: "\"itemCount\":0");
+        StringAssert.Contains(value: body, substring: "Dataverse trigger payload discarded.");
+        StringAssert.Contains(value: body, substring: "ConnectorTriggerPayload");
     }
 
     [TestMethod]
@@ -98,11 +98,11 @@ public class DataverseFunctionsTests
         var response = await functions.OnNewItemsAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        StringAssert.Contains(body, "\"itemCount\":0");
-        StringAssert.Contains(body, "Dataverse trigger payload discarded.");
-        StringAssert.Contains(body, "ConnectorTriggerPayload");
+        StringAssert.Contains(value: body, substring: "\"itemCount\":0");
+        StringAssert.Contains(value: body, substring: "Dataverse trigger payload discarded.");
+        StringAssert.Contains(value: body, substring: "ConnectorTriggerPayload");
     }
 
     [TestMethod]
@@ -133,9 +133,9 @@ public class DataverseFunctionsTests
             cancellationToken: CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("attachment-id", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("attachment-id", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -157,7 +157,7 @@ public class DataverseFunctionsTests
             cancellationToken: CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -211,7 +211,7 @@ public class DataverseFunctionsTests
         var response = await functions.ListItemsAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -230,7 +230,7 @@ public class DataverseFunctionsTests
         var response = await functions.CreateItemAsync(request, CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 
     [TestMethod]
@@ -252,6 +252,6 @@ public class DataverseFunctionsTests
             cancellationToken: CancellationToken.None)
             .ConfigureAwait(continueOnCapturedContext: false);
 
-        Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.AreEqual(expected: HttpStatusCode.BadRequest, actual: response.StatusCode);
     }
 }

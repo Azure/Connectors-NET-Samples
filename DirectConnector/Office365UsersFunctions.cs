@@ -88,7 +88,7 @@ public class Office365UsersFunctions
         try
         {
             var profile = await this._office365UsersClient
-                .UserProfileAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
+                .UserProfileAsync(userUpn: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -137,7 +137,7 @@ public class Office365UsersFunctions
         try
         {
             var manager = await this._office365UsersClient
-                .ManagerAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
+                .ManagerAsync(userUpn: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);
@@ -186,7 +186,7 @@ public class Office365UsersFunctions
         try
         {
             var reports = await this._office365UsersClient
-                .DirectReportsAsync(userUPN: userPrincipalName, cancellationToken: cancellationToken)
+                .DirectReportsAsync(userUpn: userPrincipalName, cancellationToken: cancellationToken)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var response = request.CreateResponse(HttpStatusCode.OK);

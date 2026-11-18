@@ -572,7 +572,7 @@ public class OneDriveFunctions
                 {
                     success = true,
                     message = $"Share link created for file '{input.FileId}'.",
-                    webUrl = sharingLink?.WebURL
+                    webUrl = sharingLink?.WebUrl
                 })
                 .ConfigureAwait(continueOnCapturedContext: false);
 

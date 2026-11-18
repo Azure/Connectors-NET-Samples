@@ -3,6 +3,7 @@
 //------------------------------------------------------------
 
 using Azure.Connectors.Sdk.Shifts;
+using Azure.Connectors.Sdk.Shifts.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -46,13 +47,23 @@ public class ShiftsFunctions
             request,
             this._logger,
             operationName: "ShiftsListCrossTeamShifts",
-            operation: () => this._client
-                .ListShiftsCrossTeamAsync(
-                    fromStartTime: request.Query["fromStartTime"],
-                    toEndTime: request.Query["toEndTime"],
-                    userDisplayName: request.Query["userDisplayName"],
-                    pageSize: 20,
-                    cancellationToken: cancellationToken),
+            operation: async () =>
+            {
+                var shifts = new List<ShiftResponse>();
+                await foreach (var shift in this._client
+                    .ListShiftsCrossTeamAsync(
+                        fromStartTime: request.Query["fromStartTime"],
+                        toEndTime: request.Query["toEndTime"],
+                        userDisplayName: request.Query["userDisplayName"],
+                        pageSize: 20,
+                        cancellationToken: cancellationToken)
+                    .ConfigureAwait(continueOnCapturedContext: false))
+                {
+                    shifts.Add(shift);
+                }
+
+                return new ListShiftsCrossTeamResponse { Value = shifts };
+            },
             cancellationToken);
     }
 }

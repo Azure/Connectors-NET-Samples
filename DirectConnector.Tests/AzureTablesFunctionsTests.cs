@@ -4,7 +4,7 @@
 
 using System.Net;
 using System.Text.Json;
-using Azure.Connectors.Sdk.Azuretables;
+using Azure.Connectors.Sdk.AzureTables;
 using Azure.Core.Pipeline;
 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -17,11 +17,13 @@ public class AzureTablesFunctionsTests
     [Owner("daviburg")]
     [DataRow("GetStorageAccounts", "GET", "/v2/GetStorageAccounts")]
     [DataRow("ListTables", "GET", "/v2/storageAccounts/account/tables")]
+    [DataRow("CreateTable", "POST", "/v2/storageAccounts/account/tables")]
     [DataRow("GetTable", "GET", "/v2/storageAccounts/account/tables/SdkTable")]
     [DataRow("DeleteTable", "DELETE", "/v2/storageAccounts/account/tables/SdkTable")]
     [DataRow("GetEntities", "GET", "/v2/storageAccounts/account/tables/SdkTable/entities")]
     [DataRow("GetEntity", "GET", "/v2/storageAccounts/account/tables/SdkTable/entities(PartitionKey='partition',RowKey='row')")]
     [DataRow("CreateEntity", "POST", "/v2/storageAccounts/account/tables/SdkTable/entities")]
+    [DataRow("DeleteEntity", "DELETE", "/v2/storageAccounts/account/tables/SdkTable/entities(PartitionKey='partition',RowKey='row')")]
     [DataRow("MergeEntity", "PATCH", "/v2/storageAccounts/account/tables/SdkTable/entities(PartitionKey='partition',RowKey='row')")]
     [DataRow("ReplaceEntity", "PUT", "/v2/storageAccounts/account/tables/SdkTable/entities(PartitionKey='partition',RowKey='row')")]
     [DataRow("InsertMergeEntity", "PATCH", "/v2/storageAccounts/account/tables/SdkTable/entities(PartitionKey='partition',RowKey='row')")]
@@ -54,8 +56,12 @@ public class AzureTablesFunctionsTests
         Assert.AreEqual(expected: "/connection" + path, actual: Uri.UnescapeDataString(handler.Path!));
         Assert.AreEqual(expected: 1, actual: handler.RequestCount);
         using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
-        Assert.IsTrue(result.RootElement.GetProperty("success").GetBoolean());
-        if (operation is "CreateEntity" or "MergeEntity" or "ReplaceEntity" or "InsertMergeEntity" or "InsertReplaceEntity")
+        Assert.IsTrue(condition: result.RootElement.GetProperty("success").GetBoolean());
+        if (string.Equals(operation, "CreateTable", StringComparison.Ordinal))
+        {
+            Assert.AreEqual(expected: "SdkTable", actual: handler.Body);
+        }
+        else if (operation is "CreateEntity" or "MergeEntity" or "ReplaceEntity" or "InsertMergeEntity" or "InsertReplaceEntity")
         {
             using var body = JsonDocument.Parse(handler.Body!);
             Assert.AreEqual(expected: "synthetic", actual: body.RootElement.GetProperty("Message").GetString());
@@ -69,11 +75,13 @@ public class AzureTablesFunctionsTests
     }
 
     [TestMethod]
+    [DataRow("CreateTable")]
     [DataRow("GetTable")]
     [DataRow("DeleteTable")]
     [DataRow("GetEntities")]
     [DataRow("GetEntity")]
     [DataRow("CreateEntity")]
+    [DataRow("DeleteEntity")]
     [DataRow("MergeEntity")]
     [DataRow("ReplaceEntity")]
     [DataRow("InsertMergeEntity")]
@@ -123,7 +131,7 @@ public class AzureTablesFunctionsTests
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         using var result = JsonDocument.Parse(((MockHttpResponseData)response).GetBodyAsString());
         Assert.AreEqual(expected: 403, actual: result.RootElement.GetProperty("statusCode").GetInt32());
-        Assert.IsFalse(result.RootElement.GetProperty("success").GetBoolean());
+        Assert.IsFalse(condition: result.RootElement.GetProperty("success").GetBoolean());
     }
 
     [TestMethod]
@@ -140,6 +148,33 @@ public class AzureTablesFunctionsTests
         StringAssert.Contains(value: Uri.UnescapeDataString(handler.Query!), substring: "$select=RowKey");
     }
 
+    [TestMethod]
+    public async Task GetEntitiesAsync_WithTwoPages_ReturnsEntitiesFromBothPages()
+    {
+        var responseBodies = new Queue<string>(new[]
+        {
+            "{\"value\":[{\"PartitionKey\":\"p1\",\"RowKey\":\"first-page-row\"}],\"nextLink\":\"https://test.azure.com/connection/next\"}",
+            "{\"value\":[{\"PartitionKey\":\"p1\",\"RowKey\":\"second-page-row\"}]}",
+        });
+        var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(content: responseBodies.Dequeue()),
+        });
+        using var client = new AzureTablesClient(connectionRuntimeUrl: new Uri(uriString: "https://test.azure.com/connection"), credential: setup.Credential, options: setup.Options);
+        var functions = new AzureTablesFunctions(TestHelpers.CreateNullLogger<AzureTablesFunctions>(), client);
+
+        var response = await functions
+            .GetEntitiesAsync(TestHelpers.CreateRequest(url: "https://localhost/api/test?storageAccount=account&table=SdkTable"), CancellationToken.None)
+            .ConfigureAwait(continueOnCapturedContext: false);
+
+        Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
+        var body = ((MockHttpResponseData)response).GetBodyAsString();
+        StringAssert.Contains(value: body, substring: "first-page-row");
+        StringAssert.Contains(value: body, substring: "second-page-row");
+        Assert.AreEqual(expected: 0, actual: responseBodies.Count);
+    }
+
     private static AzureTablesClient CreateClient(RecordingHandler handler)
     {
         var setup = TestHelpers.CreateMockedClientSetup(responseFactory: () => new HttpResponseMessage(statusCode: HttpStatusCode.OK));
@@ -153,11 +188,13 @@ public class AzureTablesFunctionsTests
         {
             "GetStorageAccounts" => functions.AzureTablesListStorageAccountsAsync(request, CancellationToken.None),
             "ListTables" => functions.AzureTablesListTablesAsync(request, CancellationToken.None),
+            "CreateTable" => functions.CreateTableAsync(request, CancellationToken.None),
             "GetTable" => functions.GetTableAsync(request, CancellationToken.None),
             "DeleteTable" => functions.DeleteTableAsync(request, CancellationToken.None),
             "GetEntities" => functions.GetEntitiesAsync(request, CancellationToken.None),
             "GetEntity" => functions.GetEntityAsync(request, CancellationToken.None),
             "CreateEntity" => functions.CreateEntityAsync(request, CancellationToken.None),
+            "DeleteEntity" => functions.DeleteEntityAsync(request, CancellationToken.None),
             "MergeEntity" => functions.MergeEntityAsync(request, CancellationToken.None),
             "ReplaceEntity" => functions.ReplaceEntityAsync(request, CancellationToken.None),
             "InsertMergeEntity" => functions.InsertMergeEntityAsync(request, CancellationToken.None),

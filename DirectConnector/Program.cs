@@ -4,8 +4,9 @@
 
 using System.Diagnostics;
 using Azure.Connectors.Sdk;
-using Azure.Connectors.Sdk.Commondataservice;
+using Azure.Connectors.Sdk.CommonDataService;
 using Azure.Connectors.Sdk.Http;
+using Azure.Connectors.Sdk.ServiceNow;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
@@ -33,10 +34,10 @@ var host = new HostBuilder()
         services.AddSharePointOnlineClient(configuration.GetSection("Connectors:SharePoint"));
         services.AddTeamsClient(configuration.GetSection("Connectors:Teams"));
         services.AddOneDriveForBusinessClient(configuration.GetSection("Connectors:OneDrive"));
-        services.AddMsGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MsGraph"));
+        services.AddMSGraphGroupsAndUsersClient(configuration.GetSection("Connectors:MSGraph"));
         services.AddAzureBlobClient(configuration.GetSection("Connectors:AzureBlob"));
         services.AddSmtpClient(configuration.GetSection("Connectors:Smtp"));
-        services.AddMqClient(configuration.GetSection("Connectors:Mq"));
+        services.AddMQClient(configuration.GetSection("Connectors:MQ"));
         services.AddOffice365UsersClient(configuration.GetSection("Connectors:Office365Users"));
         services.AddAzureMonitorLogsClient(configuration.GetSection("Connectors:AzureMonitorLogs"));
         services.AddArmClient(configuration.GetSection("Connectors:Arm"));
@@ -47,7 +48,7 @@ var host = new HostBuilder()
         services.AddUniversalPrintClient(configuration.GetSection("Connectors:UniversalPrint"));
         services.AddAzureQueuesClient(configuration.GetSection("Connectors:AzureQueues"));
         services.AddAzureTablesClient(configuration.GetSection("Connectors:AzureTables"));
-        services.AddDocumentDbClient(configuration.GetSection("Connectors:DocumentDB"));
+        services.AddDocumentDBClient(configuration.GetSection("Connectors:DocumentDB"));
         services.AddEventHubsClient(configuration.GetSection("Connectors:EventHubs"));
         services.AddOutlookClient(configuration.GetSection("Connectors:Outlook"));
         services.AddServiceBusConnectorClient(configuration.GetSection("Connectors:ServiceBus"));
@@ -60,7 +61,7 @@ var host = new HostBuilder()
         services.AddMicrosoftBookingsClient(configuration.GetSection("Connectors:MicrosoftBookings"));
         services.AddOffice365GroupsClient(configuration.GetSection("Connectors:Office365Groups"));
         services.AddOffice365GroupsMailClient(configuration.GetSection("Connectors:Office365GroupsMail"));
-        services.AddOnenoteClient(configuration.GetSection("Connectors:Onenote"));
+        services.AddOneNoteClient(configuration.GetSection("Connectors:OneNote"));
         services.AddPowerBIClient(configuration.GetSection("Connectors:PowerBI"));
         services.AddShiftsClient(configuration.GetSection("Connectors:Shifts"));
         services.AddTodoClient(configuration.GetSection("Connectors:Todo"));
@@ -73,17 +74,22 @@ var host = new HostBuilder()
                 message: "Configuration value 'Connectors:Dataverse:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
         }
 
-        var dataverseManagedIdentityClientId = dataverseConfiguration["ManagedIdentityClientId"];
-        services.AddSingleton<CommondataserviceClient>(serviceProvider =>
-        {
-            var credential = dataverseManagedIdentityClientId != null
-                ? string.IsNullOrWhiteSpace(dataverseManagedIdentityClientId)
-                    ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
-                    : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(dataverseManagedIdentityClientId.Trim()))
-                : serviceProvider.GetService<TokenCredential>()
-                    ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+        services.AddSingleton<CommonDataServiceClient>(serviceProvider =>
+            new CommonDataServiceClient(dataverseConnectionRuntimeUri, ResolveCredential(dataverseConfiguration, serviceProvider)));
 
-            return new CommondataserviceClient(dataverseConnectionRuntimeUri, credential);
+        // NOTE: ServiceNow has no generated DI helper in this SDK version. Its URL is validated when a ServiceNow
+        // function first resolves the client, so a deployment without this newer setting still starts the other samples.
+        var serviceNowConfiguration = configuration.GetSection("Connectors:ServiceNow");
+        services.AddSingleton<ServiceNowClient>(serviceProvider =>
+        {
+            var serviceNowConnectionRuntimeUrl = serviceNowConfiguration["ConnectionRuntimeUrl"]?.Trim();
+            if (!Uri.TryCreate(serviceNowConnectionRuntimeUrl, UriKind.Absolute, out var serviceNowConnectionRuntimeUri))
+            {
+                throw new InvalidOperationException(
+                    message: "Configuration value 'Connectors:ServiceNow:ConnectionRuntimeUrl' is required and must be a valid absolute URI.");
+            }
+
+            return new ServiceNowClient(serviceNowConnectionRuntimeUri, ResolveCredential(serviceNowConfiguration, serviceProvider));
         });
 
         // SDK v0.12.0: Subscribe to per-connector ActivitySource for OpenTelemetry tracing.
@@ -114,3 +120,15 @@ var host = new HostBuilder()
     .Build();
 
 host.Run();
+
+// NOTE: Matches the SDK's DI helpers: an explicit ManagedIdentityClientId wins, then a registered TokenCredential, then system-assigned managed identity.
+static TokenCredential ResolveCredential(IConfiguration connectorConfiguration, IServiceProvider serviceProvider)
+{
+    var managedIdentityClientId = connectorConfiguration["ManagedIdentityClientId"]?.Trim();
+    return managedIdentityClientId != null
+        ? managedIdentityClientId.Length == 0
+            ? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned)
+            : new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(managedIdentityClientId))
+        : serviceProvider.GetService<TokenCredential>()
+            ?? new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+}

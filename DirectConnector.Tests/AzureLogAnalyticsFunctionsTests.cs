@@ -48,7 +48,7 @@ public class AzureLogAnalyticsFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("TimeGenerated", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("TimeGenerated", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -108,7 +108,7 @@ public class AzureLogAnalyticsFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.BadGateway, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("\"success\":false", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("\"success\":false", StringComparison.Ordinal));
     }
 
     [TestMethod]
@@ -139,7 +139,7 @@ public class AzureLogAnalyticsFunctionsTests
 
         Assert.AreEqual(expected: HttpStatusCode.OK, actual: response.StatusCode);
         var body = ((MockHttpResponseData)response).GetBodyAsString();
-        Assert.IsTrue(body.Contains("columns", StringComparison.Ordinal));
+        Assert.IsTrue(condition: body.Contains("columns", StringComparison.Ordinal));
     }
 
     [TestMethod]

@@ -45,7 +45,7 @@ public class ConnectorOptions
     /// MS Graph Groups and Users connector options.
     /// </summary>
     [ValidateObjectMembers]
-    public MsGraphOptions MsGraph { get; set; } = new MsGraphOptions();
+    public MSGraphOptions MSGraph { get; set; } = new MSGraphOptions();
 
     /// <summary>
     /// Azure Blob Storage connector options.
@@ -63,7 +63,7 @@ public class ConnectorOptions
     /// IBM MQ connector options.
     /// </summary>
     [ValidateObjectMembers]
-    public MqOptions Mq { get; set; } = new MqOptions();
+    public MQOptions MQ { get; set; } = new MQOptions();
 
     /// <summary>
     /// Office 365 Users connector options.
@@ -157,12 +157,12 @@ public class OneDriveOptions
 /// <summary>
 /// Configuration options for the MS Graph Groups and Users connector.
 /// </summary>
-public class MsGraphOptions
+public class MSGraphOptions
 {
     /// <summary>
     /// The API connection runtime URL for MS Graph Groups and Users.
     /// </summary>
-    [Required(ErrorMessage = "Connectors:MsGraph:ConnectionRuntimeUrl is required.")]
+    [Required(ErrorMessage = "Connectors:MSGraph:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>
@@ -214,12 +214,12 @@ public class SmtpOptions
 /// <summary>
 /// Configuration options for the IBM MQ connector.
 /// </summary>
-public class MqOptions
+public class MQOptions
 {
     /// <summary>
     /// The API connection runtime URL for IBM MQ.
     /// </summary>
-    [Required(ErrorMessage = "Connectors:Mq:ConnectionRuntimeUrl is required.")]
+    [Required(ErrorMessage = "Connectors:MQ:ConnectionRuntimeUrl is required.")]
     public string ConnectionRuntimeUrl { get; set; } = string.Empty;
 
     /// <summary>

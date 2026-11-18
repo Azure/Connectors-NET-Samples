@@ -219,13 +219,17 @@ public class SharePointFunctions
             // Using GetFileItemsAsync (which requires a library name) as a replacement.
             // Pass library name via query param ?library=, defaulting to "Documents".
             var libraryName = request.Query["library"] ?? "Documents";
-            var items = await this._sharePointClient
+            var items = new ItemsList { Value = [] };
+            await foreach (var item in this._sharePointClient
                 .GetFileItemsAsync(
                     siteAddress,
                     libraryName,
                     limitEntriesToFolder: string.IsNullOrEmpty(folderId) ? default : folderId,
                     cancellationToken: cancellationToken)
-                .ConfigureAwait(continueOnCapturedContext: false);
+                .ConfigureAwait(continueOnCapturedContext: false))
+            {
+                items.Value.Add(item);
+            }
 
             var response = request.CreateResponse(HttpStatusCode.OK);
             await response
